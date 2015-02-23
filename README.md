@@ -1,0 +1,44 @@
+Google Calendar Development
+Arista Networks
+===========================
+
+The purpose of this engagement is to deliver an application for the IT staff to push updates to Customer’s Google Calendar environment. The following Google Calendar elements will be updated within this application:
+
+Resource Information
+Event Participants
+
+The application will be made available as a web application to specific users within the Arista domain. Authentication and access will be controlled by a Google Group. The primary objectives of this application are to ensure Calendar Resource information updates are pushed to existing Calendar entries and to remove event participants from a Calendar entry once the corresponding user is removed from the Google Environment.
+
+Quick Start Guide
+-----------------
+1. Please replace this text with
+2. a short guide for any future developer
+3. to follow to get a head start on
+4. fixing your problems. :)
+
+Live Deployment Checklist
+-------------------------
+
+ 1. Please replace this text with
+ 2. steps to deploy this project
+ 3. live, including build processes,
+ 4. incidentals, etc.
+
+
+Warnings and Gotchas
+---------------------------
+ * Please add to this list any weirdness, hacks,
+ * installs, or other oddities needed for this Project.
+
+
+How to run Unit Tests
+-----------------------
+1. Please replace this text with
+2. a short guide for any future developer
+3. to follow to test any Unit Tests
+4. your code has.
+
+
+Further Documentation
+----------------------
+Place any other documentation you may create as you develop.
