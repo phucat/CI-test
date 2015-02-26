@@ -1,0 +1,15 @@
+{
+  "name": "Ferris Angular App",
+  "dependencies": {
+    "jquery": "2.0.x",
+    "angular": "1.2.x",
+    "angular-sanitize": "1.2.x",
+    "angular-route": "~1.2.x",
+    "angular-mocks": "1.2.x",
+    "angular-ui-select": "~0.9.0",
+    "select2": "~3.5.2",
+    "angular-animate": "1.2.x",
+    "cs-angular-utilities": "git@bitbucket.org:cloudsherpas/angular-utilities.git#master",
+    "bootstrap": "~3.3.2"
+  }
+}

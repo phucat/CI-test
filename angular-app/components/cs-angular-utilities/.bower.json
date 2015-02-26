@@ -1,0 +1,12 @@
+{
+  "name": "cs-angular-utilities",
+  "_release": "750c11e2f8",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "750c11e2f84e506892ec2a905229c377493bfd4f"
+  },
+  "_source": "git@bitbucket.org:cloudsherpas/angular-utilities.git",
+  "_target": "master",
+  "_originalSource": "git@bitbucket.org:cloudsherpas/angular-utilities.git"
+}

@@ -1,0 +1,17 @@
+{% raw %}
+<!doctype html>
+<html xmlns:ng="http://angularjs.org" ng-app>
+  <body>
+    <div ng-controller="test">
+        {{hello}}
+    </div>
+
+    <script src="/ng/components/angular/angular.js"></script>
+    <script type='text/javascript'>
+    var test = function($scope){
+        $scope.hello = 'world';
+    };
+    </script>
+  </body>
+</html>
+{% endraw %}

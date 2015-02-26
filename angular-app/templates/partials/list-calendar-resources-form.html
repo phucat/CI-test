@@ -1,0 +1,63 @@
+{%raw%}
+<div class="main">
+    <div class="wrapper">
+        <div class="content">
+            <div class="wrapper">
+                <header class="header">
+                    <h1 class="page-title">
+                        <span>User Manager</span>
+                    </h1>
+                </header>
+                <div class="body">
+                    <div class="form-group">
+                        <ui-select ng-model="user.selected" theme="select2"
+                            on-select="selectedUser($item, $model)"
+                            style="width: 300px;" title="Select a user">
+                        <ui-select-match placeholder="Select or search a User in the list...">{{$select.selected.name.fullName}}</ui-select-match>
+                        <span ng-if="loader == true">Loading users...</span>
+                        <ui-select-choices repeat="user in users | filter: $select.search">
+                          <span ng-bind-html="user.name.fullName | highlight: $select.search"></span>
+                          <small ng-bind-html="user.primaryEmail | highlight: $select.search"></small>
+                        </ui-select-choices>
+                      </ui-select>
+                       <button class="btn btn-default" ng-click="remove_user()">Remove</button>
+                       <div ng-if="loader == true"><img  src="data:image/gif;base64,R0lGODlhEAAQAPIAAP///wAAAMLCwkJCQgAAAGJiYoKCgpKSkiH/C05FVFNDQVBFMi4wAwEAAAAh/hpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh+QQJCgAAACwAAAAAEAAQAAADMwi63P4wyklrE2MIOggZnAdOmGYJRbExwroUmcG2LmDEwnHQLVsYOd2mBzkYDAdKa+dIAAAh+QQJCgAAACwAAAAAEAAQAAADNAi63P5OjCEgG4QMu7DmikRxQlFUYDEZIGBMRVsaqHwctXXf7WEYB4Ag1xjihkMZsiUkKhIAIfkECQoAAAAsAAAAABAAEAAAAzYIujIjK8pByJDMlFYvBoVjHA70GU7xSUJhmKtwHPAKzLO9HMaoKwJZ7Rf8AYPDDzKpZBqfvwQAIfkECQoAAAAsAAAAABAAEAAAAzMIumIlK8oyhpHsnFZfhYumCYUhDAQxRIdhHBGqRoKw0R8DYlJd8z0fMDgsGo/IpHI5TAAAIfkECQoAAAAsAAAAABAAEAAAAzIIunInK0rnZBTwGPNMgQwmdsNgXGJUlIWEuR5oWUIpz8pAEAMe6TwfwyYsGo/IpFKSAAAh+QQJCgAAACwAAAAAEAAQAAADMwi6IMKQORfjdOe82p4wGccc4CEuQradylesojEMBgsUc2G7sDX3lQGBMLAJibufbSlKAAAh+QQJCgAAACwAAAAAEAAQAAADMgi63P7wCRHZnFVdmgHu2nFwlWCI3WGc3TSWhUFGxTAUkGCbtgENBMJAEJsxgMLWzpEAACH5BAkKAAAALAAAAAAQABAAAAMyCLrc/jDKSatlQtScKdceCAjDII7HcQ4EMTCpyrCuUBjCYRgHVtqlAiB1YhiCnlsRkAAAOwAAAAAAAAAAAA=="/>
+                        </div>
+                   </div>
+                   <div>
+                        <h1>Event Result</h1>
+                        Called <strong>{{counter+0}}</strong> times selected
+                        <div>email = {{eventResult.item.primaryEmail}}</div>
+                        <div>Name = {{eventResult.item.name.fullName}}</div>
+                        <div>isAdmin = {{eventResult.item.isAdmin}}</div>
+                        <div>model = {{eventResult.model}}</div>
+                   </div>
+                </div>
+            </div>
+
+            <div class="wrapper">
+                <header class="header">
+                    <h1 class="page-title">
+                        <span>Resource Manager</span>
+                    </h1>
+                </header>
+                <div class="body">
+
+                    <button class="btn btn-default" ng-click="show_resourceModal({},'Create new resource')">Add New Resource</button>
+                    <br/><br/>
+                    <div class="" >
+                        <div ng-if="calendar_resources.length < 1"><img  src="data:image/gif;base64,R0lGODlhEAAQAPIAAP///wAAAMLCwkJCQgAAAGJiYoKCgpKSkiH/C05FVFNDQVBFMi4wAwEAAAAh/hpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh+QQJCgAAACwAAAAAEAAQAAADMwi63P4wyklrE2MIOggZnAdOmGYJRbExwroUmcG2LmDEwnHQLVsYOd2mBzkYDAdKa+dIAAAh+QQJCgAAACwAAAAAEAAQAAADNAi63P5OjCEgG4QMu7DmikRxQlFUYDEZIGBMRVsaqHwctXXf7WEYB4Ag1xjihkMZsiUkKhIAIfkECQoAAAAsAAAAABAAEAAAAzYIujIjK8pByJDMlFYvBoVjHA70GU7xSUJhmKtwHPAKzLO9HMaoKwJZ7Rf8AYPDDzKpZBqfvwQAIfkECQoAAAAsAAAAABAAEAAAAzMIumIlK8oyhpHsnFZfhYumCYUhDAQxRIdhHBGqRoKw0R8DYlJd8z0fMDgsGo/IpHI5TAAAIfkECQoAAAAsAAAAABAAEAAAAzIIunInK0rnZBTwGPNMgQwmdsNgXGJUlIWEuR5oWUIpz8pAEAMe6TwfwyYsGo/IpFKSAAAh+QQJCgAAACwAAAAAEAAQAAADMwi6IMKQORfjdOe82p4wGccc4CEuQradylesojEMBgsUc2G7sDX3lQGBMLAJibufbSlKAAAh+QQJCgAAACwAAAAAEAAQAAADMgi63P7wCRHZnFVdmgHu2nFwlWCI3WGc3TSWhUFGxTAUkGCbtgENBMJAEJsxgMLWzpEAACH5BAkKAAAALAAAAAAQABAAAAMyCLrc/jDKSatlQtScKdceCAjDII7HcQ4EMTCpyrCuUBjCYRgHVtqlAiB1YhiCnlsRkAAAOwAAAAAAAAAAAA=="/>
+                        </div>
+                        <ul ng-repeat="model in calendar_resources">
+                            <a href="" ng-click="show_resourceModal(model,'Update resource')">
+                                {{model.resourceCommonName}} - {{model.resourceDescription}}
+                            </a>
+                        </ul>
+                   </div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+</div>
+{%endraw%}

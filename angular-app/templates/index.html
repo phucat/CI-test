@@ -1,0 +1,134 @@
+<!doctype html>
+<html xmlns:ng="http://angularjs.org" ng-app="app">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Arista Networks, Inc. - Calendar Resource Remover </title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- replace with application css -->
+    <link rel="stylesheet" href="/ng/components/bootstrap/dist/css/bootstrap.min.css" type="text/css">
+    <link rel="stylesheet" href="/ng/components/angular-ui-select/dist/select.min.css" type="text/css">
+    <link rel="stylesheet" href="/ng/components/select2/select2.css">
+    <!-- jQuery / Bootstrap scripts -->
+    <script src="/ng/components/jquery/jquery.min.js"></script>
+</head>
+<body ng-controller="MainCtrl">
+
+    <!-- Markup -->
+
+    <div class="container">
+        <div ng-view class="view-frame"></div>
+    </div>
+
+    <!--
+        Modal: Login
+    -->
+    <div class="modal" id="loginModal" x-modal="loginModal" ng-controller="LoginModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Login</h4>
+                </div>
+                <div class="modal-body">
+                    <a class="btn btn-default btn-lg btn-block" href="/api/users/login"><i class="fa fa-google"></i> Log in using Google</a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="resourceModal" x-modal="resourceModal" ng-controller="ResourceModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title" ng-bind="model.title"></h4>
+                </div>
+                <form name="calendar_resource_form" ng-submit="save()" novalidate>
+                    <div class="modal-body">
+                        <div class="form-group" >
+                            <label>Resource ID</label>
+                            <input type="text" name="resourceId" class="form-control" ng-model="model.resourceId" ng-disabled="model.title == 'Update resource'" required/>
+                            <span ng-show="calendar_resource_form.resourceId.$dirty && calendar_resource_form.resourceId.$error.required" class="help-block">Resource ID is required</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Resource Name</label>
+                            <input type="text" name="resourceCommonName" class="form-control" ng-model="model.resourceCommonName" required/>
+                            <span ng-show="calendar_resource_form.resourceCommonName.$dirty && calendar_resource_form.resourceCommonName.$error.required" class="help-block">Resource Name is required</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Resource Type</label>
+                            <input type="text" name="resourceType" class="form-control" ng-model="model.resourceType" required/>
+                            <span ng-show="calendar_resource_form.resourceType.$dirty && calendar_resource_form.resourceType.$error.required" class="help-block">Resource Type is required</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea class="form-control input-sm" name="resourceDescription"
+                            style="width:558px;height:108px;" ng-model="model.resourceDescription"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary" ng-disabled="calendar_resource_form.$invalid || dataLoading">Save</button>
+                        <img ng-if="dataLoading" src="data:image/gif;base64,R0lGODlhEAAQAPIAAP///wAAAMLCwkJCQgAAAGJiYoKCgpKSkiH/C05FVFNDQVBFMi4wAwEAAAAh/hpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh+QQJCgAAACwAAAAAEAAQAAADMwi63P4wyklrE2MIOggZnAdOmGYJRbExwroUmcG2LmDEwnHQLVsYOd2mBzkYDAdKa+dIAAAh+QQJCgAAACwAAAAAEAAQAAADNAi63P5OjCEgG4QMu7DmikRxQlFUYDEZIGBMRVsaqHwctXXf7WEYB4Ag1xjihkMZsiUkKhIAIfkECQoAAAAsAAAAABAAEAAAAzYIujIjK8pByJDMlFYvBoVjHA70GU7xSUJhmKtwHPAKzLO9HMaoKwJZ7Rf8AYPDDzKpZBqfvwQAIfkECQoAAAAsAAAAABAAEAAAAzMIumIlK8oyhpHsnFZfhYumCYUhDAQxRIdhHBGqRoKw0R8DYlJd8z0fMDgsGo/IpHI5TAAAIfkECQoAAAAsAAAAABAAEAAAAzIIunInK0rnZBTwGPNMgQwmdsNgXGJUlIWEuR5oWUIpz8pAEAMe6TwfwyYsGo/IpFKSAAAh+QQJCgAAACwAAAAAEAAQAAADMwi6IMKQORfjdOe82p4wGccc4CEuQradylesojEMBgsUc2G7sDX3lQGBMLAJibufbSlKAAAh+QQJCgAAACwAAAAAEAAQAAADMgi63P7wCRHZnFVdmgHu2nFwlWCI3WGc3TSWhUFGxTAUkGCbtgENBMJAEJsxgMLWzpEAACH5BAkKAAAALAAAAAAQABAAAAMyCLrc/jDKSatlQtScKdceCAjDII7HcQ4EMTCpyrCuUBjCYRgHVtqlAiB1YhiCnlsRkAAAOwAAAAAAAAAAAA=="/>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="removerModal" x-modal="removerModal" ng-controller="RemoverModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Remove user from all events</h4>
+                </div>
+                <div class="modal-body">
+                    <form name="calendar_resource" novalidate>
+                        <div class="form-group">
+                            <label>Comment</label>
+                            <textarea class="form-control input-sm" name="comment"
+                            style="width:558px;height:108px;" ng-model="model.comment"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" ng-click="save()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- Scripts -->
+    <!-- Angular -->
+    <script src="/ng/components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="/ng/components/angular/angular.min.js"></script>
+    <script src="/ng/components/angular-route/angular-route.min.js"></script>
+    <script src="/ng/components/angular-sanitize/angular-sanitize.min.js"></script>
+    <script src="/ng/components/angular-animate/angular-animate.min.js"></script>
+    <script src="/ng/components/angular-ui-select/dist/select.min.js"></script>
+    <script src="/ng/components/select2/select2.min.js"></script>
+    <script src="/ng/components/angular-animate/angular-animate.min.js"></script>
+    <!-- CS Utilities -->
+    <script src="/ng/components/cs-angular-utilities/loading.js"></script>
+    <script src="/ng/components/cs-angular-utilities/pubsub.js"></script>
+    <script src="/ng/components/cs-angular-utilities/modal.js"></script>
+    <script src="/ng/components/cs-angular-utilities/passive-messenger.js"></script>
+    <link rel="stylesheet" href="/ng/components/cs-angular-utilities/passive-messenger.css" type="text/css">
+
+    <!-- Application Code -->
+    <script src="/ng/app.js"></script>
+    <script src="/ng/config.js"></script>
+
+    <!-- Services -->
+    <script src="/ng/services/arista_rest.js"></script>
+    <script src="/ng/services/arista_factory.js"></script>
+
+    <script src="/ng/controllers/main_ctrl.js"></script>
+
+</body>
+</html>
