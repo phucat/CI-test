@@ -29,21 +29,28 @@ def get_all_events(email):
     logging.info('calendar: get_all_events')
     response = None
     page_token = None
+
     while True:
-        calendar = build_client(email)
-        param = {'calendarId': email, 'timeZone': 'GMT', 'singleEvents': True, 'showDeleted': True, 'pageToken': page_token}
-        events = calendar.events().list(**param).execute()
+        try:
+            calendar = build_client(email)
+            param = {'calendarId': email, 'timeZone': 'GMT', 'singleEvents': True, 'showDeleted': True, 'pageToken': page_token}
 
-        if not page_token:
-            response = events
-        else:
-            response['items'].extend(events['items'])
+            events = calendar.events().list(**param).execute()
 
-        logging.info("google event response ==> %s" % response)
+            if not page_token:
+                response = events
+            else:
+                response['items'].extend(events['items'])
 
-        page_token = events.get('nextPageToken')
-        if not page_token:
-            break
+            logging.info("google event response ==> %s" % response)
+
+            page_token = events.get('nextPageToken')
+            if not page_token:
+                break
+
+        except urllib2.HTTPError, err:
+            logging.error(err)
+            continue
 
     return response
 
@@ -128,9 +135,19 @@ def create_event(email, post):
 def update_event(event_id, email, post):
     logging.info('calendar: update_event')
     logging.info('Updating Google event: [' + event_id + '].')
-    calendar = build_client(email)
-    response = calendar.events().patch(calendarId=email, eventId=event_id, body=post).execute()
-    return response
+    try:
+        calendar = build_client(email)
+        response = calendar.events().patch(calendarId=email, eventId=event_id, body=post).execute()
+        logging.info('CALENDAR Update EVENT RESPONSE =================')
+        logging.info(response)
+        logging.info('CALENDAR Update EVENT RESPONSE =================')
+        return response
+    except Exception, e:
+        logging.error('Error on Update EVENT:')
+        logging.error(e)
+        logging.error('Error on Update EVENT:')
+
+
 
 
 def move_event(event_id, owner_email, new_owner_email):

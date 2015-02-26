@@ -85,7 +85,7 @@ settings['appstats'] = {
 
 
 settings['google_directory'] = {
-    'customer': 'richmond.gozarin@sherpatest.com'
+    'domain': 'sherpatest.com'
 }
 
 settings['admin_account'] = {

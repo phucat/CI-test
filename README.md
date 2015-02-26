@@ -11,10 +11,12 @@ The application will be made available as a web application to specific users wi
 
 Quick Start Guide
 -----------------
-1. Please replace this text with
-2. a short guide for any future developer
-3. to follow to get a head start on
-4. fixing your problems. :)
+1. In Google Admin settings, include API's scopes
+    https://www.googleapis.com/auth/calendar,https://www.googleapis.com/auth/calendar.readonly,
+    https://apps-apis.google.com/a/feeds/calendar/resource/#readonly,
+    https://www.googleapis.com/auth/admin.directory.group.readonly,
+    https://www.googleapis.com/auth/admin.directory.orgunit.readonly,
+    https://www.googleapis.com/auth/admin.directory.user.readonly
 
 Live Deployment Checklist
 -------------------------
