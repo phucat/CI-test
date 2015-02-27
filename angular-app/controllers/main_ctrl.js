@@ -1,12 +1,10 @@
 
-angular.module('app.controllers').controller('MainCtrl', function($log, $scope, $rootScope,aristaFactory, aristaREST, pubsub){
+angular.module('app.controllers').controller('MainCtrl', function($log, $window, $scope, $rootScope,aristaFactory, aristaREST, pubsub, loading){
     "use_strict";
 
     $scope.calendar_resources = [];
-    $scope.counter = 0;
 
     var users = function (){
-        $log.info('loading users...');
         $scope.loader = true;
         aristaREST.get_all_users()
         .success(function(data, status, headers, config){
@@ -20,21 +18,33 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $scope, 
         });
     };
 
-    var cal_resources = function(){
+    $scope.cal_resources = function(){
         aristaREST.get_all_resources()
         .success(function(data, status, headers, config){
+
             $scope.calendar_resources = data.items;
+
         }).error(function(data, status, headers, config){
             $scope.calendar_resources = {};
         });
+
+        //$scope.resource_loading = loading.new();
+        /*aristaREST.get_all_resources().success(function(d){
+            if (d.items) $scope.calendar_resources = d.items;
+            else $scope.calendar_resources = [];
+            if (d.items.previous_page) $scope.previous_page = d.items.previous_page;
+            else $scope.previous_page = '';
+            if (d.items.next_page) $scope.next_page = d.items.next_page;
+            else $scope.next_page = '';
+        });*/
     };
     users();
-    cal_resources();
+    $scope.cal_resources();
 
     $scope.show_resourceModal = function(resource,action) {
         $rootScope.model = resource;
         $rootScope.model.action = action;
-        $log.info(action);
+        var old_resource = [];
         pubsub.publish('modal:resourceModal:show', {}, function(r){
             $log.info('shown resourceModal.', r);
             if(action == 'Create new resource'){
@@ -42,7 +52,22 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $scope, 
             }
             else if (action == 'Update resource')
             {
-                aristaFactory.update_resource(r);
+                old_resource = $scope.calendar_resources;
+                $scope.calendar_resources = [];
+                aristaREST.update_resource(r)
+                .success(function(d){
+                    for (var i = old_resource.length - 1; i >= 0; i--) {
+                        if (old_resource[i].resourceId == d.items[0].resourceId){
+                            old_resource[i].resourceCommonName = d.items[0].resourceCommonName;
+                            old_resource[i].resourceDescription = d.items[0].resourceDescription;
+                            old_resource[i].resourceType = d.items[0].resourceType;
+                        }
+                    }
+                    $scope.calendar_resources = old_resource;
+                    $window.alert(d.message);
+                }).error(function(d){
+                    $window.alert(d);
+                });
             }
         });
     };
@@ -54,7 +79,6 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $scope, 
     };
 
     $scope.selectedUser = function (item, model){
-        $scope.counter++;
         $scope.eventResult = {item: item, model: model};
     };
 

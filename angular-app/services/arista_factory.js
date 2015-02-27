@@ -30,15 +30,6 @@ factory('aristaFactory', function($log, $http, aristaREST){
             });
     };
 
-    service.update_resource = function(resource){
-        return aristaREST.update_resource(resource)
-            .success(function(res){
-                $log.info('success update_resource: ', res);
-            }).error(function(res){
-                $log.info('error update_resource: ', res);
-            });
-    };
-
     service.create_resource = function(resource) {
         return aristaREST.create_resource(resource)
             .success(function(res){
