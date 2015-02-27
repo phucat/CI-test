@@ -31,8 +31,8 @@ class Calendars(Controller):
         calendar_resources = str(client.GetResourceFeed())
         res = self.find_resource(calendar_resources)
 
-        #sortedResource = sorted(res, key=lambda resource: resource['resourceCommonName'])
-        data['items'] = res #self.components.pagination.paginate(res)
+        sortedResource = sorted(res, key=lambda resource: resource['resourceCommonName'])
+        data['items'] = sortedResource #self.components.pagination.paginate(res)
         self.context['data'] = data
 
     @route_with(template='/api/calendar/resource/create', methods=['POST'])
@@ -81,20 +81,9 @@ class Calendars(Controller):
         feed = calendar_api.get_all_events(email)
         self.context['data'] = feed
 
-    def process_users_location(self,resource):
-        # c_user = users.get_current_user()
-        # users_email = google_directory.get_all_users_cached()
-
-        users_email = [
-            {"primaryEmail": "arvin.corpuz@sherpatest.com"},
-            {"primaryEmail": "abby.vaillancourt@sherpatest.com"},
-            {"primaryEmail": "aaron.erickson@sherpatest.com"},
-            {"primaryEmail": "richmond.gozarin@sherpatest.com"}
-        ]
-
-        for user_email in users_email:
-            deferred.defer(self.get_all_events, user_email['primaryEmail'], '', '', resource, True)
-            logging.info("Deffered Started!")
+    @route_with(template='/api/calendar/users', methods=['GET'])
+    def get_all_users(self):
+        self.context['data'] = google_directory.get_all_users_cached()
 
     @route_with('/api/calendar/remove_user/events/<selectedEmail>', methods=['POST'])
     def api_users_events(self,selectedEmail):
@@ -124,6 +113,21 @@ class Calendars(Controller):
                 #resultMessage['response'] = self.get_all_events(user_email['primaryEmail'], selectedEmail, comment, '')
                 deferred.defer(self.get_all_events, user_email['primaryEmail'], selectedEmail, comment, '')
         #self.context['data'] = resultMessage
+
+    def process_users_location(self,resource):
+        # c_user = users.get_current_user()
+        # users_email = google_directory.get_all_users_cached()
+
+        users_email = [
+            {"primaryEmail": "arvin.corpuz@sherpatest.com"},
+            {"primaryEmail": "abby.vaillancourt@sherpatest.com"},
+            {"primaryEmail": "aaron.erickson@sherpatest.com"},
+            {"primaryEmail": "richmond.gozarin@sherpatest.com"}
+        ]
+
+        for user_email in users_email:
+            deferred.defer(self.get_all_events, user_email['primaryEmail'], '', '', resource, True)
+            logging.info("Deffered Started!")
 
     def get_all_events(self, user_email, selectedEmail, comment, resource_params, resource=False):
         events = calendar_api.get_all_events(user_email)
@@ -223,10 +227,6 @@ class Calendars(Controller):
         calendar_model.create(cal_params)
 
         return update_event
-
-    @route_with(template='/api/calendar/users', methods=['GET'])
-    def get_all_users(self):
-        self.context['data'] = google_directory.get_all_users_cached()
 
     def find_resource(self, resource):
         res = []

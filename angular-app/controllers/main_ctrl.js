@@ -22,20 +22,25 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
         aristaREST.get_all_resources()
         .success(function(data, status, headers, config){
 
-            $scope.calendar_resources = data.items;
+            if (data.items) $scope.calendar_resources = data.items;
+            else $scope.calendar_resources = [];
+            $scope.previous_page = '';
+            $scope.next_page = '';
 
+            $log.info($scope.calendar_resources);
+            /*
+            if (data.items.previous_page) $scope.previous_page = data.items.previous_page;
+            else $scope.previous_page = '';
+            if (data.items.next_page) $scope.next_page = data.items.next_page;
+            else $scope.next_page = '';
+            */
         }).error(function(data, status, headers, config){
             $scope.calendar_resources = {};
         });
 
         //$scope.resource_loading = loading.new();
         /*aristaREST.get_all_resources().success(function(d){
-            if (d.items) $scope.calendar_resources = d.items;
-            else $scope.calendar_resources = [];
-            if (d.items.previous_page) $scope.previous_page = d.items.previous_page;
-            else $scope.previous_page = '';
-            if (d.items.next_page) $scope.next_page = d.items.next_page;
-            else $scope.next_page = '';
+
         });*/
     };
     users();
