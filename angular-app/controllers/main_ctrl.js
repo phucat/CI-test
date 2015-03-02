@@ -4,6 +4,11 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
 
     $scope.calendar_resources = [];
 
+    $scope.load_identity = function(reload_route) {
+        $scope.identity_loading = loading.new();
+    };
+    $scope.load_identity();
+
     var users = function (){
         $scope.loader = true;
         aristaREST.get_all_users()
@@ -18,31 +23,25 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
         });
     };
 
-    $scope.cal_resources = function(){
-        aristaREST.get_all_resources()
+    $scope.cal_resources = function(feed){
+        $scope.identity_loading = loading.new();
+        aristaREST.get_all_resources(feed)
         .success(function(data, status, headers, config){
 
             if (data.items) $scope.calendar_resources = data.items;
             else $scope.calendar_resources = [];
-            $scope.previous_page = '';
-            $scope.next_page = '';
 
-            $log.info($scope.calendar_resources);
-            /*
-            if (data.items.previous_page) $scope.previous_page = data.items.previous_page;
+            if (data.previous) $scope.previous_page = data.previous;
             else $scope.previous_page = '';
-            if (data.items.next_page) $scope.next_page = data.items.next_page;
+
+            if (data.next) $scope.next_page = data.next;
             else $scope.next_page = '';
-            */
+
         }).error(function(data, status, headers, config){
             $scope.calendar_resources = {};
         });
-
-        //$scope.resource_loading = loading.new();
-        /*aristaREST.get_all_resources().success(function(d){
-
-        });*/
     };
+
     users();
     $scope.cal_resources();
 
@@ -51,14 +50,19 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
         $rootScope.model.action = action;
         var old_resource = [];
         pubsub.publish('modal:resourceModal:show', {}, function(r){
-            $log.info('shown resourceModal.', r);
+            old_resource = $scope.calendar_resources;
+            $scope.calendar_resources = [];
             if(action == 'Create new resource'){
-                aristaFactory.create_resource(r);
+                aristaREST.create_resource(r)
+                .success(function(d){
+                    $scope.cal_resources();
+                    $window.alert(d.message);
+                }).error(function(d){
+                    $window.alert(d);
+                });
             }
             else if (action == 'Update resource')
             {
-                old_resource = $scope.calendar_resources;
-                $scope.calendar_resources = [];
                 aristaREST.update_resource(r)
                 .success(function(d){
                     for (var i = old_resource.length - 1; i >= 0; i--) {
@@ -91,8 +95,13 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
         pubsub.publish('modal:removerModal:show', {}, function(r){
             $log.info('shown removerModal.',r.comment);
             $scope.loader = true;
-            aristaFactory.remove_user_from_events($scope.eventResult.item.primaryEmail,r.comment);
-            $scope.loader = false;
+            aristaREST.remove_user_from_events($scope.eventResult.item.primaryEmail,r.comment)
+            .success(function(d){
+                $scope.loader = false;
+                $window.alert(d.message);
+            }).error(function(d){
+                $window.alert(d);
+            });
         });
     }
 

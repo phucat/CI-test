@@ -132,20 +132,17 @@ def create_event(email, post):
     #     return create_event(email, post)
 
 
-def update_event(event_id, email, post):
+def update_event(event_id, email, post, sendNotifications):
     logging.info('calendar: update_event')
     logging.info('Updating Google event: [' + event_id + '].')
     try:
         calendar = build_client(email)
-        response = calendar.events().patch(calendarId=email, eventId=event_id, body=post).execute()
-        logging.info('CALENDAR Update EVENT RESPONSE =================')
-        logging.info(response)
-        logging.info('CALENDAR Update EVENT RESPONSE =================')
+        response = calendar.events().patch(calendarId=email, eventId=event_id, body=post, sendNotifications=sendNotifications).execute()
         return response
     except Exception, e:
-        logging.error('Error on Update EVENT:')
         logging.error(e)
-        logging.error('Error on Update EVENT:')
+        pass
+
 
 
 

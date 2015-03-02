@@ -6,12 +6,16 @@ App.config(
                 controller: 'MainCtrl'
             }).
 
-            // admin routes
-            /*when('/admin', {
+            when('/main/request', {
+                templateUrl: '/ng-view/partials/user-removal-request.html',
+                controller: 'RequestCtrl'
+            }).
+
+            when('/admin', {
                 templateUrl: '/ng-view/partials/admin.html',
                 controller: 'AdminCtrl'
             }).
-*/
+
             otherwise({
                 redirectTo: '/main'
             });

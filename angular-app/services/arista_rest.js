@@ -7,8 +7,15 @@ factory('aristaREST', function($http) {
         return $http.get('/api/calendar/users');
     };
 
-    service.get_all_resources = function (){
-        return $http.get('/api/calendar/resource');
+    service.get_all_resources = function (feed){
+        if(feed) feed = encodeURIComponent(feed);
+        else feed = 'feed';
+        return $http.get('/api/calendar/resource/' + feed);
+    };
+
+    service.get_next_resources = function (feed){
+        console.log('next_page: ',feed);
+        return $http.get('/api/calendar/resource/next_page/' + encodeURIComponent(feed), {'feed': 'feed 1'});
     };
 
     service.get_all_events = function (){
@@ -22,8 +29,17 @@ factory('aristaREST', function($http) {
     service.create_resource = function(resource) {
         return $http.post('/api/calendar/resource/create', resource);
     }
+
     service.update_resource = function(resource) {
-        return $http.post('/api/calendar/update' , resource);
+        return $http.post('/api/calendar/resource/update' , resource);
+    };
+
+    service.get_scheduled_pending_users = function(url) {
+        return $http.get(url || '/api/schedule/list/pending');
+    };
+
+    service.update_schedule_user = function(email,status){
+        return $http.post('/api/schedule/update/user', {'email':email, 'status': status});
     };
 
     return service;

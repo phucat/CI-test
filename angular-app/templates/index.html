@@ -13,12 +13,22 @@
     <!-- jQuery / Bootstrap scripts -->
     <script src="/ng/components/jquery/jquery.min.js"></script>
 </head>
-<body ng-controller="MainCtrl">
+<body>
 
     <!-- Markup -->
-
+    <div x-loading="identity_loading"></div>
     <div class="container">
-        <div ng-view class="view-frame"></div>
+        <div class="content">
+            <div class="wrapper">
+                <div class="body" style="float:right;">
+                    <a href="#/main" class="btn btn-info">Main</a>
+                    <a href="#/main/request" class="btn btn-info">Schedule removal</a>
+                    <a href="/api/audit_logs/downloads" class="btn btn-info">Download Audit Log</a>
+                </div>
+            </div>
+
+            <div ng-view class="view-frame"></div>
+        </div>
     </div>
 
     <!--
@@ -129,6 +139,7 @@
     <script src="/ng/services/arista_factory.js"></script>
 
     <script src="/ng/controllers/main_ctrl.js"></script>
+    <script src="/ng/controllers/request_ctrl.js"></script>
 
 </body>
 </html>

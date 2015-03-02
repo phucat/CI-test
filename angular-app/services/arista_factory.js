@@ -1,5 +1,5 @@
 angular.module('app.services').
-factory('aristaFactory', function($log, $http, aristaREST){
+factory('aristaFactory', function($window, $log, $http, aristaREST){
     var service = {};
     var count = 0;
     var list = [];
@@ -18,15 +18,6 @@ factory('aristaFactory', function($log, $http, aristaREST){
             .success(function(d){
                 count = (d.items !== undefined) ? d.items.length : 0;
                 if (count > 0) list = d.items;
-            });
-    };
-
-    service.remove_user_from_events = function(email, comment) {
-        return aristaREST.remove_user_from_events(email,comment)
-            .success(function(d){
-                $log.info('remove_user_from_events',d);
-            }).error(function(d){
-                $log.info('errors: ',d);
             });
     };
 
