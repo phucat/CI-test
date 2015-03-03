@@ -25,6 +25,7 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
 
     $scope.cal_resources = function(feed){
         $scope.identity_loading = loading.new();
+        $scope.calendar_resources = []
         aristaREST.get_all_resources(feed)
         .success(function(data, status, headers, config){
 
@@ -38,7 +39,7 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
             else $scope.next_page = '';
 
         }).error(function(data, status, headers, config){
-            $scope.calendar_resources = {};
+            $scope.calendar_resources = [];
         });
     };
 

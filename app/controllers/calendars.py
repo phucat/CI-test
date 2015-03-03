@@ -8,7 +8,7 @@ import urllib
 import time
 import xml.etree.ElementTree as ET
 from plugins import calendar as calendar_api, google_directory, rfc3339
-import logging
+import logging, urllib2
 
 APP_ID = app_identity.get_application_id()
 urlfetch.set_default_fetch_deadline(60)
@@ -18,7 +18,6 @@ config = settings.get('admin_account')
 class Calendars(Controller):
     class Meta:
         prefixes = ('api',)
-        Model = calendar_model
         View = 'json'
 
     @route_with(template='/api/calendar/events/<email>', methods=['GET'])
@@ -28,7 +27,7 @@ class Calendars(Controller):
         self.context['data'] = feed
 
     @route_with(template='/api/calendar/users', methods=['GET'])
-    def get_all_users(self):
+    def api_get_all_users(self):
         self.context['data'] = google_directory.get_all_users_cached()
 
     @route_with(template='/api/calendar/resource/<feed>', methods=['GET'])
@@ -87,71 +86,82 @@ class Calendars(Controller):
                 resource_description=resource['resourceDescription'],
                 resource_type=resource['resourceType'])
 
-            self.process_users_location(resource)
+            self.process_update_resource(resource)
             res = self.find_resource(str(updated_calendar_resource))
 
-            resultMessage['message'] = 'Calendar Resource has been updated.'
+            resultMessage['message'] = 'The app is in the process of updating the calendar.'
             resultMessage['items'] = res
             self.context['data'] = resultMessage
-        except Exception, e:
-            logging.error(e)
-            self.context['data'] = e
+        except urllib2.HTTPError as e:
+            logging.info('get_all_events: HTTPerror')
+            logging.info(e.code)
+            if e.code == 401:
+                pass
 
-    def process_users_location(self, resource):
-        # c_user = users.get_current_user()
-        # users_email = google_directory.get_all_users_cached()
+    def process_update_resource(self, resource):
+        #users_email = google_directory.get_all_users_cached()
 
         users_email = [
+            {"primaryEmail": "abe@sherpatest.com"},
             {"primaryEmail": "arvin.corpuz@sherpatest.com"},
             {"primaryEmail": "abby.vaillancourt@sherpatest.com"},
             {"primaryEmail": "aaron.erickson@sherpatest.com"},
+            {"primaryEmail": "kristin.abbott@sherpatest.com"},
             {"primaryEmail": "richmond.gozarin@sherpatest.com"}
         ]
 
         for user_email in users_email:
-            logging.info("Deffered Started!")
-            self.get_all_events(user_email['primaryEmail'], '', '', resource, True)
-            # deferred.defer(self.get_all_events, user_email['primaryEmail'], '', '', resource, True)
+            #self.get_all_events(user_email['primaryEmail'], '', '', resource, True)
+            deferred.defer(self.get_all_events, user_email['primaryEmail'], '', '', resource, True)
 
-        return 'Updating calendar resources.'
 
     @route_with('/api/calendar/remove_user/events/<selectedEmail>', methods=['POST'])
     def api_remove_users_events(self, selectedEmail):
         request = json.loads(self.request.body)
         comment = request['comment']
         resultMessage = {}
-        c_user = users.get_current_user()
         # users_email = google_directory.get_all_users_cached()
 
         users_email = [
             {"primaryEmail": "arvin.corpuz@sherpatest.com"},
+            {"primaryEmail": "abe@sherpatest.com"},
             {"primaryEmail": "abby.vaillancourt@sherpatest.com"},
             {"primaryEmail": "aaron.erickson@sherpatest.com"},
-            #{"primaryEmail": "abe@sherpatest.com"},
+            {"primaryEmail": "kristin.abbott@sherpatest.com"},
             {"primaryEmail": "richmond.gozarin@sherpatest.com"}
         ]
-        resultMessage['message'] = '%s has been processed for removal in calendar events.' % selectedEmail
+
+        resultMessage['message'] = 'The app is in the process of removing %s in calendar events.' % selectedEmail
         self.context['data'] = resultMessage
 
         for user_email in users_email:
             if user_email['primaryEmail'] != selectedEmail:
-                self.get_all_events(user_email['primaryEmail'], selectedEmail, comment, '' ,resource=False)
-                # deferred.defer(self.get_all_events, user_email['primaryEmail'], selectedEmail, comment, '', resource=False)
+                #self.get_all_events(user_email['primaryEmail'], selectedEmail, comment, '' ,resource=False)
+                deferred.defer(self.get_all_events, user_email['primaryEmail'], selectedEmail, comment, '', resource=False)
 
+    @classmethod
     def get_all_events(self, user_email, selectedEmail, comment, resource_params, resource=False):
-        events = calendar_api.get_all_events(user_email)
-        current_date = time.time()
-        if events is not None:
-            for event in events['items']:
-                startDate = rfc3339.strtotimestamp(event['start']['dateTime'])
-                if startDate >= current_date and 'attendees' in event:
-                    if resource == False:
-                        self.filter_attendees(event, selectedEmail, user_email, comment)
-                        #deferred.defer(self.filter_attendees, event, selectedEmail, user_email, comment)
-                    else:
-                        self.filter_location(event, user_email, resource_params)
-                        #deferred.defer(self.filter_location, event, user_email, resource_params)
+        try:
+            events = calendar_api.get_all_events(user_email)
+            current_date = time.time()
+            if events is not None:
+                for event in events['items']:
+                    startDate = rfc3339.strtotimestamp(event['start']['dateTime'])
+                    if startDate >= current_date and 'attendees' in event:
+                        if resource == False:
+                            #self.filter_attendees(event, selectedEmail, user_email, comment)
+                            deferred.defer(self.filter_attendees, event, selectedEmail, user_email, comment)
+                        else:
+                            self.filter_location(event, user_email, resource_params)
+                            #deferred.defer(self.filter_location, event, user_email, resource_params)
 
+        except urllib2.HTTPError as e:
+            logging.info('get_all_events: HTTPerror')
+            logging.info(e.code)
+            if e.code == 401:
+                pass
+
+    @classmethod
     def filter_attendees(self, event, selectedEmail, user_email, comment):
         attendees_list = []
         user = users.get_current_user()
@@ -179,9 +189,10 @@ class Calendars(Controller):
                 'selectedEmail': selectedEmail,
                 'comment': comment
             }
-            self.update_calendar_events(update_event, False)
-            #deferred.defer(self.update_calendar_events, update_event, False)
+            #self.update_calendar_events(update_event, False)
+            deferred.defer(self.update_calendar_events, update_event, False)
 
+    @classmethod
     def filter_location(self, event, user_email, resource_params):
         attendees_list = []
         if 'location' in event and event['location'] == resource_params['old_resourceCommonName']:
@@ -215,10 +226,10 @@ class Calendars(Controller):
                 'user_email': user_email,
                 'body': params_body
             }
+            #self.update_calendar_events(update_event, True)
+            deferred.defer(self.update_calendar_events, update_event, True)
 
-            self.update_calendar_events(update_event, True)
-            #deferred.defer(self.update_calendar_events, update_event, True)
-
+    @classmethod
     def update_calendar_events(self, params, cal_resource=False):
         c_user = users.get_current_user()
         update_event = calendar_api.update_event(params['event_id'], params['user_email'], params['body'], True)
@@ -229,7 +240,7 @@ class Calendars(Controller):
                 'invoked': 'user manager',
                 'app_user': c_user.email(),
                 'target_resource': '%s calendar' % params['user_email'],
-                'target_event_altered': '%s' %  params['body']['summary'],
+                'target_event_altered': '%s' % params['body']['summary'],
                 'comment': params['comment']
             }
             if update_event is not None:

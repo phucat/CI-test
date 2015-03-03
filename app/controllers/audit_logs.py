@@ -13,6 +13,25 @@ class AuditLogs(Controller):
 
     @route_with(template='/api/audit_logs/downloads', methods=['GET'])
     def api_generate_report(self):
+        fields2 = 'Timestamp    The action performed    How the action was invoked    What App User invoked the action    Targetted user or resource    Target event altered    Comment\n'
+        out = StringIO.StringIO()
+        logs = calendar_model.query().fetch()
+        out.write(fields2)
+        for log in logs:
+            data = '%s    %s    %s    %s    %s    %s    %s\n' % (datetime.datetime.strftime(log.created, '%m/%d/%Y %I:%M:%S %p'), log.action, log.how_the_action_invoked, log.app_user_invoked_action, log.target_resource, log.target_event_altered, log.comment)
+
+            out.write(data)
+
+        self.response.headers['Content-Type'] = 'application/ms-excel;charset=UTF-8'
+        self.response.headers['Content-Transfer-Encoding'] = 'Binary'
+        self.response.headers['Content-disposition'] = 'attachment; filename="arista-calendar-log-%s.log"' % datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+        self.response.out.write(out.getvalue())
+        out.close()
+        return self.response
+
+
+    @route_with(template='/api/audit_logs/downloads/csv', methods=['GET'])
+    def api_generate_report_csv(self):
         fields = ['Timestamp','The action performed', 'How the action was invoked',
         'What App User invoked the action', 'Targetted user or resource', 'Target event altered', 'Comment']
 
@@ -28,7 +47,7 @@ class AuditLogs(Controller):
 
         for log in logs:
             data = {
-                'Timestamp': datetime.datetime.strftime(log.created, '%m/%d/%Y'),
+                'Timestamp': datetime.datetime.strftime(log.created, '%m/%d/%Y %I:%M:%S %p'),
                 'The action performed': log.action,
                 'How the action was invoked': log.how_the_action_invoked,
                 'What App User invoked the action': log.app_user_invoked_action,
@@ -44,5 +63,4 @@ class AuditLogs(Controller):
         self.response.headers['Content-disposition'] = 'attachment; filename="arista-calendar-log-%s.csv"' % datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
         self.response.out.write(out.getvalue())
         out.close()
-
         return self.response

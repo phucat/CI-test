@@ -49,7 +49,8 @@ def get_all_events(email):
                 break
 
         except urllib2.HTTPError, err:
-            logging.error(err)
+            logging.info('get_all_events: HTTPerror')
+            logging.info(err)
             continue
 
     return response

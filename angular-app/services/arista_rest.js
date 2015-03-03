@@ -13,11 +13,6 @@ factory('aristaREST', function($http) {
         return $http.get('/api/calendar/resource/' + feed);
     };
 
-    service.get_next_resources = function (feed){
-        console.log('next_page: ',feed);
-        return $http.get('/api/calendar/resource/next_page/' + encodeURIComponent(feed), {'feed': 'feed 1'});
-    };
-
     service.get_all_events = function (){
         return $http.get('/api/calendar/events');
     };
