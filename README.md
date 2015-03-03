@@ -42,9 +42,9 @@ Quick Start Guide
         }
 
 
-3. Since were using google_directory plugin: run /api/google/directory/prime to cache users.
+3. Since were using google_directory plugin: run **/api/google/directory/prime** to cache users.
 
-4. Endpoint for schedule removal run '/api/schedule/remove/user/<email>'
+4. Endpoint for schedule removal run **/api/schedule/remove/user/<email>**
 
 
 
