@@ -12,13 +12,16 @@ The application will be made available as a web application to specific users wi
 Quick Start Guide
 -----------------
 1. In Google Admin settings, include API's scopes
-    https://www.googleapis.com/auth/calendar,
-    https://www.googleapis.com/auth/calendar.readonly,
-    https://apps-apis.google.com/a/feeds/calendar/resource/#readonly,
-    https://www.googleapis.com/auth/admin.directory.group.readonly,
-    https://www.googleapis.com/auth/admin.directory.orgunit.readonly,
-    https://www.googleapis.com/auth/admin.directory.user.readonly
+
+   * https://www.googleapis.com/auth/calendar,
+   * https://www.googleapis.com/auth/calendar.readonly,
+   * https://apps-apis.google.com/a/feeds/calendar/resource/#readonly,
+   * https://www.googleapis.com/auth/admin.directory.group.readonly,
+   * https://www.googleapis.com/auth/admin.directory.orgunit.readonly,
+   * https://www.googleapis.com/auth/admin.directory.user.readonly
+
 2. In Settings.py update the ff:
+
     settings['oauth2_service_account'] = {
         'client_email' : 'gserviceaccount.com'
         'private_key': 'key' #must be in pem file
@@ -26,6 +29,7 @@ Quick Start Guide
         'domain' : 'clientdomain.com'
         'default_user': 'admin acount'
     }
+
     settings['google_directory'] = {
         'domain': 'clientdomain.com'
     }
@@ -35,9 +39,11 @@ Quick Start Guide
         'domain': 'clientdomain.com',
         'password': 'admin password'
     }
+
 3. Since were using google_directory plugin: run /api/google/directory/prime to cache users.
 
 4. Endpoint for schedule removal run '/api/schedule/remove/user/<email>'
+
 Live Deployment Checklist
 -------------------------
 
