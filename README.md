@@ -10,7 +10,7 @@ Event Participants
 The application will be made available as a web application to specific users within the Arista domain. Authentication and access will be controlled by a Google Group. The primary objectives of this application are to ensure Calendar Resource information updates are pushed to existing Calendar entries and to remove event participants from a Calendar entry once the corresponding user is removed from the Google Environment.
 
 Quick Start Guide
------------------
+=================
 1. In Google Admin settings, include API's scopes
 
    * https://www.googleapis.com/auth/calendar,
