@@ -1,6 +1,5 @@
-Google Calendar Development
-Arista Networks
-===========================
+Google Calendar Development Arista Networks
+===========================================
 
 The purpose of this engagement is to deliver an application for the IT staff to push updates to Customer’s Google Calendar environment. The following Google Calendar elements will be updated within this application:
 
