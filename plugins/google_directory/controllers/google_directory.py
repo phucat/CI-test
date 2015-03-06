@@ -95,6 +95,24 @@ class GoogleDirectory(Controller):
 
         self.context['data'] = users
 
+    @route_with('/api/google/directory/deleted/users')
+    @backend_redirect
+    def api_users(self):
+        self.components.cache('public')
+        query = self.request.params.get('q')
+        users = google_directory.get_all_deleted_users()
+
+        if query:
+            query = query.lower()
+            users = filter(
+                lambda x: query in x['primaryEmail'].lower(),
+                users)
+
+        if not 'nolimit' in self.request.params:
+            users = users[:DEFAULT_LIMIT]
+
+        self.context['data'] = users
+
     @route_with('/api/google/directory/groups')
     @route_with('/api/google/directory/groups/<user>')
     @backend_redirect
@@ -155,3 +173,9 @@ class GoogleDirectory(Controller):
             users = users[:DEFAULT_LIMIT]
 
         self.context['data'] = users
+
+    @route_with('/api/google/directory/revoke/user/<email>')
+    @backend_redirect
+    def api_revoke_user(self, email):
+        self.components.cache('public')
+        self.context['data'] = google_directory.revoke_user(email)

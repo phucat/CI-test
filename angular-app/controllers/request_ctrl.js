@@ -26,24 +26,19 @@ angular.module('app.controllers').controller('RequestCtrl', function($log, $wind
     $scope.get_scheduled_pending_users();
 
     $scope.remove_user = function(email){
-        pubsub.publish('modal:removerModal:show', {}, function(r){
+        pubsub.publish('modal:userDeleteModal:show', {}, function(r){
             $scope.loader = true;
             $scope.identity_loading = loading.new();
             $scope.identity_loading.watch(aristaREST.update_schedule_user(email,'Approve'))
             .success(function(d){
                 $scope.loader = false;
+                $scope.get_scheduled_pending_users();
                 $window.alert(d.message);
-                aristaREST.remove_user_from_events(email,r.comment)
-                .success(function(d){
-
-                    $scope.get_scheduled_pending_users();
-                    $window.alert(d.message);
-
-                }).error(function(d){
-                    $window.alert(d);
-                });
             }).error(function(d){
-                $window.alert(d);
+                $scope.get_scheduled_pending_users();
+                $scope.loader = false;
+                $log.info(d);
+                $window.alert(d.error);
             });
 
         });
@@ -61,4 +56,15 @@ angular.module('app.controllers').controller('RequestCtrl', function($log, $wind
         });
     };
 
+}).controller('UserDeleteModal', function($scope){
+    "use_strict";
+    $scope.model = {};
+
+    $scope.on_show = function(){
+
+    };
+
+    $scope.confirm = function(){
+       $scope.callback($scope.model);
+    };
 });

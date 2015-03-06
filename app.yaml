@@ -45,6 +45,14 @@ skip_files:
 handlers:
 
 # Main script
+- url: /api/auditlogs/generate/report/csv/.*
+  script: main.main_app
+  login: optional
+
+- url: /api/user_removals/deleting/users
+  script: main.main_app
+  login: optional
+
 - url: .*
   script: main.main_app
   login: required

@@ -82,12 +82,6 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
         });
     };
 
-    $scope.show_login = function(email){
-        pubsub.publish('modal:loginModal:show', {email: email || ''}, function(r){
-
-        });
-    };
-
     $scope.selectedUser = function (item, model){
         $scope.eventResult = {item: item, model: model};
     };
@@ -105,25 +99,6 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
             });
         });
     }
-
-}).controller('LoginModal', function($scope){
-    "use strict";
-
-    // this has to be $scope.model, else it won't work
-    $scope.model = {};
-
-    $scope.on_show = function(){
-        $scope.model.email = $scope.model.email || '';
-        $scope.model.password = $scope.model.password || '';
-    };
-
-    $scope.save = function(){
-        $scope.callback($scope.model);
-    };
-
-    $scope.form_shown = 'login';
-    $scope.show_forgot = function(){ $scope.form_shown = 'forgot'; };
-    $scope.show_login = function(){ $scope.form_shown = 'login'; };
 
 }).controller('ResourceModal', function($scope, $rootScope, $log){
     "use strict";

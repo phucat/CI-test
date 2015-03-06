@@ -1,0 +1,15 @@
+cron:
+- description: Delete user from domain
+  url: /api/user_removals/deleting/users
+  schedule: every day 00:00
+  timezone: US/Eastern
+
+- description: Daily Report
+  url: /api/auditlogs/generate/report/csv/daily
+  schedule: every day 00:00
+  timezone: US/Eastern
+
+- description: Weekly Report
+  url: /api/auditlogs/generate/report/csv/weekly
+  schedule: every friday 00:00
+  timezone: US/Eastern

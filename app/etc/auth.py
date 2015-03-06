@@ -6,19 +6,21 @@ import json
 
 
 def require_domain(controller):
-    if not controller.user:
-        return False, "You must be logged in"
+    if not controller.__class__.__name__ in ("AuditLogs", "Calendars"):
+        if not controller.user:
+            return False, "You must be logged in"
 
-    #user = 'ray@cloudsherpas.com'
-    user = users.get_current_user().email()
-    domain = user.split('@').pop()
+        user = users.get_current_user().email()
+        domain = user.split('@').pop()
 
-    #logging.info("USER =====>" + str(user))
+        #logging.info("USER =====>" + str(user))
 
-    # Test domains
-    if app_identity.get_application_id() =='able-starlight-860' and domain not in (
-        'sherpatest.com'
-        ):
-        return False, "Your domain does not have access to this application"
+        # Test domains
+        if app_identity.get_application_id() =='able-starlight-860' and domain not in (
+            'sherpatest.com'
+            ):
+            return False, "Your domain does not have access to this application"
 
-    return True
+        return True
+    else:
+        return True

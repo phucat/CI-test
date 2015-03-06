@@ -8,8 +8,9 @@ factory('aristaREST', function($http) {
     };
 
     service.get_all_resources = function (feed){
-        if(feed) feed = encodeURIComponent(feed);
-        else feed = 'feed';
+        if(feed){
+            feed == 'feed' ? feed : feed = feed.slice(75);
+        }
         return $http.get('/api/calendar/resource/' + feed);
     };
 

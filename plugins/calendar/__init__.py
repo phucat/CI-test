@@ -42,7 +42,7 @@ def get_all_events(email):
             else:
                 response['items'].extend(events['items'])
 
-            logging.info("google event response ==> %s" % response)
+            # logging.info("google event response ==> %s" % response)
 
             page_token = events.get('nextPageToken')
             if not page_token:
@@ -145,9 +145,6 @@ def update_event(event_id, email, post, sendNotifications):
         pass
 
 
-
-
-
 def move_event(event_id, owner_email, new_owner_email):
     logging.info('calendar: move_event')
     logging.info('Moving calendar event from [' + owner_email + '] to [' + new_owner_email + '] with event id (' + event_id + ').')
@@ -166,7 +163,7 @@ def delete_event(id, email):
     logging.info('calendar: delete_event')
     logging.info('Deleting event: [' + id + '] of ' + email + '.')
     calendar = build_client(email)
-    response = calendar.events().delete(calendarId=email, eventId=id).execute()
+    response = calendar.events().delete(calendarId=email, eventId=id, sendNotifications=True).execute()
     return response
 
 
