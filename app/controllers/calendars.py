@@ -7,6 +7,7 @@ from gdata.calendar_resource.client import CalendarResourceClient
 import json
 import urllib
 import time
+import datetime
 import xml.etree.ElementTree as ET
 from plugins import calendar as calendar_api, google_directory, rfc3339
 import logging, urllib2
@@ -102,6 +103,7 @@ class Calendars(Controller):
 
     def process_update_resource(self, resource):
         #users_email = google_directory.get_all_users_cached()
+        current_user = users.get_current_user()
 
         users_email = [
             {"primaryEmail": "rich.test5@sherpatest.com"},
@@ -111,12 +113,13 @@ class Calendars(Controller):
         ]
 
         for user_email in users_email:
-            deferred.defer(self.get_all_events, user_email['primaryEmail'], '', '', resource, True, '', current_user.email())
+            deferred.defer(self.get_all_events, user_email['primaryEmail'], '', '', resource, True, current_user.email())
 
     @route_with('/api/calendar/remove_user/events/<selectedEmail>', methods=['POST'])
     def api_remove_users_events(self, selectedEmail):
         request = json.loads(self.request.body)
         comment = request['comment']
+        current_user = users.get_current_user()
         resultMessage = {}
         # users_email = google_directory.get_all_users_cached()
 
@@ -131,36 +134,40 @@ class Calendars(Controller):
         self.context['data'] = resultMessage
 
         for user_email in users_email:
-            deferred.defer(self.get_all_events, user_email['primaryEmail'], selectedEmail, comment, '', False, '', current_user.email())
+            deferred.defer(self.get_all_events, user_email['primaryEmail'], selectedEmail, comment, '', False, current_user.email())
 
     @classmethod
-    def get_all_events(self, user_email, selectedEmail, comment, resource_params, resource=False, deleted_users='', current_user_email=''):
+    def get_all_events(self, user_email, selectedEmail, comment, resource_params, resource=False, current_user_email=''):
         try:
             events = calendar_api.get_all_events(user_email)
-            current_date = time.time()
             if events is not None:
                 for event in events['items']:
                     if 'dateTime' in event['start']:
+                        current_date = time.time()
                         startDate = rfc3339.strtotimestamp(event['start']['dateTime'])
-                        if startDate >= current_date:
-                            if 'attendees' in event:
-                                if resource == False:
-                                    if event['organizer']['email'] != selectedEmail:
-                                        deferred.defer(self.filter_attendees, event, selectedEmail, user_email, comment, deleted_users, current_user_email)
-                                    else:
-                                        if len(event['attendees']) > 1:
-                                                action = 'Oops, %s is the owner in %s event with %s attendees.' % (selectedEmail, event['summary'], len(event['attendees']))
-                                                insert_audit_log(action, 'Remove user in calendar events', current_user_email, selectedEmail, '%s' % event['summary'], None)
+                    elif 'date' in event['start']:
+                        current_date = str(datetime.date.today())
+                        startDate = event['start']['date']
 
-                                        elif len(event['attendees']) == 1:
-                                            for attendee in event['attendees']:
-                                                if attendee['email'] == selectedEmail:
-                                                    deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email)
+                    if startDate >= current_date:
+                        if resource == False:
+                            if 'attendees' in event:
+                                if event['organizer']['email'] != selectedEmail:
+                                    deferred.defer(self.filter_attendees, event, selectedEmail, user_email, comment, current_user_email)
                                 else:
-                                    deferred.defer(self.filter_location, event, user_email, resource_params, current_user_email)
+                                    if len(event['attendees']) > 1:
+                                            action = 'Oops, %s is the owner in %s event with %s attendees.' % (selectedEmail, event['summary'], len(event['attendees']))
+                                            insert_audit_log(action, 'Remove user in calendar events', current_user_email, selectedEmail, '%s' % event['summary'], None)
+
+                                    elif len(event['attendees']) == 1:
+                                        for attendee in event['attendees']:
+                                            if attendee['email'] == selectedEmail and 'resource' not in attendee:
+                                                deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email)
                             else:
                                 if event['organizer']['email'] == selectedEmail:
                                     deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email)
+                        else:
+                                deferred.defer(self.filter_location, event, user_email, resource_params, current_user_email)
 
         except urllib2.HTTPError as e:
             logging.info('get_all_events: HTTPerror')
@@ -169,14 +176,10 @@ class Calendars(Controller):
                 pass
 
     @classmethod
-    def filter_attendees(self, event, selectedEmail, user_email, comment, deleted_users, current_user_email):
+    def filter_attendees(self, event, selectedEmail, user_email, comment, current_user_email):
         attendees_list = []
 
         for attendee in event['attendees']:
-            if deleted_users:
-                if attendee['email'] in deleted_users:
-                    selectedEmail = attendee['email']
-
             if attendee['email'] != selectedEmail:
                 attendees_list.append({'email': attendee['email']})
 
@@ -325,37 +328,39 @@ class Calendars(Controller):
 
     @route_with(template='/api/user_removals/deleting/users')
     def api_deleting_users(self):
-        google_directory.prime_caches()
+        # google_directory.prime_caches()
         deleted_users = google_directory.get_all_deleted_users()
         # users_email = google_directory.get_all_users_cached()
+
+        current_user = users.get_current_user()
+
         list_user_emails = [
             {"primaryEmail": "arvin.corpuz@sherpatest.com"},
             {"primaryEmail": "richmond.gozarin@sherpatest.com"},
-            {"primaryEmail": "zaldy.santos@sherpatest.com"},
-            {"primaryEmail": "rich.test5@sherpatest.com"}
+            {"primaryEmail": "zaldy.santos@sherpatest.com"}
         ]
+
         ndbDeletedUserCount = DeprovisionedAccount.query().count()
 
         if ndbDeletedUserCount == 0:
             params = {'email': 'dummy@dummy.com', 'status': True}
             DeprovisionedAccount.create(params)
 
-        for active_user in list_user_emails:
-            ndbDeletedUserlist = DeprovisionedAccount.list_all()
-            deferred.defer(self.loop_calendar_events, active_user['primaryEmail'], deleted_users, ndbDeletedUserlist, current_user.email())
-        return 'Started...'
-
-    @classmethod
-    def loop_calendar_events(self, active_user, deleted_users, ndbDeletedUserlist, current_user_email):
-
+        ndbDeletedUserlist = DeprovisionedAccount.list_all()
         x_email = [x_email.email for x_email in ndbDeletedUserlist]
 
         for d_user in deleted_users:
             if d_user not in x_email and x_email != 'dummy@dummy.com':
                 params = {'email': d_user, 'status': True}
                 DeprovisionedAccount.create(params)
+                deferred.defer(self.process_deleted_account, d_user, x_email, list_user_emails, current_user.email())
+        return 'Started...'
 
-        deferred.defer(self.get_all_events, active_user, '', '', '', False, deleted_users, current_user_email)
+    @classmethod
+    def process_deleted_account(self, d_user, x_email, list_user_emails, current_user_email):
+
+        for active_user in list_user_emails:
+            deferred.defer(self.get_all_events, active_user['primaryEmail'], d_user, '', '', False, current_user_email)
 
     @route_with(template='/api/clear/datastore/deprovisioned_account')
     def api_clear_ndb(self):
