@@ -47,14 +47,11 @@ Quick Start Guide
 
 
 
-
 Live Deployment Checklist
 -------------------------
 
  1. Include API scope
- 2. steps to deploy this project
- 3. live, including build processes,
- 4. incidentals, etc.
+ 2. Service Account / Server Key / Domain Admin
 
 
 Warnings and Gotchas
@@ -65,12 +62,9 @@ Warnings and Gotchas
 
 How to run Unit Tests
 -----------------------
-1. Please replace this text with
-2. a short guide for any future developer
-3. to follow to test any Unit Tests
-4. your code has.
+1.
 
 
 Further Documentation
 ----------------------
-Place any other documentation you may create as you develop.
+/
