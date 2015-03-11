@@ -355,11 +355,12 @@ class Calendars(Controller):
         ndbDeletedUserlist = DeprovisionedAccount.list_all()
         x_email = [x_email.email for x_email in ndbDeletedUserlist]
 
-        for d_user in deleted_users:
-            if d_user not in x_email and x_email != 'dummy@dummy.com':
-                params = {'email': d_user, 'status': True}
-                DeprovisionedAccount.create(params)
-                deferred.defer(self.process_deleted_account, d_user, x_email, list_user_emails, current_user.email())
+        if deleted_users:
+            for d_user in deleted_users:
+                if d_user not in x_email and x_email != 'dummy@dummy.com':
+                    params = {'email': d_user, 'status': True}
+                    DeprovisionedAccount.create(params)
+                    deferred.defer(self.process_deleted_account, d_user, x_email, list_user_emails, current_user.email())
         return 'Started...'
 
     @classmethod

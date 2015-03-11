@@ -144,8 +144,9 @@ def get_all_deleted_users():
 
             response = directory.users().list(**param).execute()
 
-            for user in response['users']:
-                result.append(user['primaryEmail'])
+            if 'users' in response:
+                for user in response['users']:
+                    result.append(user['primaryEmail'])
 
             page_token = response.get('nextPageToken')
 
