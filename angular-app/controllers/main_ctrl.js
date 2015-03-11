@@ -59,7 +59,7 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
                     $scope.cal_resources();
                     $window.alert(d.message);
                 }).error(function(d){
-                    $window.alert(d);
+                    $window.alert(d.error);
                 });
             }
             else if (action == 'Update resource')
@@ -76,7 +76,7 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
                     $scope.calendar_resources = old_resource;
                     $window.alert(d.message);
                 }).error(function(d){
-                    $window.alert(d);
+                    $window.alert(d.error);
                 });
             }
         });
