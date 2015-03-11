@@ -97,7 +97,7 @@ class GoogleDirectory(Controller):
 
     @route_with('/api/google/directory/deleted/users')
     @backend_redirect
-    def api_users(self):
+    def api_deleted_users(self):
         self.components.cache('public')
         query = self.request.params.get('q')
         users = google_directory.get_all_deleted_users()
@@ -110,6 +110,9 @@ class GoogleDirectory(Controller):
 
         if not 'nolimit' in self.request.params:
             users = users[:DEFAULT_LIMIT]
+
+        if not users:
+            users = []
 
         self.context['data'] = users
 
