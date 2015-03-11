@@ -16,7 +16,8 @@ def require_domain(controller):
         #logging.info("USER =====>" + str(user))
 
         # Test domains
-        if app_identity.get_application_id() =='able-starlight-860' and domain not in (
+
+        if app_identity.get_application_id() in ('able-starlight-860', 'cs-arista-calendar-dev', 'cs-arista-calendar-qa') and domain not in (
             'sherpatest.com'
             ):
             return False, "Your domain does not have access to this application"
