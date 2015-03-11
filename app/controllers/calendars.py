@@ -42,7 +42,6 @@ class Calendars(Controller):
         if feed == 'feed':
             calendar_resources = str(client.GetResourceFeed())
         else:
-            # uri = urllib.unquote(feed).decode('utf8')
             calendar_resources = str(client.GetResourceFeed(uri="https://apps-apis.google.com/a/feeds/calendar/resource/2.0/sherpatest.com/?%s" % feed))
             data['previous'] = 'feed'
 
@@ -102,16 +101,16 @@ class Calendars(Controller):
                 pass
 
     def process_update_resource(self, resource):
-        #users_email = google_directory.get_all_users_cached()
+        users_email = google_directory.get_all_users_cached()
         current_user = users.get_current_user()
 
-        users_email = [
-            {"primaryEmail": "rcabeltis@sherpatest.com"},
-            {"primaryEmail": "richmond.test@sherpatest.com"},
-            {"primaryEmail": "richmond.gozarin@sherpatest.com"},
-            {"primaryEmail": "zaldy.santos@sherpatest.com"},
-            {"primaryEmail": "arvin.corpuz@sherpatest.com"}
-        ]
+        # users_email = [
+        #     {"primaryEmail": "rcabeltis@sherpatest.com"},
+        #     {"primaryEmail": "richmond.test@sherpatest.com"},
+        #     {"primaryEmail": "richmond.gozarin@sherpatest.com"},
+        #     {"primaryEmail": "zaldy.santos@sherpatest.com"},
+        #     {"primaryEmail": "arvin.corpuz@sherpatest.com"}
+        # ]
 
         for user_email in users_email:
             deferred.defer(self.get_all_events, user_email['primaryEmail'], '', '', resource, True, current_user.email())
@@ -122,15 +121,15 @@ class Calendars(Controller):
         comment = request['comment']
         current_user = users.get_current_user()
         resultMessage = {}
-        # users_email = google_directory.get_all_users_cached()
+        users_email = google_directory.get_all_users_cached()
 
-        users_email = [
-            {"primaryEmail": "rcabeltis@sherpatest.com"},
-            {"primaryEmail": "richmond.test@sherpatest.com"},
-            {"primaryEmail": "richmond.gozarin@sherpatest.com"},
-            {"primaryEmail": "zaldy.santos@sherpatest.com"},
-            {"primaryEmail": "arvin.corpuz@sherpatest.com"}
-        ]
+        # users_email = [
+        #     {"primaryEmail": "rcabeltis@sherpatest.com"},
+        #     {"primaryEmail": "richmond.test@sherpatest.com"},
+        #     {"primaryEmail": "richmond.gozarin@sherpatest.com"},
+        #     {"primaryEmail": "zaldy.santos@sherpatest.com"},
+        #     {"primaryEmail": "arvin.corpuz@sherpatest.com"}
+        # ]
 
         resultMessage['message'] = 'The app is in the process of removing %s in calendar events.' % selectedEmail
         self.context['data'] = resultMessage
@@ -334,17 +333,17 @@ class Calendars(Controller):
     def api_deleting_users(self):
         google_directory.prime_caches()
         deleted_users = google_directory.get_all_deleted_users()
-        # users_email = google_directory.get_all_users_cached()
+        list_user_emails = google_directory.get_all_users_cached()
 
         current_user = users.get_current_user()
 
-        list_user_emails = [
-            {"primaryEmail": "rcabeltis@sherpatest.com"},
-            {"primaryEmail": "richmond.test@sherpatest.com"},
-            {"primaryEmail": "richmond.gozarin@sherpatest.com"},
-            {"primaryEmail": "zaldy.santos@sherpatest.com"},
-            {"primaryEmail": "arvin.corpuz@sherpatest.com"}
-        ]
+        # list_user_emails = [
+        #     {"primaryEmail": "rcabeltis@sherpatest.com"},
+        #     {"primaryEmail": "richmond.test@sherpatest.com"},
+        #     {"primaryEmail": "richmond.gozarin@sherpatest.com"},
+        #     {"primaryEmail": "zaldy.santos@sherpatest.com"},
+        #     {"primaryEmail": "arvin.corpuz@sherpatest.com"}
+        # ]
 
         ndbDeletedUserCount = DeprovisionedAccount.query().count()
 
