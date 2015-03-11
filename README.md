@@ -14,11 +14,11 @@ Quick Start Guide
 1. In Google Admin settings, include API's scopes
 
         https://www.googleapis.com/auth/calendar,
-        https://www.googleapis.com/auth/calendar.readonly,
+        https://www.googleapis.com/auth/admin.directory.user,
         https://apps-apis.google.com/a/feeds/calendar/resource/#readonly,
         https://www.googleapis.com/auth/admin.directory.group.readonly,
-        https://www.googleapis.com/auth/admin.directory.orgunit.readonly,
-        https://www.googleapis.com/auth/admin.directory.user.readonly
+        https://www.googleapis.com/auth/admin.directory.orgunit.readonly
+
 
 2. In Settings.py update the ff:
 

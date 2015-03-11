@@ -106,7 +106,8 @@ class Calendars(Controller):
         current_user = users.get_current_user()
 
         users_email = [
-            {"primaryEmail": "rich.test5@sherpatest.com"},
+            {"primaryEmail": "rcabeltis@sherpatest.com"},
+            {"primaryEmail": "richmond.test@sherpatest.com"},
             {"primaryEmail": "richmond.gozarin@sherpatest.com"},
             {"primaryEmail": "zaldy.santos@sherpatest.com"},
             {"primaryEmail": "arvin.corpuz@sherpatest.com"}
@@ -124,7 +125,8 @@ class Calendars(Controller):
         # users_email = google_directory.get_all_users_cached()
 
         users_email = [
-            {"primaryEmail": "rich.test5@sherpatest.com"},
+            {"primaryEmail": "rcabeltis@sherpatest.com"},
+            {"primaryEmail": "richmond.test@sherpatest.com"},
             {"primaryEmail": "richmond.gozarin@sherpatest.com"},
             {"primaryEmail": "zaldy.santos@sherpatest.com"},
             {"primaryEmail": "arvin.corpuz@sherpatest.com"}
@@ -206,21 +208,23 @@ class Calendars(Controller):
     def filter_location(self, event, user_email, resource_params, current_user_email):
         attendees_list = []
         if 'location' in event and event['location'] == resource_params['old_resourceCommonName']:
-            for attendee in event['attendees']:
-                if attendee['displayName'] == resource_params['old_resourceCommonName']:
-                    attendees_list.append(
-                        {
-                            'email': attendee['email'],
-                            'displayName': resource_params['resourceCommonName']
-                        }
-                    )
-                else:
-                    attendees_list.append(
-                        {
-                            'email': attendee['email'],
-                            'displayName': attendee['displayName']
-                        }
-                    )
+            if 'attendees' in event:
+                for attendee in event['attendees']:
+                    if attendee['displayName'] == resource_params['old_resourceCommonName']:
+                        attendees_list.append(
+                            {
+                                'email': attendee['email'],
+                                'displayName': resource_params['resourceCommonName']
+                            }
+                        )
+                    else:
+                        attendees_list.append(
+                            {
+                                'email': attendee['email'],
+                                'displayName': attendee['displayName']
+                            }
+                        )
+
             params_body = {
                 'location': resource_params['resourceCommonName'],
                 'old_resourceName': resource_params['old_resourceCommonName'],
@@ -284,7 +288,7 @@ class Calendars(Controller):
     @classmethod
     def delete_owner_event(self, event, selectedEmail, user_email, current_user_email):
         del_response = calendar_api.delete_event(event['id'], selectedEmail)
-        if del_response is None:
+        if del_response is not None:
             cal_params = {
                 'action': '%s has been removed from calendar events.' % selectedEmail,
                 'invoked': 'user manager',
@@ -335,9 +339,11 @@ class Calendars(Controller):
         current_user = users.get_current_user()
 
         list_user_emails = [
-            {"primaryEmail": "arvin.corpuz@sherpatest.com"},
+            {"primaryEmail": "rcabeltis@sherpatest.com"},
+            {"primaryEmail": "richmond.test@sherpatest.com"},
             {"primaryEmail": "richmond.gozarin@sherpatest.com"},
-            {"primaryEmail": "zaldy.santos@sherpatest.com"}
+            {"primaryEmail": "zaldy.santos@sherpatest.com"},
+            {"primaryEmail": "arvin.corpuz@sherpatest.com"}
         ]
 
         ndbDeletedUserCount = DeprovisionedAccount.query().count()
