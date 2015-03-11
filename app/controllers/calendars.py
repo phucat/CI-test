@@ -361,7 +361,9 @@ class Calendars(Controller):
                     params = {'email': d_user, 'status': True}
                     DeprovisionedAccount.create(params)
                     deferred.defer(self.process_deleted_account, d_user, x_email, list_user_emails, current_user.email())
-        return 'Started...'
+            return 'Started...'
+        else:
+            return 'Empty list of deleted users..'
 
     @classmethod
     def process_deleted_account(self, d_user, x_email, list_user_emails, current_user_email):
