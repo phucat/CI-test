@@ -1,6 +1,5 @@
 from ferris import Controller, messages, route_with
 from ferris.components.pagination import Pagination
-from ferris.components.cache import Cache
 from app.models.user_removal import UserRemoval
 from app.models.audit_log import AuditLog as AuditLogModel
 from plugins import google_directory
@@ -12,7 +11,7 @@ import json
 class UserRemovals(Controller):
     class Meta:
         prefixes = ('api',)
-        components = (Cache, messages.Messaging, Pagination)
+        components = (messages.Messaging, Pagination)
         pagination_limit = 10
         Model = UserRemoval
 
@@ -29,7 +28,11 @@ class UserRemovals(Controller):
 
     @route_with(template='/api/schedule/list/pending', methods=['GET'])
     def api_list_pending(self):
-        self.context['data'] = self.components.pagination.paginate(query=UserRemoval.list_all_pending())
+        pending = UserRemoval.list_all_pending()
+        if not pending:
+            self.context['data'] = self.components.pagination.paginate(query=UserRemoval.list_all_pending())
+        else:
+            self.context['data'] = pending
 
     @route_with('/api/schedule/list/pending:<key>', methods=['GET'])
     def api_get_user(self, key):
@@ -47,12 +50,13 @@ class UserRemovals(Controller):
         if params['status'] == 'Approve':
             params['status'] += 'd'
 
-            gdirectory_response = google_directory.revoke_user(params['email'])
+            google_directory.revoke_user(params['email'])
 
         elif params['status'] == 'Cancel':
             params['status'] += 'led'
 
         self.insert_audit_log('%s has been %s for removal.' % (params['email'], params['status']), 'api endpoint', user.email(), 'Schedule User Removal', '', '')
+
         self.context['data'] = response
 
     def insert_audit_log(self, action, invoked, app_user, target_resource, target_event_altered, comment=None):

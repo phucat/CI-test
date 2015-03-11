@@ -33,11 +33,10 @@ angular.module('app.controllers').controller('RequestCtrl', function($log, $wind
             .success(function(d){
                 $scope.loader = false;
                 $scope.get_scheduled_pending_users();
-                $window.alert(d.message);
+                $window.alert('The request has been approved.');
             }).error(function(d){
                 $scope.get_scheduled_pending_users();
                 $scope.loader = false;
-                $log.info(d);
                 $window.alert(d.error);
             });
 
@@ -51,8 +50,9 @@ angular.module('app.controllers').controller('RequestCtrl', function($log, $wind
         .success(function(d){
             $scope.loader = false;
             $scope.get_scheduled_pending_users();
+            $window.alert('The request has been cancelled.');
         }).error(function(d){
-            $window.alert(d);
+            $window.alert(d.error);
         });
     };
 
