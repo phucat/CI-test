@@ -116,7 +116,6 @@ class Calendars(Controller):
 
     def process_update_resource(self, resource):
         # users_email = google_directory.get_all_users_cached()
-        current_user = users.get_current_user()
 
         users_email = [
             {"primaryEmail": "rcabeltis@sherpatest.com"},
@@ -127,13 +126,12 @@ class Calendars(Controller):
         ]
 
         for user_email in users_email:
-            deferred.defer(self.get_all_events, user_email['primaryEmail'], '', '', resource, True, current_user.email())
+            deferred.defer(self.get_all_events, user_email['primaryEmail'], '', '', resource, True, self.session['current_user'])
 
     @route_with('/api/calendar/remove_user/events/<selectedEmail>', methods=['POST'])
     def api_remove_users_events(self, selectedEmail):
         request = json.loads(self.request.body)
         comment = request['comment']
-        current_user = users.get_current_user()
         resultMessage = {}
         # users_email = google_directory.get_all_users_cached()
 
@@ -149,7 +147,7 @@ class Calendars(Controller):
         self.context['data'] = resultMessage
 
         for user_email in users_email:
-            deferred.defer(self.get_all_events, user_email['primaryEmail'], selectedEmail, comment, '', False, current_user.email())
+            deferred.defer(self.get_all_events, user_email['primaryEmail'], selectedEmail, comment, '', False, self.session['current_user'])
 
     @classmethod
     def get_all_events(self, user_email, selectedEmail, comment, resource_params, resource=False, current_user_email=''):
@@ -354,8 +352,6 @@ class Calendars(Controller):
         deleted_users = google_directory.get_all_deleted_users()
         # users_email = google_directory.get_all_users_cached()
 
-        current_user = users.get_current_user()
-
         list_user_emails = [
             {"primaryEmail": "rcabeltis@sherpatest.com"},
             {"primaryEmail": "richmond.test@sherpatest.com"},
@@ -378,7 +374,7 @@ class Calendars(Controller):
                 if d_user not in x_email and x_email != 'dummy@dummy.com':
                     params = {'email': d_user, 'status': True}
                     DeprovisionedAccount.create(params)
-                    deferred.defer(self.process_deleted_account, d_user, x_email, list_user_emails, current_user.email())
+                    deferred.defer(self.process_deleted_account, d_user, x_email, list_user_emails, self.session['current_user'])
             return 'Started...'
         else:
             return 'Empty list..'
