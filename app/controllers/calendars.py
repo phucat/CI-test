@@ -189,8 +189,7 @@ class Calendars(Controller):
         except urllib2.HTTPError as e:
             logging.info('get_all_events: HTTPerror')
             logging.info(e.code)
-            if e.code == 401:
-                pass
+            pass
 
     @classmethod
     def filter_attendees(self, event, selectedEmail, user_email, comment, current_user_email):
@@ -274,15 +273,6 @@ class Calendars(Controller):
                 }
                 if update_event is not None:
                     insert_audit_log(cal_params['action'], cal_params['invoked'],
-                        cal_params['app_user'],
-                        cal_params['target_resource'],
-                        cal_params['target_event_altered'], cal_params['comment'])
-                else:
-                    if params['organizer'] == params['selectedEmail']:
-                            DeprovisionedAccount.remove_owner_failed_notification(current_user_email, params['selectedEmail'], params['body']['summary'])
-
-                    insert_audit_log('An attempt to remove %s from events.' % params['selectedEmail'],
-                        cal_params['invoked'],
                         cal_params['app_user'],
                         cal_params['target_resource'],
                         cal_params['target_event_altered'], cal_params['comment'])

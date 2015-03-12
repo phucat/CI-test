@@ -11,6 +11,9 @@ factory('aristaREST', function($http) {
         if(feed){
             feed == 'feed' ? feed : feed = feed.slice(75);
         }
+        else{
+            feed = 'feed';
+        }
         return $http.get('/api/calendar/resource/' + feed);
     };
 
