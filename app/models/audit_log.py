@@ -68,3 +68,53 @@ class AuditLog(BasicModel):
             body,
             attachments=[(filename, out)]
         )
+
+
+    @staticmethod
+    def attendees_update_notification(email, selectedEmail, event_summary):
+
+        subject = "Arista Inc. - Update on %s's Attendees."
+        body = """
+        Hello,
+
+            %s has been removed in %s.
+
+            Thank You.
+        """ % (event_summary, selectedEmail, event_summary)
+
+        mail.send_mail("no-reply@" + APP_ID + ".appspotmail.com", email, subject, body)
+
+    @staticmethod
+    def new_resource_notification(email, name, resource):
+
+        subject = "Arista Inc. - New Calendar Resource has been created."
+        body = """
+        Hello %s,
+
+            A New Calendar Resource has been created.
+
+            Resource Id: %s
+            Resource Name: %s
+            Resource Description: %s
+            Resource Type: %s
+
+            Thank You.
+        """ % (name, resource['resourceId'], resource['resourceCommonName'], resource['resourceDescription'], resource['resourceType'])
+
+        mail.send_mail("no-reply@" + APP_ID + ".appspotmail.com", email, subject, body)
+
+    @staticmethod
+    def update_resource_notification(email, name, event_link):
+
+        subject = "Arista Inc. - Update on Calendar Resource. "
+        body = """
+        Hello %s,
+
+            A Calendar Event you are a participant on has a Resource that has been changed. Please use the link below to review this Event.
+
+            %s
+
+        Thank You.
+        """ % (name, event_link)
+
+        mail.send_mail("no-reply@" + APP_ID + ".appspotmail.com", email, subject, body)

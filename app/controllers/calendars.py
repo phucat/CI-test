@@ -73,6 +73,8 @@ class Calendars(Controller):
             action = 'A new Calendar Resource has been created'
             insert_audit_log(action, 'add new resource', current_user.email(), resource['resourceCommonName'], None, None)
 
+            # AuditLogModel.new_resource_notification(config['email'], current_user.nickname(), resource)
+
             resultMessage['message'] = action
             resultMessage['items'] = res
             self.context['data'] = resultMessage
@@ -175,7 +177,7 @@ class Calendars(Controller):
                                             for attendee in event['attendees']:
                                                 if attendee['email'] != selectedEmail:
                                                     attendees_list.append(attendee['email'])
-                                            DeprovisionedAccount.remove_owner_failed_notification(attendees_list, selectedEmail, event['summary'])
+                                            DeprovisionedAccount.remove_owner_failed_notification(attendees_list, selectedEmail, event['summary'], event['htmlLink'])
                                     elif len(event['attendees']) == 1:
                                         for attendee in event['attendees']:
                                             if attendee['email'] == selectedEmail and 'resource' not in attendee:
@@ -214,7 +216,8 @@ class Calendars(Controller):
             'body': params_body,
             'organizer': event['organizer']['email'],
             'selectedEmail': selectedEmail,
-            'comment': comment
+            'comment': comment,
+            'attendeesEmail': [email.email for email in attendees_list]
         }
         deferred.defer(self.update_calendar_events, update_event, False, current_user_email)
 
@@ -252,6 +255,10 @@ class Calendars(Controller):
             update_event = {
                 'event_id': event['id'],
                 'user_email': user_email,
+                'organizer': event['organizer']['email'],
+                'organizerName': event['organizer']['displayName'],
+                'event_link': event['htmlLink'],
+                'attendeesEmail': [email.email for email in attendees_list],
                 'body': params_body
             }
             deferred.defer(self.update_calendar_events, update_event, True, current_user_email)
@@ -276,6 +283,8 @@ class Calendars(Controller):
                         cal_params['app_user'],
                         cal_params['target_resource'],
                         cal_params['target_event_altered'], cal_params['comment'])
+
+                AuditLogModel.attendees_update_notification(params['attendeesEmail'], params['selectedEmail'], params['summary'])
         else:
             if update_event is not None:
                 cal_params = {
@@ -289,6 +298,10 @@ class Calendars(Controller):
                     cal_params['app_user'],
                     cal_params['target_resource'],
                     cal_params['target_event_altered'], '')
+
+                AuditLogModel.update_resource_notification(params['organizer'], params['organizerName'], params['event_link'])
+                # AuditLogModel.update_resource_notification(params['attendeesEmail'], 'Guest', params['event_link'])
+
 
     @classmethod
     def delete_owner_event(self, event, selectedEmail, user_email, current_user_email):
