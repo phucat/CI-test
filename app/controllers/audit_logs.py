@@ -31,7 +31,6 @@ class AuditLogs(Controller):
         out.close()
         return self.response
 
-
     @route_with(template='/api/auditlogs/generate/report/csv/<key>')
     def api_generate_report_csv(self, key):
         fields = ['Timestamp','The action performed', 'How the action was invoked',
@@ -65,11 +64,6 @@ class AuditLogs(Controller):
             }
 
             writer.writerow(data)
-
-        # self.response.headers['Content-Type'] = 'application/ms-excel;charset=UTF-8'
-        # self.response.headers['Content-Transfer-Encoding'] = 'Binary'
-        # self.response.headers['Content-disposition'] = 'attachment; filename="arista-calendar-log-%s.csv"' % datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
-        # self.response.out.write(out.getvalue())
 
         filename = "arista-calendar-log-%s.csv" % datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
         email = config['email']

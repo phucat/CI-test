@@ -1,17 +1,17 @@
-from ferris import Controller, messages, route_with, settings
+from ferris import Controller, route_with, settings
 from app.models.audit_log import AuditLog as AuditLogModel
 from app.models.deprovisioned_account import DeprovisionedAccount
 from google.appengine.ext import deferred
 from google.appengine.api import users, app_identity, urlfetch
 from gdata.calendar_resource.client import CalendarResourceClient
 import json
-import urllib
 import re
 import time
 import datetime
 import xml.etree.ElementTree as ET
 from plugins import calendar as calendar_api, google_directory, rfc3339
-import logging, urllib2
+import logging
+import urllib2
 
 APP_ID = app_identity.get_application_id()
 urlfetch.set_default_fetch_deadline(60)
@@ -77,7 +77,8 @@ class Calendars(Controller):
             resultMessage['items'] = res
             self.context['data'] = resultMessage
 
-        except Exception, e:
+        except Exception as e:
+            logging.info(e)
             # error = re.search("<\?xml.[A-Za-z]*><.*/></[A-Za-z]*>", str(e)).group()
             # root = ET.fromstring(str(error))
 
@@ -380,7 +381,7 @@ class Calendars(Controller):
                     deferred.defer(self.process_deleted_account, d_user, x_email, list_user_emails, current_user.email())
             return 'Started...'
         else:
-            return 'Empty list of deleted users..'
+            return 'Empty list..'
 
     @classmethod
     def process_deleted_account(self, d_user, x_email, list_user_emails, current_user_email):
