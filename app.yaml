@@ -55,4 +55,4 @@ handlers:
 
 - url: .*
   script: main.main_app
-  login: required
+  login: admin
