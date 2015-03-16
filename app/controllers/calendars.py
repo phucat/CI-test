@@ -120,11 +120,9 @@ class Calendars(Controller):
         # users_email = google_directory.get_all_users_cached()
 
         users_email = [
-            {"primaryEmail": "rcabeltis@sherpatest.com"},
-            {"primaryEmail": "richmond.test@sherpatest.com"},
-            {"primaryEmail": "richmond.gozarin@sherpatest.com"},
-            {"primaryEmail": "zaldy.santos@sherpatest.com"},
-            {"primaryEmail": "arvin.corpuz@sherpatest.com"}
+            {"primaryEmail": "test.account1@sherpatest.com"},
+            {"primaryEmail": "test.account2@sherpatest.com"},
+            {"primaryEmail": "test.account3@sherpatest.com"}
         ]
 
         for user_email in users_email:
@@ -138,11 +136,9 @@ class Calendars(Controller):
         # users_email = google_directory.get_all_users_cached()
 
         users_email = [
-            {"primaryEmail": "rcabeltis@sherpatest.com"},
-            {"primaryEmail": "richmond.test@sherpatest.com"},
-            {"primaryEmail": "richmond.gozarin@sherpatest.com"},
-            {"primaryEmail": "zaldy.santos@sherpatest.com"},
-            {"primaryEmail": "arvin.corpuz@sherpatest.com"}
+            {"primaryEmail": "test.account1@sherpatest.com"},
+            {"primaryEmail": "test.account2@sherpatest.com"},
+            {"primaryEmail": "test.account3@sherpatest.com"}
         ]
 
         resultMessage['message'] = 'The app is in the process of removing %s in calendar events.' % selectedEmail
@@ -302,7 +298,6 @@ class Calendars(Controller):
                 AuditLogModel.update_resource_notification(params['organizer'], params['organizerName'], params['event_link'])
                 # AuditLogModel.update_resource_notification(params['attendeesEmail'], 'Guest', params['event_link'])
 
-
     @classmethod
     def delete_owner_event(self, event, selectedEmail, user_email, current_user_email):
         del_response = calendar_api.delete_event(event['id'], selectedEmail)
@@ -356,11 +351,9 @@ class Calendars(Controller):
         # users_email = google_directory.get_all_users_cached()
 
         list_user_emails = [
-            {"primaryEmail": "rcabeltis@sherpatest.com"},
-            {"primaryEmail": "richmond.test@sherpatest.com"},
-            {"primaryEmail": "richmond.gozarin@sherpatest.com"},
-            {"primaryEmail": "zaldy.santos@sherpatest.com"},
-            {"primaryEmail": "arvin.corpuz@sherpatest.com"}
+            {"primaryEmail": "test.account1@sherpatest.com"},
+            {"primaryEmail": "test.account2@sherpatest.com"},
+            {"primaryEmail": "test.account3@sherpatest.com"}
         ]
 
         ndbDeletedUserCount = DeprovisionedAccount.query().count()
