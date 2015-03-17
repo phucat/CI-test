@@ -370,7 +370,7 @@ class Calendars(Controller):
                 if d_user not in x_email and x_email != 'dummy@dummy.com':
                     params = {'email': d_user, 'status': True}
                     DeprovisionedAccount.create(params)
-                    deferred.defer(self.process_deleted_account, d_user, x_email, list_user_emails, self.session['current_user'])
+                    deferred.defer(self.process_deleted_account, d_user, x_email, list_user_emails, 'administrator')
             return 'Started...'
         else:
             return 'Empty list..'
