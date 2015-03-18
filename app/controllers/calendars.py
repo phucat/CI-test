@@ -92,7 +92,7 @@ class Calendars(Controller):
             res = self.components.calendars.find_resource(str(calendar_resource))
 
             action = 'A new Calendar Resource has been created'
-            insert_audit_log(action, 'add new resource', current_user.email(), resource['resourceCommonName'], None, None)
+            insert_audit_log(action, 'add new resource', self.session['current_user'], resource['resourceCommonName'], None, None)
 
             # AuditLogModel.new_resource_notification(config['email'], current_user.nickname(), resource)
 
@@ -364,7 +364,7 @@ class Calendars(Controller):
                 if d_user not in x_email and x_email != 'dummy@dummy.com':
                     params = {'email': d_user, 'status': True}
                     DeprovisionedAccount.create(params)
-                    deferred.defer(self.process_deleted_account, d_user, x_email, list_user_emails, 'administrator')
+                    deferred.defer(self.process_deleted_account, d_user, x_email, list_user_emails, config['email'])
             return 'Started...'
         else:
             return 'Empty list..'
