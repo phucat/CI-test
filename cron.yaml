@@ -1,7 +1,7 @@
 cron:
 - description: Delete user from domain
   url: /api/user_removals/deleting/users
-  schedule: every day 00:00
+  schedule: every 5 minutes from 7:00 to 16:00
   timezone: US/Eastern
 
 - description: Daily Report
@@ -13,3 +13,10 @@ cron:
   url: /api/auditlogs/generate/report/csv/weekly
   schedule: every friday 00:00
   timezone: US/Eastern
+
+-
+  description: Delete user from domain
+  url: /api/calendar/resource_memcache
+  schedule: every 2 minutes
+  timezone: US/Eastern
+

@@ -1,8 +1,9 @@
 from ferris import Controller, route_with, settings
 from app.models.audit_log import AuditLog as AuditLogModel
 from app.models.deprovisioned_account import DeprovisionedAccount
+from app.components.calendars import Calendars
 from google.appengine.ext import deferred
-from google.appengine.api import users, app_identity, urlfetch
+from google.appengine.api import users, app_identity, urlfetch, memcache
 from gdata.calendar_resource.client import CalendarResourceClient
 import json
 import re
@@ -22,6 +23,7 @@ current_user = users.get_current_user()
 class Calendars(Controller):
     class Meta:
         prefixes = ('api',)
+        components = (Calendars,)
         View = 'json'
 
     @route_with(template='/api/calendar/events/<email>', methods=['GET'])
@@ -47,11 +49,16 @@ class Calendars(Controller):
             calendar_resources = str(client.GetResourceFeed(uri="https://apps-apis.google.com/a/feeds/calendar/resource/2.0/sherpatest.com/?%s" % feed))
             data['previous'] = 'feed'
 
-        nextpage, res = self.find_resource(calendar_resources)
+        nextpage, res = self.components.calendars.find_resource(calendar_resources)
         sortedResource = sorted(res, key=lambda resource: resource['resourceCommonName'])
         data['items'] = sortedResource
         data['next'] = nextpage
 
+        self.context['data'] = data
+
+    @route_with(template='/api/calendar/resource_memcache', methods=['GET'])
+    def api_list_resource2(self):
+        data = self.components.calendars.list_resource_memcache()
         self.context['data'] = data
 
     @route_with(template='/api/calendar/resource/create', methods=['POST'])
@@ -63,13 +70,27 @@ class Calendars(Controller):
         resource = json.loads(self.request.body)
 
         try:
+            resource_list = memcache.get('resource_list')
+            if resource_list is None:
+                resource_list = self.components.calendars.list_resource_memcache()
+
+            for apiResource in resource_list:
+                if apiResource['resourceCommonName'] == resource['resourceCommonName']:
+                    return 402
+
+            if 'resourceDescription' in resource:
+                resourceDescription = resource['resourceDescription']
+            else:
+                resourceDescription = None
+
             calendar_resource = client.CreateResource(
                 resource_id=resource['resourceId'],
                 resource_common_name=resource['resourceCommonName'],
-                resource_description=resource['resourceDescription'],
+                resource_description=resourceDescription,
                 resource_type=resource['resourceType'])
 
-            res = self.find_resource(str(calendar_resource))
+            res = self.components.calendars.find_resource(str(calendar_resource))
+
             action = 'A new Calendar Resource has been created'
             insert_audit_log(action, 'add new resource', current_user.email(), resource['resourceCommonName'], None, None)
 
@@ -105,7 +126,7 @@ class Calendars(Controller):
                 resource_type=resource['resourceType'])
 
             self.process_update_resource(resource)
-            res = self.find_resource(str(updated_calendar_resource))
+            res = self.components.calendars.find_resource(str(updated_calendar_resource))
 
             resultMessage['message'] = 'The app is in the process of updating the calendar.'
             resultMessage['items'] = res
@@ -173,6 +194,7 @@ class Calendars(Controller):
                                             for attendee in event['attendees']:
                                                 if attendee['email'] != selectedEmail and 'resource' not in attendee:
                                                     attendees_list.append(attendee['email'])
+                                            attendees_list.append(current_user_email)
                                             DeprovisionedAccount.remove_owner_failed_notification(attendees_list, selectedEmail, event['summary'], event['htmlLink'])
                                     elif len(event['attendees']) == 1:
                                         for attendee in event['attendees']:
@@ -192,7 +214,6 @@ class Calendars(Controller):
     @classmethod
     def filter_attendees(self, event, selectedEmail, user_email, comment, current_user_email):
         attendees_list = []
-
         for attendee in event['attendees']:
             if attendee['email'] != selectedEmail and 'resource' not in attendee:
                 attendees_list.append({'email': attendee['email']})
@@ -316,32 +337,6 @@ class Calendars(Controller):
         else:
             # DeprovisionedAccount.remove_events_failed_notification(current_user_email, selectedEmail, event['summary'])
             pass
-
-    def find_resource(self, resource):
-        res = []
-        nextpage = ''
-        root = ET.fromstring(resource)
-        if root.tag == '{http://www.w3.org/2005/Atom}feed':
-            for link in root.iterfind('{http://www.w3.org/2005/Atom}link'):
-                if link.get('rel') == 'next':
-                    nextpage = link.get('href')
-
-            for entry in root.iterfind('{http://www.w3.org/2005/Atom}entry'):
-                param = {}
-                for child in entry.getchildren():
-                    label = ['resourceId', 'resourceCommonName', 'resourceDescription', 'resourceType']
-                    if (child.get('name') in label):
-                        param[child.get('name')] = child.get('value')
-                res.append(param)
-            return nextpage, res
-        else:
-            param = {}
-            for child in root.getchildren():
-                label = ['resourceId', 'resourceCommonName', 'resourceDescription', 'resourceType']
-                if (child.get('name') in label):
-                    param[child.get('name')] = child.get('value')
-            res.append(param)
-            return res
 
     @route_with(template='/api/user_removals/deleting/users')
     def api_deleting_users(self):
