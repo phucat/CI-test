@@ -86,9 +86,9 @@ class Calendars(Controller):
 
             # for err in root.findall('error'):
             #     if err.get('reason') == 'EntityExists':
-
-            resultMessage['message'] = "There is an existing Resource with that ID"
-            self.context['data'] = resultMessage
+            return 406
+            # resultMessage['error'] = "There is an existing Resource with that ID"
+            # self.context['data'] = resultMessage
 
     @route_with(template='/api/calendar/resource/update', methods=['POST'])
     def api_update_resource(self):
@@ -171,7 +171,7 @@ class Calendars(Controller):
                                             insert_audit_log(action, 'Remove user in calendar events', current_user_email, selectedEmail, '%s' % event['summary'], None)
                                             attendees_list = []
                                             for attendee in event['attendees']:
-                                                if attendee['email'] != selectedEmail:
+                                                if attendee['email'] != selectedEmail and 'resource' not in attendee:
                                                     attendees_list.append(attendee['email'])
                                             DeprovisionedAccount.remove_owner_failed_notification(attendees_list, selectedEmail, event['summary'], event['htmlLink'])
                                     elif len(event['attendees']) == 1:
