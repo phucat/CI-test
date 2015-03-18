@@ -63,10 +63,19 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
                         $log.info('success',payload.data);
                     },
                     function(errorPayload) {
+                        if (errorPayload.status == 406)
+                        {
+                            $window.alert("There is an existing Resource with that ID");
+                        }
+                        else if (errorPayload.status == 402)
+                        {
+                            $window.alert("There is an existing Resource with that Name");
+                        }
+
+                        $scope.show_resourceModal(r,'Create new resource');
                         $log.error(errorPayload.status);
                         $log.error('failed', errorPayload);
-                        $window.alert("There is an existing Resource with that ID");
-                        $scope.show_resourceModal(r,'Create new resource');
+
                     });
             }
             else if (action == 'Update resource')
