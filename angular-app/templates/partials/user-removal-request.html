@@ -35,13 +35,25 @@
                             </table>
 
                             <ul class="pager pager-list">
-                                <li class="previous" ng-class="{disabled: !previous_page}">
-                                    <a href ng-click="get_scheduled_pending_users(previous_page)">
+                                <li class="previous" ng-class="{disabled: !previous_page}" ng-if="previous_page == '' ">
+                                    <a href>
                                         <i class="fa fa-angle-left">Previous</i>
                                     </a>
                                 </li>
-                                <li class="next" ng-class="{disabled: !next_page}">
-                                    <a href ng-click="get_scheduled_pending_users(next_page)">
+                                <li class="previous" ng-class="{disabled: !previous_page}" ng-if="previous_page != '' ">
+                                        <a href  ng-click="cal_resources(previous_page)" role="button">
+                                            <i class="fa fa-angle-left">Previous</i>
+                                        </a>
+                                </li>
+
+                                <li class="next" ng-class="{disabled: !next_page}" ng-if="next_page == '' ">
+                                    <a href>
+                                        <i class="fa fa-angle-right">Next</i>
+                                    </a>
+                                </li>
+
+                                <li class="next" ng-class="{disabled: !next_page}" ng-if="next_page != '' ">
+                                    <a href ng-click="cal_resources(next_page)">
                                         <i class="fa fa-angle-right">Next</i>
                                     </a>
                                 </li>

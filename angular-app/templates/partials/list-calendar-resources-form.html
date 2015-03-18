@@ -18,8 +18,8 @@
                             style="width: 50%;" title="Select a user">
                         <ui-select-match placeholder="Select or search a User in the list...">{{$select.selected.name.fullName}}</ui-select-match>
                         <ui-select-choices repeat="user in users | filter: $select.search">
-                          <span ng-bind-html="user.name.fullName | highlight: $select.search"></span>
-                          <small ng-bind-html="user.primaryEmail | highlight: $select.search"></small>
+                            <span ng-bind-html="user.name.fullName | highlight: $select.search"></span>
+                            <small ng-bind-html="user.primaryEmail | highlight: $select.search"></small>
                         </ui-select-choices>
                       </ui-select>
                        <button class="btn btn-default" ng-click="remove_user()">Remove</button>
@@ -41,8 +41,9 @@
                         <table class="table table-striped table-hover">
                             <thead>
                                 <tr>
-                                  <th>Resource Name</th>
-                                  <th>Resource Description</th>
+                                    <th>Resource ID</th>
+                                    <th>Resource Name</th>
+                                    <th>Resource Description</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -50,6 +51,7 @@
                                     <td colspan="3"><img src="/static/img/ajax-loader.gif" /></td>
                                 </tr>
                                 <tr style="cursor:pointer;" ng-repeat="model in calendar_resources" ng-click="show_resourceModal(model,'Update resource')">
+                                    <td>{{model.resourceId}}</td>
                                     <td>{{model.resourceCommonName}}</td>
                                     <td>{{model.resourceDescription}}</td>
                                 </tr>
@@ -57,12 +59,27 @@
                         </table>
 
                         <ul class="pager pager-list">
-                            <li class="previous" ng-class="{disabled: !previous_page}">
-                                <a href ng-click="cal_resources(previous_page)">
-                                    <i class="fa fa-angle-left">Previous</i>
+
+                            <li class="previous" ng-class="{disabled: !previous_page}"
+                                ng-if="previous_page == '' ">
+                                    <a href>
+                                        <i class="fa fa-angle-left">Previous</i>
+                                    </a>
+                            </li>
+                            <li class="previous" ng-class="{disabled: !previous_page}"
+                                ng-if="previous_page != '' ">
+                                    <a href  ng-click="cal_resources(previous_page)" role="button">
+                                        <i class="fa fa-angle-left">Previous</i>
+                                    </a>
+                            </li>
+
+                            <li class="next" ng-class="{disabled: !next_page}" ng-if="next_page == '' ">
+                                <a href>
+                                    <i class="fa fa-angle-right">Next</i>
                                 </a>
                             </li>
-                            <li class="next" ng-class="{disabled: !next_page}">
+
+                            <li class="next" ng-class="{disabled: !next_page}" ng-if="next_page != '' ">
                                 <a href ng-click="cal_resources(next_page)">
                                     <i class="fa fa-angle-right">Next</i>
                                 </a>
