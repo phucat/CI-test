@@ -120,9 +120,9 @@ class Calendars(Controller):
         # users_email = google_directory.get_all_users_cached()
 
         users_email = [
-            {"primaryEmail": "test.account1@sherpatest.com"},
-            {"primaryEmail": "test.account2@sherpatest.com"},
-            {"primaryEmail": "test.account3@sherpatest.com"}
+            {"primaryEmail": "test.account3@sherpatest.com"},
+            {"primaryEmail": "test.account5@sherpatest.com"},
+            {"primaryEmail": "test.account6@sherpatest.com"}
         ]
 
         for user_email in users_email:
@@ -136,9 +136,9 @@ class Calendars(Controller):
         # users_email = google_directory.get_all_users_cached()
 
         users_email = [
-            {"primaryEmail": "test.account1@sherpatest.com"},
-            {"primaryEmail": "test.account2@sherpatest.com"},
-            {"primaryEmail": "test.account3@sherpatest.com"}
+            {"primaryEmail": "test.account3@sherpatest.com"},
+            {"primaryEmail": "test.account5@sherpatest.com"},
+            {"primaryEmail": "test.account6@sherpatest.com"}
         ]
 
         resultMessage['message'] = 'The app is in the process of removing %s in calendar events.' % selectedEmail
@@ -194,7 +194,7 @@ class Calendars(Controller):
         attendees_list = []
 
         for attendee in event['attendees']:
-            if attendee['email'] != selectedEmail:
+            if attendee['email'] != selectedEmail and 'resource' not in attendee:
                 attendees_list.append({'email': attendee['email']})
 
         params_body = {
@@ -207,13 +207,12 @@ class Calendars(Controller):
 
         update_event = {
             'event_id': event['id'],
-            'summary': event['summary'],
             'user_email': user_email,
             'body': params_body,
             'organizer': event['organizer']['email'],
             'selectedEmail': selectedEmail,
             'comment': comment,
-            'attendeesEmail': [email.email for email in attendees_list]
+            'attendeesEmail': [email['email'] for email in attendees_list]
         }
         deferred.defer(self.update_calendar_events, update_event, False, current_user_email)
 
@@ -254,7 +253,7 @@ class Calendars(Controller):
                 'organizer': event['organizer']['email'],
                 'organizerName': event['organizer']['displayName'],
                 'event_link': event['htmlLink'],
-                'attendeesEmail': [email.email for email in attendees_list],
+                'attendeesEmail': [email['email'] for email in attendees_list],
                 'body': params_body
             }
             deferred.defer(self.update_calendar_events, update_event, True, current_user_email)
@@ -280,7 +279,7 @@ class Calendars(Controller):
                         cal_params['target_resource'],
                         cal_params['target_event_altered'], cal_params['comment'])
 
-                AuditLogModel.attendees_update_notification(params['attendeesEmail'], params['selectedEmail'], params['summary'])
+                AuditLogModel.attendees_update_notification(params['attendeesEmail'], params['selectedEmail'], params['body']['summary'])
         else:
             if update_event is not None:
                 cal_params = {
@@ -351,9 +350,9 @@ class Calendars(Controller):
         # list_user_emails = google_directory.get_all_users_cached()
 
         list_user_emails = [
-            {"primaryEmail": "test.account1@sherpatest.com"},
-            {"primaryEmail": "test.account2@sherpatest.com"},
-            {"primaryEmail": "test.account3@sherpatest.com"}
+            {"primaryEmail": "test.account3@sherpatest.com"},
+            {"primaryEmail": "test.account5@sherpatest.com"},
+            {"primaryEmail": "test.account6@sherpatest.com"}
         ]
 
         ndbDeletedUserCount = DeprovisionedAccount.query().count()
