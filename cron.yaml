@@ -14,8 +14,7 @@ cron:
   schedule: every friday 00:00
   timezone: US/Eastern
 
--
-  description: Delete user from domain
+- description: Update Calendar Resource Memcahe
   url: /api/calendar/resource_memcache
   schedule: every 2 minutes
   timezone: US/Eastern

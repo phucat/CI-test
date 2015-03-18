@@ -1,4 +1,4 @@
-application: cs-arista-calendar-dev      #.appspot.com
+application: cs-arista-calendar-qa      #.appspot.com
 version: baseline
 
 runtime: python27
@@ -50,6 +50,10 @@ handlers:
   login: optional
 
 - url: /api/user_removals/deleting/users
+  script: main.main_app
+  login: optional
+
+- url: /api/calendar/resource_memcache
   script: main.main_app
   login: optional
 
