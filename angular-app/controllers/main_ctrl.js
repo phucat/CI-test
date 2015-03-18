@@ -54,13 +54,20 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
             old_resource = $scope.calendar_resources;
             $scope.calendar_resources = [];
             if(action == 'Create new resource'){
-                aristaREST.create_resource(r)
-                .success(function(d){
+                var promise = aristaREST.create_resource(r);
                     $scope.cal_resources();
-                    $window.alert(d.message);
-                }).error(function(d){
-                    $window.alert(d.error);
-                });
+                    promise.then(
+                    function(payload) {
+                        $window.alert(payload.data.message);
+                        $log.info(payload.status);
+                        $log.info('success',payload.data);
+                    },
+                    function(errorPayload) {
+                        $log.error(errorPayload.status);
+                        $log.error('failed', errorPayload);
+                        $window.alert("There is an existing Resource with that ID");
+                        $scope.show_resourceModal(r,'Create new resource');
+                    });
             }
             else if (action == 'Update resource')
             {
@@ -87,17 +94,23 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
     };
 
     $scope.remove_user = function(){
-        pubsub.publish('modal:removerModal:show', {}, function(r){
-            $log.info('shown removerModal.',r.comment);
-            $scope.loader = true;
-            aristaREST.remove_user_from_events($scope.eventResult.item.primaryEmail,r.comment)
-            .success(function(d){
-                $scope.loader = false;
-                $window.alert(d.message);
-            }).error(function(d){
-                $window.alert(d);
+        if ($scope.eventResult != undefined){
+            pubsub.publish('modal:removerModal:show', {}, function(r){
+                $log.info('shown removerModal.',r.comment);
+                $scope.loader = true;
+                aristaREST.remove_user_from_events($scope.eventResult.item.primaryEmail,r.comment)
+                .success(function(d){
+                    $scope.loader = false;
+                    $window.alert(d.message);
+                }).error(function(d){
+                    $window.alert(d);
+                });
             });
-        });
+        }
+        else
+        {
+            alert('Please select a user to be removed.');
+        }
     }
 
 }).controller('ResourceModal', function($scope, $rootScope, $log){
