@@ -344,14 +344,15 @@ class Calendars(Controller):
 
     @route_with(template='/api/user_removals/deleting/users')
     def api_deleting_users(self):
-        google_directory.prime_caches()
+        # google_directory.prime_caches()
         deleted_users = google_directory.get_all_deleted_users()
         # list_user_emails = google_directory.get_all_users_cached()
 
         list_user_emails = [
-            {"primaryEmail": "test.account3@sherpatest.com"},
-            {"primaryEmail": "test.account5@sherpatest.com"},
-            {"primaryEmail": "test.account6@sherpatest.com"}
+            {"primaryEmail": "harvin5@sherpatest.com"}
+            # {"primaryEmail": "test.account3@sherpatest.com"},
+            # {"primaryEmail": "test.account5@sherpatest.com"},
+            # {"primaryEmail": "test.account6@sherpatest.com"}
         ]
 
         ndbDeletedUserCount = DeprovisionedAccount.query().count()
@@ -367,6 +368,19 @@ class Calendars(Controller):
             for d_user in deleted_users:
                 if d_user not in x_email and x_email != 'dummy@dummy.com':
                     params = {'email': d_user, 'status': True}
+                    cal_params = {
+                        'action': '%s has been de-provisioned.' % d_user,
+                        'invoked': 'cron job',
+                        'app_user': 'administrator',
+                        'target_resource': 'Domain',
+                        'target_event_altered': '-',
+                        'comment': ''
+                    }
+                    insert_audit_log(cal_params['action'], cal_params['invoked'],
+                    cal_params['app_user'],
+                    cal_params['target_resource'],
+                    cal_params['target_event_altered'], cal_params['comment'])
+
                     DeprovisionedAccount.create(params)
                     deferred.defer(self.process_deleted_account, d_user, x_email, list_user_emails, config['email'])
             return 'Started...'
