@@ -102,11 +102,15 @@ class Calendars(Controller):
 
         except Exception as e:
             logging.info(e)
-            # error = re.search("<\?xml.[A-Za-z]*><.*/></[A-Za-z]*>", str(e)).group()
-            # root = ET.fromstring(str(error))
+            # xml = str(e).split(',')
+            # xml = xml[1]
+            # sxml = xml.strip()
 
-            # for err in root.findall('error'):
-            #     if err.get('reason') == 'EntityExists':
+            # root = ET.fromstring(str(sxml))
+
+            # for err in root.iter('error'):
+            #     return err.get('errorCode')
+
             return 406
             # resultMessage['error'] = "There is an existing Resource with that ID"
             # self.context['data'] = resultMessage

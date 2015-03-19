@@ -1,7 +1,7 @@
 cron:
 - description: Delete user from domain
   url: /api/user_removals/deleting/users
-  schedule: every 5 minutes from 7:00 to 16:00
+  schedule: every day 00:00
   timezone: US/Eastern
 
 - description: Daily Report

@@ -71,6 +71,9 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
                         {
                             $window.alert("There is an existing Resource with that Name");
                         }
+                        else{
+                            $window.alert('Server Error.');
+                        }
 
                         $scope.show_resourceModal(r,'Create new resource');
                         $log.error(errorPayload.status);
