@@ -1,6 +1,7 @@
 from ferris import Controller, route_with, settings
 from app.models.audit_log import AuditLog as AuditLogModel
 from app.models.deprovisioned_account import DeprovisionedAccount
+from app.models.user_removal import UserRemoval
 from app.components.calendars import Calendars
 from google.appengine.ext import deferred
 from google.appengine.api import users, app_identity, urlfetch, memcache
@@ -189,7 +190,8 @@ class Calendars(Controller):
                         if resource == False:
                             if 'attendees' in event:
                                 if event['organizer']['email'] != selectedEmail:
-                                    deferred.defer(self.filter_attendees, event, selectedEmail, user_email, comment, current_user_email)
+                                    if selectedEmail in event['attendees']:
+                                        deferred.defer(self.filter_attendees, event, selectedEmail, user_email, comment, current_user_email)
                                 else:
                                     if len(event['attendees']) > 1:
                                             action = 'Oops, %s is the owner in %s event with %s attendees.' % (selectedEmail, event['summary'], len(event['attendees']))
@@ -304,7 +306,7 @@ class Calendars(Controller):
                         cal_params['target_resource'],
                         cal_params['target_event_altered'], cal_params['comment'])
 
-                AuditLogModel.attendees_update_notification(params['attendeesEmail'], params['selectedEmail'], params['body']['summary'])
+                    AuditLogModel.attendees_update_notification(params['attendeesEmail'], params['selectedEmail'], params['body']['summary'])
         else:
             if update_event is not None:
                 cal_params = {
@@ -347,12 +349,10 @@ class Calendars(Controller):
         # google_directory.prime_caches()
         deleted_users = google_directory.get_all_deleted_users()
         # list_user_emails = google_directory.get_all_users_cached()
-
         list_user_emails = [
-            {"primaryEmail": "harvin5@sherpatest.com"}
-            # {"primaryEmail": "test.account3@sherpatest.com"},
-            # {"primaryEmail": "test.account5@sherpatest.com"},
-            # {"primaryEmail": "test.account6@sherpatest.com"}
+            {"primaryEmail": "test.account3@sherpatest.com"},
+            {"primaryEmail": "test.account5@sherpatest.com"},
+            {"primaryEmail": "test.account6@sherpatest.com"}
         ]
 
         ndbDeletedUserCount = DeprovisionedAccount.query().count()
@@ -381,11 +381,21 @@ class Calendars(Controller):
                     cal_params['target_resource'],
                     cal_params['target_event_altered'], cal_params['comment'])
 
+                    modified_approver = self.get_approved_scheduled_user(d_user)
                     DeprovisionedAccount.create(params)
-                    deferred.defer(self.process_deleted_account, d_user, x_email, list_user_emails, config['email'])
-            return 'Started...'
+                    deferred.defer(self.process_deleted_account, d_user, x_email, list_user_emails, modified_approver)
+
+            return 'started...'
         else:
             return 'Empty list..'
+
+    def get_approved_scheduled_user(self, d_user):
+        schedule_user_removal = UserRemoval.list_all_approve()
+        for remover in schedule_user_removal:
+            if remover.email == d_user:
+                return remover.modified_by
+            else:
+                return config['email']
 
     @classmethod
     def process_deleted_account(self, d_user, x_email, list_user_emails, current_user_email):
