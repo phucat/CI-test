@@ -42,27 +42,28 @@ settings['oauth2'] = {
     'developer_key': None  # Optional
 }
 
+# arista-qa
 settings['oauth2_service_account'] = {
     # OAuth2 service account configuration should be generated
     # from the google cloud console (Service Account Credentials)
-    'client_email': '1057100193776-q3kup97nscasd7rsrtf1emjshr3f4ouo@developer.gserviceaccount.com',  # XXX@developer.gserviceaccount.com
+    'client_email': '566305864248-jqrmu5pup0t108pt97nqq9mt1ijv7mto@developer.gserviceaccount.com',  # XXX@developer.gserviceaccount.com
     'private_key': """-----BEGIN PRIVATE KEY-----
-MIICdQIBADANBgkqhkiG9w0BAQEFAASCAl8wggJbAgEAAoGBAML88nviV553MYEA
-FXxbY9dUVC8lYdH7K6+eAODGhVhiuMpvTmB69gjjO3Dd4WKYNvhpmmba2h01lJdd
-R3OB4tRgl/hIB/wluxTDqgr+oFRQvly4Fcy+ZrblrQJ8UFazLU5z6lPhzOnB7gfa
-BYFMSB2XNlzIrLMLMUjxJmt2JHkJAgMBAAECgYBQLsBwXUV2rsE2sRgkyVgnRlBQ
-CulM9iKi1zC5Pim7jO08ocTzO91NDlR1N2jlqH6CbLrHrRugg1YVYJBvWWwy/bmO
-I8QXoqiPfDZnfLGTjO+zJwnHo29HxGcKfQsKdvECP2SDFZry7AN17mcDFVG/II7R
-tjofDUaylPgp53uomQJBAOIz/a1C8bpOInGhrzmHcuKxul+pDjAd9gOnywIh7bAn
-V6+RCc2iYFls/VfzPE11leTwoXpbpj4gauqxOnCG5asCQQDcrFM8w8En2OliS84D
-qr77O0/PejBJQVUvd9fSIM/syA6Cx2rGAeno3vML83C+tvp/0FbtxQWC8AB41qmk
-/sAbAkAfoh+utDbz0+tzMqY7iFqjozEqIY0vY3E9D6EPOklwIgBcOA9D55pLxzci
-roxXVMNSkegzIU/9TjFFguVmSScjAkAkOiokFKL2LrcJyxYUJgjaZ79PeWjJ7e7V
-LyCAP6DC54jyUVinDxNehpNyB9IfjRyMtSBAQpMIDuyU6fDJxIS3AkByz0oe0Kbc
-UqGDkLc93EHvBbxAj81U4oMel3F/b/pFf2FiPWozZr1gRjt+Ps0x+3O8bJUZR8U6
-epL5tR80Xuvt
+MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAJqTms3P+p9OTyOL
+Pv+Xpxb7loL/tEWcCvmVbq+y938O4z6KQhNSlh135cpkYdUmak0vy7PJeaGYd9hD
+UNbfRN0JLudbMCUWvV8QkIBJgbeDa+hJV3KK3ZTJxDL07WwE8VfXnpPtaZ605ISk
+2K4rkYwlQI0hxebSXyuiFZAcmfdtAgMBAAECgYEAkxEWevSCvajS0L197c3Ksqoh
+tHc2e/gP1RBgpBfBNAjlGi6O2TV9D4JwhdRl5FdNUizEQUTSTXXzqDW7pwP7zlqT
+0axRDOvlCjOWNzzWKm8kJqFJTKtSyNsMabdOvkBD2nvS3YYTNRTJQQbAzytoYLvw
+1Hk29kRAW21kDHS8O4ECQQDHOG7VVPU6IvrDm0x62ZsFcAXjUX4Q8xjqk3FN9zET
+gM1RAjon+8diOcuVm+Yc+vF6b09T5YyzmliHnwtQdOxNAkEAxqHbNcGHnLYFwMOt
+MvCWW+vGU4xQEiTEXKun+PMtbWF4ZHiE6NqRA3nBaAK3Klk3P1qENkCwdQjKfaEI
+j6hHoQJBALIBbJbVaKBfrOymkLmcQfWj2L76i8gdToAa6jydyI4ConHlqY0cXVUZ
+Cx1MxVnTp3ychKcUDppUKRJVO8jSEGkCQCCHr2vdVwVONiD8qufVyPoi4eca6p4e
+EV6P6kF2KfFo7hueNT4hVXB5RzhugWrZE5g3jcGI1J1GJEtwzQMh7yECQEEBDkh+
+mFCQw6Ca1YME8dXcxzIRCOpMa9ZSSGw6ib7Uwi2LPNQYUg1zWNCIbJZTXWjxhfmQ
+OXQX6pqMRBhm5xg=
 -----END PRIVATE KEY-----""",  # Must be in PEM format
-    'developer_key': 'AIzaSyDBTTdoJDhIcRWW9Rt89QfmbSPyPNzvrIE',  # Optional
+    'developer_key': 'AIzaSyCY2AHYltYng1JbyHJk8EH80JbMqaiy9NU',  # Optional
     'domain': 'sherpatest.com',
     'default_user': 'richmond.gozarin@sherpatest.com'
 }

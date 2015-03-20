@@ -4,7 +4,7 @@ from app.models.user_removal import UserRemoval
 from app.models.audit_log import AuditLog as AuditLogModel
 from plugins import google_directory
 from google.appengine.api import users
-import logging
+import re
 import json
 
 
@@ -17,10 +17,13 @@ class UserRemovals(Controller):
 
     @route_with(template='/api/schedule/remove/user/<email>', methods=['GET'])
     def api_create_schedule_removal(self, email):
-        user = users.get_current_user()
-        UserRemoval.create({'email': email})
-        self.insert_audit_log('%s has been schedule for removal.' % email, 'api endpoint', user.email(), 'Schedule User Removal', '', '')
-        return 200
+        if re.match("^[a-zA-Z0-9._%-]+@[a-zA-Z0-9._%-]+.[a-zA-Z]{2,6}$", email):
+            user = users.get_current_user()
+            UserRemoval.create({'email': email})
+            self.insert_audit_log('%s has been schedule for removal.' % email, 'api endpoint', user.email(), 'Schedule User Removal', '', '')
+            return 200
+        else:
+            return 'invalid email'
 
     @route_with(template='/api/schedule/list/all', methods=['GET'])
     def api_list_all(self):
@@ -47,17 +50,20 @@ class UserRemovals(Controller):
         params = json.loads(self.request.body)
         response = UserRemoval.update({'email': params['email'], 'status': params['status']})
 
-        if params['status'] == 'Approve':
-            params['status'] += 'd'
+        if response == 403:
+            return 403
+        else:
+            if params['status'] == 'Approve':
+                params['status'] += 'd'
 
-            google_directory.revoke_user(params['email'])
+                google_directory.revoke_user(params['email'])
 
-        elif params['status'] == 'Cancel':
-            params['status'] += 'led'
+            elif params['status'] == 'Cancel':
+                params['status'] += 'led'
 
-        self.insert_audit_log('%s has been %s for removal.' % (params['email'], params['status']), 'api endpoint', user.email(), 'Schedule User Removal', '', '')
+            self.insert_audit_log('%s has been %s for removal.' % (params['email'], params['status']), 'api endpoint', user.email(), 'Schedule User Removal', '', '')
 
-        self.context['data'] = response
+            return params['status']
 
     def insert_audit_log(self, action, invoked, app_user, target_resource, target_event_altered, comment=None):
         params = {

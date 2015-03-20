@@ -1,5 +1,6 @@
 from ferris import BasicModel, ndb
 from google.appengine.api import mail, app_identity
+import logging
 APP_ID = app_identity.get_application_id()
 
 
@@ -72,15 +73,14 @@ class AuditLog(BasicModel):
 
     @staticmethod
     def attendees_update_notification(email, selectedEmail, event_summary):
-
-        subject = "Arista Inc. - Update on %s's Attendees."
+        subject = "Arista Inc. - Calendar event update on %s." % event_summary
         body = """
         Hello,
 
             %s has been removed in %s.
 
             Thank You.
-        """ % (event_summary, selectedEmail, event_summary)
+        """ % (selectedEmail, event_summary)
 
         mail.send_mail("no-reply@" + APP_ID + ".appspotmail.com", email, subject, body)
 

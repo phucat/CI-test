@@ -14,6 +14,10 @@ class UserRemoval(BasicModel):
         return cls.query().filter(cls.status == 'Pending')
 
     @classmethod
+    def list_all_approve(cls):
+        return cls.query().filter(cls.status == 'Approve')
+
+    @classmethod
     def create(cls, params):
         try:
             key = ndb.Key(cls, params['email'])
@@ -27,6 +31,9 @@ class UserRemoval(BasicModel):
     @classmethod
     def update(cls, params):
         instance = cls.query().filter(cls.email == params['email']).get()
-        instance.status = params['status']
-        instance.put()
-        return instance
+        if instance.status == 'Pending':
+            instance.status = params['status']
+            instance.put()
+            return instance
+        else:
+            return 403
