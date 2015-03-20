@@ -273,28 +273,27 @@ class Calendars(Controller):
 
     @classmethod
     def update_calendar_events(self, params, cal_resource=False, current_user_email=''):
+        try:
+            calendar_api.update_event(params['event_id'], params['user_email'], params['body'], True)
 
-        update_event = calendar_api.update_event(params['event_id'], params['user_email'], params['body'], True)
-
-        if cal_resource == False:
-            if params['selectedEmail']:
-                cal_params = {
-                    'action': '%s has been removed from events.' % params['selectedEmail'],
-                    'invoked': 'user manager',
-                    'app_user': current_user_email,
-                    'target_resource': '%s calendar' % params['user_email'],
-                    'target_event_altered': '%s' % params['body']['summary'],
-                    'comment': params['comment']
-                }
-                if update_event is not None:
-                    insert_audit_log(cal_params['action'], cal_params['invoked'],
+            if cal_resource == False:
+                if params['selectedEmail']:
+                    cal_params = {
+                        'action': '%s has been removed from events.' % params['selectedEmail'],
+                        'invoked': 'user manager',
+                        'app_user': current_user_email,
+                        'target_resource': '%s calendar' % params['user_email'],
+                        'target_event_altered': '%s' % params['body']['summary'],
+                        'comment': params['comment']
+                    }
+                    insert_audit_log(
+                        cal_params['action'], cal_params['invoked'],
                         cal_params['app_user'],
                         cal_params['target_resource'],
                         cal_params['target_event_altered'], cal_params['comment'])
 
                     AuditLogModel.attendees_update_notification(params['attendeesEmail'], params['selectedEmail'], params['body']['summary'])
-        else:
-            if update_event is not None:
+            else:
                 cal_params = {
                     'action': 'Event %s resource has been updated.' % params['body']['summary'],
                     'invoked': 'resource manager',
@@ -302,31 +301,43 @@ class Calendars(Controller):
                     'target_resource': '%s resource name' % params['body']['old_resourceName'],
                     'target_event_altered': '%s' % (params['body']['location'])
                 }
-                insert_audit_log(cal_params['action'], cal_params['invoked'],
+                insert_audit_log(
+                    cal_params['action'], cal_params['invoked'],
                     cal_params['app_user'],
                     cal_params['target_resource'],
                     cal_params['target_event_altered'], '')
 
                 AuditLogModel.update_resource_notification(params['organizer'], params['organizerName'], params['event_link'])
                 # AuditLogModel.update_resource_notification(params['attendeesEmail'], 'Guest', params['event_link'])
+        except Exception, e:
+            logging.error('== API UPDATE EVENT ERROR ==')
+            logging.error(e)
 
     @classmethod
     def delete_owner_event(self, event, selectedEmail, user_email, current_user_email):
-        del_response = calendar_api.delete_event(event['id'], selectedEmail)
-        cal_params = {
-            'action': '%s has been removed from calendar events.' % selectedEmail,
-            'invoked': 'user manager',
-            'app_user': current_user_email,
-            'target_resource': '%s calendar' % user_email,
-            'target_event_altered': '%s' % event['summary'],
-            'comment': ''
-        }
-        insert_audit_log(cal_params['action'], cal_params['invoked'],
-        cal_params['app_user'],
-        cal_params['target_resource'],
-        cal_params['target_event_altered'], cal_params['comment'])
+        try:
+            calendar_api.delete_event(event['id'], selectedEmail)
 
-        DeprovisionedAccount.remove_owner_success_notification(current_user_email, selectedEmail, event['summary'], event['htmlLink'])
+            cal_params = {
+                'action': '%s has been removed from calendar events.' % selectedEmail,
+                'invoked': 'user manager',
+                'app_user': current_user_email,
+                'target_resource': '%s calendar' % user_email,
+                'target_event_altered': '%s' % event['summary'],
+                'comment': ''
+            }
+            insert_audit_log(
+                cal_params['action'], cal_params['invoked'],
+                cal_params['app_user'],
+                cal_params['target_resource'],
+                cal_params['target_event_altered'], cal_params['comment']
+            )
+
+            DeprovisionedAccount.remove_owner_success_notification(current_user_email, selectedEmail, event['summary'], event['htmlLink'])
+
+        except Exception, e:
+            logging.error('== API DELETE EVENT ERROR ==')
+            logging.error(e)
 
     @route_with(template='/api/user_removals/deleting/users')
     def api_deleting_users(self):
@@ -360,10 +371,11 @@ class Calendars(Controller):
                         'target_event_altered': '-',
                         'comment': ''
                     }
-                    insert_audit_log(cal_params['action'], cal_params['invoked'],
-                    cal_params['app_user'],
-                    cal_params['target_resource'],
-                    cal_params['target_event_altered'], cal_params['comment'])
+                    insert_audit_log(
+                        cal_params['action'], cal_params['invoked'],
+                        cal_params['app_user'],
+                        cal_params['target_resource'],
+                        cal_params['target_event_altered'], cal_params['comment'])
 
                     DeprovisionedAccount.create(params)
                     deferred.defer(self.process_deleted_account, d_user, x_email, list_user_emails, str(modified_approver))

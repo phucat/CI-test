@@ -16,6 +16,6 @@ cron:
 
 - description: Update Calendar Resource Memcahe
   url: /api/calendar/resource_memcache
-  schedule: every 2 minutes
+  schedule: every 3 hours
   timezone: US/Eastern
 
