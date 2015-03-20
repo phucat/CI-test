@@ -41,3 +41,22 @@ class DeprovisionedAccount(BasicModel):
         """ % (selectedEmail, event_summary, event_link)
 
         mail.send_mail("no-reply@" + APP_ID + ".appspotmail.com", email, subject, body)
+
+
+    @staticmethod
+    def remove_owner_success_notification(email, selectedEmail, event_summary, event_link):
+
+        subject = "Arista Inc. - Owner of a calendar event has been successfully removed."
+        body = """
+         Hello,
+
+            This notice is to let you know that %s the owner of the %s has been removed from our systems.
+            Please review this event and make different plans if necessary.
+
+            %s
+
+        Thanks,
+        Arista IT
+        """ % (selectedEmail, event_summary, event_link)
+
+        mail.send_mail("no-reply@" + APP_ID + ".appspotmail.com", email, subject, body)

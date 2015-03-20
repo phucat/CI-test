@@ -146,9 +146,15 @@ class Calendars(Controller):
         # users_email = google_directory.get_all_users_cached()
 
         users_email = [
-            {"primaryEmail": "test.account6@sherpatest.com"},
-            {"primaryEmail": "test.account7@sherpatest.com"},
-            {"primaryEmail": "test.account9@sherpatest.com"}
+            {"primaryEmail": "rcabeltis@sherpatest.com"},
+            {"primaryEmail": "appuser1@sherpatest.com"},
+            {"primaryEmail": "appuser2@sherpatest.com"},
+            {"primaryEmail": "test.account15@sherpatest.com"},
+            {"primaryEmail": "test.account16@sherpatest.com"},
+            {"primaryEmail": "test.account17@sherpatest.com"},
+            {"primaryEmail": "test.account18@sherpatest.com"},
+            {"primaryEmail": "test.account19@sherpatest.com"},
+            {"primaryEmail": "test.account20@sherpatest.com"}
         ]
 
         for user_email in users_email:
@@ -162,9 +168,15 @@ class Calendars(Controller):
         # users_email = google_directory.get_all_users_cached()
 
         users_email = [
-            {"primaryEmail": "test.account6@sherpatest.com"},
-            {"primaryEmail": "test.account7@sherpatest.com"},
-            {"primaryEmail": "test.account9@sherpatest.com"}
+            {"primaryEmail": "rcabeltis@sherpatest.com"},
+            {"primaryEmail": "appuser1@sherpatest.com"},
+            {"primaryEmail": "appuser2@sherpatest.com"},
+            {"primaryEmail": "test.account15@sherpatest.com"},
+            {"primaryEmail": "test.account16@sherpatest.com"},
+            {"primaryEmail": "test.account17@sherpatest.com"},
+            {"primaryEmail": "test.account18@sherpatest.com"},
+            {"primaryEmail": "test.account19@sherpatest.com"},
+            {"primaryEmail": "test.account20@sherpatest.com"}
         ]
 
         resultMessage['message'] = 'The app is in the process of removing %s in calendar events.' % selectedEmail
@@ -341,8 +353,9 @@ class Calendars(Controller):
             cal_params['app_user'],
             cal_params['target_resource'],
             cal_params['target_event_altered'], cal_params['comment'])
+
+            DeprovisionedAccount.remove_owner_success_notification(current_user_email, selectedEmail, event['summary'], event['htmlLink'])
         else:
-            # DeprovisionedAccount.remove_events_failed_notification(current_user_email, selectedEmail, event['summary'])
             pass
 
     @route_with(template='/api/user_removals/deleting/users')
@@ -351,9 +364,15 @@ class Calendars(Controller):
         deleted_users = google_directory.get_all_deleted_users()
         # list_user_emails = google_directory.get_all_users_cached()
         list_user_emails = [
-            {"primaryEmail": "test.account6@sherpatest.com"},
-            {"primaryEmail": "test.account7@sherpatest.com"},
-            {"primaryEmail": "test.account9@sherpatest.com"}
+            {"primaryEmail": "rcabeltis@sherpatest.com"},
+            {"primaryEmail": "appuser1@sherpatest.com"},
+            {"primaryEmail": "appuser2@sherpatest.com"},
+            {"primaryEmail": "test.account15@sherpatest.com"},
+            {"primaryEmail": "test.account16@sherpatest.com"},
+            {"primaryEmail": "test.account17@sherpatest.com"},
+            {"primaryEmail": "test.account18@sherpatest.com"},
+            {"primaryEmail": "test.account19@sherpatest.com"},
+            {"primaryEmail": "test.account20@sherpatest.com"}
         ]
 
         ndbDeletedUserCount = DeprovisionedAccount.query().count()
@@ -369,10 +388,15 @@ class Calendars(Controller):
             for d_user in deleted_users:
                 if d_user not in x_email and x_email != 'dummy@dummy.com':
                     params = {'email': d_user, 'status': True}
+
+                    modified_approver = self.get_approved_scheduled_user(d_user)
+                    if modified_approver is None:
+                        modified_approver = config['email']
+
                     cal_params = {
                         'action': '%s has been de-provisioned.' % d_user,
                         'invoked': 'cron job',
-                        'app_user': 'administrator',
+                        'app_user': modified_approver,
                         'target_resource': 'Domain',
                         'target_event_altered': '-',
                         'comment': ''
@@ -381,10 +405,6 @@ class Calendars(Controller):
                     cal_params['app_user'],
                     cal_params['target_resource'],
                     cal_params['target_event_altered'], cal_params['comment'])
-
-                    modified_approver = self.get_approved_scheduled_user(d_user)
-                    if modified_approver is None:
-                        modified_approver = config['email']
 
                     DeprovisionedAccount.create(params)
                     deferred.defer(self.process_deleted_account, d_user, x_email, list_user_emails, str(modified_approver))

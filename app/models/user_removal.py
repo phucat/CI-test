@@ -31,6 +31,9 @@ class UserRemoval(BasicModel):
     @classmethod
     def update(cls, params):
         instance = cls.query().filter(cls.email == params['email']).get()
-        instance.status = params['status']
-        instance.put()
-        return instance
+        if instance.status == 'Pending':
+            instance.status = params['status']
+            instance.put()
+            return instance
+        else:
+            return 403

@@ -33,10 +33,10 @@ angular.module('app.controllers').controller('RequestCtrl', function($log, $wind
             .success(function(d){
                 $scope.loader = false;
                 $scope.get_scheduled_pending_users();
-                $window.alert('The request has been approved.');
+                $window.alert('The request has been ' + d);
             }).error(function(d){
-                $scope.get_scheduled_pending_users();
                 $scope.loader = false;
+                $scope.get_scheduled_pending_users();
                 $window.alert(d.error);
             });
 
@@ -52,7 +52,9 @@ angular.module('app.controllers').controller('RequestCtrl', function($log, $wind
             $scope.get_scheduled_pending_users();
             $window.alert('The request has been cancelled.');
         }).error(function(d){
-            $window.alert(d.error);
+            $scope.loader = false;
+            $scope.get_scheduled_pending_users();
+            $window.alert('The removal request for '+ email +' has been processed.');
         });
     };
 
