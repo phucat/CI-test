@@ -146,9 +146,10 @@ class Calendars(Controller):
         # users_email = google_directory.get_all_users_cached()
 
         users_email = [
-            {"primaryEmail": "test.account3@sherpatest.com"},
             {"primaryEmail": "test.account5@sherpatest.com"},
-            {"primaryEmail": "test.account6@sherpatest.com"}
+            {"primaryEmail": "test.account6@sherpatest.com"},
+            {"primaryEmail": "test.account7@sherpatest.com"},
+            {"primaryEmail": "test.account9@sherpatest.com"}
         ]
 
         for user_email in users_email:
@@ -162,9 +163,10 @@ class Calendars(Controller):
         # users_email = google_directory.get_all_users_cached()
 
         users_email = [
-            {"primaryEmail": "test.account3@sherpatest.com"},
             {"primaryEmail": "test.account5@sherpatest.com"},
-            {"primaryEmail": "test.account6@sherpatest.com"}
+            {"primaryEmail": "test.account6@sherpatest.com"},
+            {"primaryEmail": "test.account7@sherpatest.com"},
+            {"primaryEmail": "test.account9@sherpatest.com"}
         ]
 
         resultMessage['message'] = 'The app is in the process of removing %s in calendar events.' % selectedEmail
@@ -190,7 +192,8 @@ class Calendars(Controller):
                         if resource == False:
                             if 'attendees' in event:
                                 if event['organizer']['email'] != selectedEmail:
-                                    if selectedEmail in event['attendees']:
+                                    participants_email = [participant['email'] for participant in event['attendees']]
+                                    if selectedEmail in participants_email:
                                         deferred.defer(self.filter_attendees, event, selectedEmail, user_email, comment, current_user_email)
                                 else:
                                     if len(event['attendees']) > 1:
@@ -350,9 +353,10 @@ class Calendars(Controller):
         deleted_users = google_directory.get_all_deleted_users()
         # list_user_emails = google_directory.get_all_users_cached()
         list_user_emails = [
-            {"primaryEmail": "test.account3@sherpatest.com"},
             {"primaryEmail": "test.account5@sherpatest.com"},
-            {"primaryEmail": "test.account6@sherpatest.com"}
+            {"primaryEmail": "test.account6@sherpatest.com"},
+            {"primaryEmail": "test.account7@sherpatest.com"},
+            {"primaryEmail": "test.account9@sherpatest.com"}
         ]
 
         ndbDeletedUserCount = DeprovisionedAccount.query().count()
