@@ -50,17 +50,20 @@ class UserRemovals(Controller):
         params = json.loads(self.request.body)
         response = UserRemoval.update({'email': params['email'], 'status': params['status']})
 
-        if params['status'] == 'Approve':
-            params['status'] += 'd'
+        if response == 403:
+            return 403
+        else:
+            if params['status'] == 'Approve':
+                params['status'] += 'd'
 
-            google_directory.revoke_user(params['email'])
+                google_directory.revoke_user(params['email'])
 
-        elif params['status'] == 'Cancel':
-            params['status'] += 'led'
+            elif params['status'] == 'Cancel':
+                params['status'] += 'led'
 
-        self.insert_audit_log('%s has been %s for removal.' % (params['email'], params['status']), 'api endpoint', user.email(), 'Schedule User Removal', '', '')
+            self.insert_audit_log('%s has been %s for removal.' % (params['email'], params['status']), 'api endpoint', user.email(), 'Schedule User Removal', '', '')
 
-        self.context['data'] = response
+            return params['status']
 
     def insert_audit_log(self, action, invoked, app_user, target_resource, target_event_altered, comment=None):
         params = {

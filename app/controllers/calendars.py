@@ -7,10 +7,8 @@ from google.appengine.ext import deferred
 from google.appengine.api import users, app_identity, urlfetch, memcache
 from gdata.calendar_resource.client import CalendarResourceClient
 import json
-import re
 import time
 import datetime
-import xml.etree.ElementTree as ET
 from plugins import calendar as calendar_api, google_directory, rfc3339
 import logging
 import urllib2
@@ -46,7 +44,6 @@ class Calendars(Controller):
         if feed == 'feed':
             calendar_resources = str(client.GetResourceFeed())
         else:
-            # uri = urllib.unquote(feed).decode('utf8')
             calendar_resources = str(client.GetResourceFeed(uri="https://apps-apis.google.com/a/feeds/calendar/resource/2.0/sherpatest.com/?%s" % feed))
             data['previous'] = 'feed'
 
@@ -143,19 +140,7 @@ class Calendars(Controller):
                 pass
 
     def process_update_resource(self, resource):
-        # users_email = google_directory.get_all_users_cached()
-
-        users_email = [
-            {"primaryEmail": "rcabeltis@sherpatest.com"},
-            {"primaryEmail": "appuser1@sherpatest.com"},
-            {"primaryEmail": "appuser2@sherpatest.com"},
-            {"primaryEmail": "test.account15@sherpatest.com"},
-            {"primaryEmail": "test.account16@sherpatest.com"},
-            {"primaryEmail": "test.account17@sherpatest.com"},
-            {"primaryEmail": "test.account18@sherpatest.com"},
-            {"primaryEmail": "test.account19@sherpatest.com"},
-            {"primaryEmail": "test.account20@sherpatest.com"}
-        ]
+        users_email = google_directory.get_all_users_cached()
 
         for user_email in users_email:
             deferred.defer(self.get_all_events, user_email['primaryEmail'], '', '', resource, True, self.session['current_user'])
@@ -165,19 +150,7 @@ class Calendars(Controller):
         request = json.loads(self.request.body)
         comment = request['comment']
         resultMessage = {}
-        # users_email = google_directory.get_all_users_cached()
-
-        users_email = [
-            {"primaryEmail": "rcabeltis@sherpatest.com"},
-            {"primaryEmail": "appuser1@sherpatest.com"},
-            {"primaryEmail": "appuser2@sherpatest.com"},
-            {"primaryEmail": "test.account15@sherpatest.com"},
-            {"primaryEmail": "test.account16@sherpatest.com"},
-            {"primaryEmail": "test.account17@sherpatest.com"},
-            {"primaryEmail": "test.account18@sherpatest.com"},
-            {"primaryEmail": "test.account19@sherpatest.com"},
-            {"primaryEmail": "test.account20@sherpatest.com"}
-        ]
+        users_email = google_directory.get_all_users_cached()
 
         resultMessage['message'] = 'The app is in the process of removing %s in calendar events.' % selectedEmail
         self.context['data'] = resultMessage
@@ -207,14 +180,14 @@ class Calendars(Controller):
                                         deferred.defer(self.filter_attendees, event, selectedEmail, user_email, comment, current_user_email)
                                 else:
                                     if len(event['attendees']) > 1:
-                                            action = 'Oops, %s is the owner in %s event with %s attendees.' % (selectedEmail, event['summary'], len(event['attendees']))
-                                            insert_audit_log(action, 'Remove user in calendar events', current_user_email, selectedEmail, '%s' % event['summary'], None)
-                                            attendees_list = []
-                                            for attendee in event['attendees']:
-                                                if attendee['email'] != selectedEmail and 'resource' not in attendee:
-                                                    attendees_list.append(attendee['email'])
-                                            attendees_list.append(current_user_email)
-                                            DeprovisionedAccount.remove_owner_failed_notification(attendees_list, selectedEmail, event['summary'], event['htmlLink'])
+                                        action = 'Oops, %s is the owner in %s event with %s attendees.' % (selectedEmail, event['summary'], len(event['attendees']))
+                                        insert_audit_log(action, 'Remove user in calendar events', current_user_email, selectedEmail, '%s' % event['summary'], None)
+                                        attendees_list = []
+                                        for attendee in event['attendees']:
+                                            if attendee['email'] != selectedEmail and 'resource' not in attendee:
+                                                attendees_list.append(attendee['email'])
+                                        attendees_list.append(current_user_email)
+                                        DeprovisionedAccount.remove_owner_failed_notification(attendees_list, selectedEmail, event['summary'], event['htmlLink'])
                                     elif len(event['attendees']) == 1:
                                         for attendee in event['attendees']:
                                             if attendee['email'] == selectedEmail and 'resource' not in attendee:
@@ -340,40 +313,26 @@ class Calendars(Controller):
     @classmethod
     def delete_owner_event(self, event, selectedEmail, user_email, current_user_email):
         del_response = calendar_api.delete_event(event['id'], selectedEmail)
-        if del_response is not None:
-            cal_params = {
-                'action': '%s has been removed from calendar events.' % selectedEmail,
-                'invoked': 'user manager',
-                'app_user': current_user_email,
-                'target_resource': '%s calendar' % user_email,
-                'target_event_altered': '%s' % event['summary'],
-                'comment': ''
-            }
-            insert_audit_log(cal_params['action'], cal_params['invoked'],
-            cal_params['app_user'],
-            cal_params['target_resource'],
-            cal_params['target_event_altered'], cal_params['comment'])
+        cal_params = {
+            'action': '%s has been removed from calendar events.' % selectedEmail,
+            'invoked': 'user manager',
+            'app_user': current_user_email,
+            'target_resource': '%s calendar' % user_email,
+            'target_event_altered': '%s' % event['summary'],
+            'comment': ''
+        }
+        insert_audit_log(cal_params['action'], cal_params['invoked'],
+        cal_params['app_user'],
+        cal_params['target_resource'],
+        cal_params['target_event_altered'], cal_params['comment'])
 
-            DeprovisionedAccount.remove_owner_success_notification(current_user_email, selectedEmail, event['summary'], event['htmlLink'])
-        else:
-            pass
+        DeprovisionedAccount.remove_owner_success_notification(current_user_email, selectedEmail, event['summary'], event['htmlLink'])
 
     @route_with(template='/api/user_removals/deleting/users')
     def api_deleting_users(self):
-        # google_directory.prime_caches()
+        google_directory.prime_caches()
         deleted_users = google_directory.get_all_deleted_users()
-        # list_user_emails = google_directory.get_all_users_cached()
-        list_user_emails = [
-            {"primaryEmail": "rcabeltis@sherpatest.com"},
-            {"primaryEmail": "appuser1@sherpatest.com"},
-            {"primaryEmail": "appuser2@sherpatest.com"},
-            {"primaryEmail": "test.account15@sherpatest.com"},
-            {"primaryEmail": "test.account16@sherpatest.com"},
-            {"primaryEmail": "test.account17@sherpatest.com"},
-            {"primaryEmail": "test.account18@sherpatest.com"},
-            {"primaryEmail": "test.account19@sherpatest.com"},
-            {"primaryEmail": "test.account20@sherpatest.com"}
-        ]
+        list_user_emails = google_directory.get_all_users_cached()
 
         ndbDeletedUserCount = DeprovisionedAccount.query().count()
 
