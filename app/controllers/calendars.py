@@ -146,7 +146,6 @@ class Calendars(Controller):
         # users_email = google_directory.get_all_users_cached()
 
         users_email = [
-            {"primaryEmail": "test.account5@sherpatest.com"},
             {"primaryEmail": "test.account6@sherpatest.com"},
             {"primaryEmail": "test.account7@sherpatest.com"},
             {"primaryEmail": "test.account9@sherpatest.com"}
@@ -163,7 +162,6 @@ class Calendars(Controller):
         # users_email = google_directory.get_all_users_cached()
 
         users_email = [
-            {"primaryEmail": "test.account5@sherpatest.com"},
             {"primaryEmail": "test.account6@sherpatest.com"},
             {"primaryEmail": "test.account7@sherpatest.com"},
             {"primaryEmail": "test.account9@sherpatest.com"}
@@ -353,7 +351,6 @@ class Calendars(Controller):
         deleted_users = google_directory.get_all_deleted_users()
         # list_user_emails = google_directory.get_all_users_cached()
         list_user_emails = [
-            {"primaryEmail": "test.account5@sherpatest.com"},
             {"primaryEmail": "test.account6@sherpatest.com"},
             {"primaryEmail": "test.account7@sherpatest.com"},
             {"primaryEmail": "test.account9@sherpatest.com"}
@@ -386,8 +383,11 @@ class Calendars(Controller):
                     cal_params['target_event_altered'], cal_params['comment'])
 
                     modified_approver = self.get_approved_scheduled_user(d_user)
+                    if modified_approver is None:
+                        modified_approver = config['email']
+
                     DeprovisionedAccount.create(params)
-                    deferred.defer(self.process_deleted_account, d_user, x_email, list_user_emails, modified_approver)
+                    deferred.defer(self.process_deleted_account, d_user, x_email, list_user_emails, str(modified_approver))
 
             return 'started...'
         else:
@@ -397,9 +397,7 @@ class Calendars(Controller):
         schedule_user_removal = UserRemoval.list_all_approve()
         for remover in schedule_user_removal:
             if remover.email == d_user:
-                return remover.modified_by
-            else:
-                return config['email']
+                return remover.modified_by.email()
 
     @classmethod
     def process_deleted_account(self, d_user, x_email, list_user_emails, current_user_email):
