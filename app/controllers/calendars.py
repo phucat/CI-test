@@ -178,6 +178,8 @@ class Calendars(Controller):
                                     participants_email = [participant['email'] for participant in event['attendees']]
                                     if selectedEmail in participants_email:
                                         deferred.defer(self.filter_attendees, event, selectedEmail, user_email, comment, current_user_email)
+                                    else:
+                                        pass
                                 else:
                                     if len(event['attendees']) > 1:
                                         action = 'Oops, %s is the owner in %s event with %s attendees.' % (selectedEmail, event['summary'], len(event['attendees']))
@@ -376,6 +378,8 @@ class Calendars(Controller):
                         cal_params['app_user'],
                         cal_params['target_resource'],
                         cal_params['target_event_altered'], cal_params['comment'])
+
+                    DeprovisionedAccount.deprovision_success_notification(str(modified_approver), d_user)
 
                     DeprovisionedAccount.create(params)
                     deferred.defer(self.process_deleted_account, d_user, x_email, list_user_emails, str(modified_approver))

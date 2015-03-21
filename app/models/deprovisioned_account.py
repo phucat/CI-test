@@ -60,3 +60,19 @@ class DeprovisionedAccount(BasicModel):
         """ % (selectedEmail, event_summary, event_link)
 
         mail.send_mail("no-reply@" + APP_ID + ".appspotmail.com", email, subject, body)
+
+
+    @staticmethod
+    def deprovision_success_notification(email, selectedEmail):
+
+        subject = "Arista Inc. - %s has been successfully removed." % selectedEmail
+        body = """
+         Hello,
+
+            This notice is to let you know that %s has been removed from our systems.
+
+        Thanks,
+        Arista IT
+        """ % selectedEmail
+
+        mail.send_mail("no-reply@" + APP_ID + ".appspotmail.com", email, subject, body)
