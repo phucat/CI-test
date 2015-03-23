@@ -45,6 +45,22 @@ class AuditLog(BasicModel):
             AuditLog.query().fetch(keys_only=True)
         )
 
+    @staticmethod
+    def email_fluff(email):
+
+        subject = "Arista Inc. - Test Notification"
+        body = """
+        Dear app user,
+
+            Email Test only
+        """
+
+        mail.send_mail(
+            "no-reply@" + APP_ID + ".appspotmail.com",
+            email,
+            subject,
+            body
+        )
 
     @staticmethod
     def daily_notification_on_major_actions(email, filename, out):

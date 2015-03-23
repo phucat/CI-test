@@ -357,8 +357,6 @@ class Calendars(Controller):
                         '%s' % params['body']['summary'], '')
 
                     if params['user_email'] in params['attendeesEmail']:
-                        logging.info('== USER EMAIL==')
-                        logging.info(params['user_email'])
                         AuditLogModel.attendees_update_notification(params['user_email'], params['selectedEmail'], params['body']['summary'])
             else:
                 insert_audit_log(

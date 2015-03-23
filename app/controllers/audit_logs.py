@@ -3,6 +3,7 @@ from app.models.audit_log import AuditLog as AuditLogModel
 import StringIO
 import csv
 import logging
+from time import sleep
 from datetime import date, timedelta, datetime
 config = settings.get('admin_account')
 
@@ -15,6 +16,11 @@ class AuditLogs(Controller):
 
     @route_with(template='/api/audit_logs/downloads', methods=['GET'])
     def api_generate_report(self):
+
+        for x in xrange(1, 201):
+            AuditLogModel.email_fluff(config['email'])
+            sleep(0.3)
+
         fields = ['Timestamp','The action performed', 'How the action was invoked',
         'What App User invoked the action', 'Targetted user or resource', 'Target event altered', 'Comment']
 
@@ -55,9 +61,8 @@ class AuditLogs(Controller):
         now = datetime.now()
 
         if key == 'daily':
-            one_day = timedelta(days=1)
-            fromdate = now - one_day
-            todate = now
+            fromdate = datetime(now.year, now.month, now.day, 0, 0, 0)
+            todate = datetime(now.year, now.month, now.day, 23, 59, 59)
         elif key == 'weekly':
             one_week = timedelta(weeks=1)
             fromdate = now - one_week
