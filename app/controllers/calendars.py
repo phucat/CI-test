@@ -166,15 +166,21 @@ class Calendars(Controller):
         # users_email = google_directory.get_all_users_cached()
 
         users_email = [
-            # {"primaryEmail": "rcabeltis@sherpatest.com"},
-            # {"primaryEmail": "appuser1@sherpatest.com"},
-            # {"primaryEmail": "appuser2@sherpatest.com"},
-            # {"primaryEmail": "test.account29@sherpatest.com"},
-            # {"primaryEmail": "test.account30@sherpatest.com"},
-            # {"primaryEmail": "test.account31@sherpatest.com"},
-            # {"primaryEmail": "test.account32@sherpatest.com"},
-            # {"primaryEmail": "test.account33@sherpatest.com"},
+            {"primaryEmail": "rcabeltis@sherpatest.com"},
+            {"primaryEmail": "appuser1@sherpatest.com"},
+            {"primaryEmail": "test.account34@sherpatest.com"},
+            {"primaryEmail": "test.account35@sherpatest.com"},
+            {"primaryEmail": "test.account36@sherpatest.com"},
+            {"primaryEmail": "test.account37@sherpatest.com"},
+            {"primaryEmail": "test.account38@sherpatest.com"},
+            {"primaryEmail": "test.account39@sherpatest.com"},
+            {"primaryEmail": "test.account40@sherpatest.com"},
             {"primaryEmail": "arista-test2@sherpatest.com"},
+            {"primaryEmail": "hoa61@sherpatest.com"},
+            {"primaryEmail": "papachristian@sherpatest.com"},
+            {"primaryEmail": "hoa4@sherpatest.com"},
+            {"primaryEmail": "hoa9@sherpatest.com"},
+            {"primaryEmail": "test.again4@sherpatest.com"},
             {"primaryEmail": "richmond.gozarin@sherpatest.com"}
         ]
 
@@ -189,17 +195,21 @@ class Calendars(Controller):
         # users_email = google_directory.get_all_users_cached()
 
         users_email = [
-            # {"primaryEmail": "rcabeltis@sherpatest.com"},
-            # {"primaryEmail": "appuser1@sherpatest.com"},
-            # {"primaryEmail": "appuser2@sherpatest.com"},
-            # {"primaryEmail": "test.account29@sherpatest.com"},
-            # {"primaryEmail": "test.account30@sherpatest.com"},
-            # {"primaryEmail": "test.account31@sherpatest.com"},
-            # {"primaryEmail": "test.account32@sherpatest.com"},
-            # {"primaryEmail": "test.account33@sherpatest.com"},
+            {"primaryEmail": "rcabeltis@sherpatest.com"},
+            {"primaryEmail": "appuser1@sherpatest.com"},
+            {"primaryEmail": "test.account34@sherpatest.com"},
+            {"primaryEmail": "test.account35@sherpatest.com"},
+            {"primaryEmail": "test.account36@sherpatest.com"},
+            {"primaryEmail": "test.account37@sherpatest.com"},
+            {"primaryEmail": "test.account38@sherpatest.com"},
+            {"primaryEmail": "test.account39@sherpatest.com"},
+            {"primaryEmail": "test.account40@sherpatest.com"},
             {"primaryEmail": "arista-test2@sherpatest.com"},
+            {"primaryEmail": "hoa61@sherpatest.com"},
+            {"primaryEmail": "papachristian@sherpatest.com"},
             {"primaryEmail": "hoa4@sherpatest.com"},
-            {"primaryEmail": "arvin.corpuz@sherpatest.com"},
+            {"primaryEmail": "hoa9@sherpatest.com"},
+            {"primaryEmail": "test.again4@sherpatest.com"},
             {"primaryEmail": "richmond.gozarin@sherpatest.com"}
         ]
 
@@ -433,13 +443,19 @@ class Calendars(Controller):
         list_user_emails = [
             {"primaryEmail": "rcabeltis@sherpatest.com"},
             {"primaryEmail": "appuser1@sherpatest.com"},
-            {"primaryEmail": "appuser2@sherpatest.com"},
-            {"primaryEmail": "test.account29@sherpatest.com"},
-            {"primaryEmail": "test.account30@sherpatest.com"},
-            {"primaryEmail": "test.account31@sherpatest.com"},
-            {"primaryEmail": "test.account32@sherpatest.com"},
-            {"primaryEmail": "test.account33@sherpatest.com"},
+            {"primaryEmail": "test.account34@sherpatest.com"},
+            {"primaryEmail": "test.account35@sherpatest.com"},
+            {"primaryEmail": "test.account36@sherpatest.com"},
+            {"primaryEmail": "test.account37@sherpatest.com"},
+            {"primaryEmail": "test.account38@sherpatest.com"},
+            {"primaryEmail": "test.account39@sherpatest.com"},
+            {"primaryEmail": "test.account40@sherpatest.com"},
             {"primaryEmail": "arista-test2@sherpatest.com"},
+            {"primaryEmail": "hoa61@sherpatest.com"},
+            {"primaryEmail": "papachristian@sherpatest.com"},
+            {"primaryEmail": "hoa4@sherpatest.com"},
+            {"primaryEmail": "hoa9@sherpatest.com"},
+            {"primaryEmail": "test.again4@sherpatest.com"},
             {"primaryEmail": "richmond.gozarin@sherpatest.com"}
         ]
 

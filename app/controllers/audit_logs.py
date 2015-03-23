@@ -17,9 +17,8 @@ class AuditLogs(Controller):
     @route_with(template='/api/audit_logs/downloads', methods=['GET'])
     def api_generate_report(self):
 
-        for x in xrange(1, 201):
-            AuditLogModel.email_fluff(config['email'])
-            sleep(0.3)
+        # for x in xrange(1, 201):
+        #     AuditLogModel.email_fluff(config['email'])
 
         fields = ['Timestamp','The action performed', 'How the action was invoked',
         'What App User invoked the action', 'Targetted user or resource', 'Target event altered', 'Comment']
@@ -65,8 +64,9 @@ class AuditLogs(Controller):
             todate = datetime(now.year, now.month, now.day, 23, 59, 59)
         elif key == 'weekly':
             one_week = timedelta(weeks=1)
-            fromdate = now - one_week
-            todate = now
+            fromdate1 = now - one_week
+            fromdate = datetime(fromdate1.year, fromdate1.month, fromdate1.day, 0, 0, 0)
+            todate = datetime(now.year, now.month, now.day, 23, 59, 59)
 
         out = StringIO.StringIO()
         logs = AuditLogModel.fetch_date_range(fromdate, todate)
