@@ -189,15 +189,17 @@ class Calendars(Controller):
         # users_email = google_directory.get_all_users_cached()
 
         users_email = [
-            {"primaryEmail": "rcabeltis@sherpatest.com"},
-            {"primaryEmail": "appuser1@sherpatest.com"},
-            {"primaryEmail": "appuser2@sherpatest.com"},
-            {"primaryEmail": "test.account29@sherpatest.com"},
-            {"primaryEmail": "test.account30@sherpatest.com"},
-            {"primaryEmail": "test.account31@sherpatest.com"},
-            {"primaryEmail": "test.account32@sherpatest.com"},
-            {"primaryEmail": "test.account33@sherpatest.com"},
+            # {"primaryEmail": "rcabeltis@sherpatest.com"},
+            # {"primaryEmail": "appuser1@sherpatest.com"},
+            # {"primaryEmail": "appuser2@sherpatest.com"},
+            # {"primaryEmail": "test.account29@sherpatest.com"},
+            # {"primaryEmail": "test.account30@sherpatest.com"},
+            # {"primaryEmail": "test.account31@sherpatest.com"},
+            # {"primaryEmail": "test.account32@sherpatest.com"},
+            # {"primaryEmail": "test.account33@sherpatest.com"},
             {"primaryEmail": "arista-test2@sherpatest.com"},
+            {"primaryEmail": "hoa4@sherpatest.com"},
+            {"primaryEmail": "arvin.corpuz@sherpatest.com"},
             {"primaryEmail": "richmond.gozarin@sherpatest.com"}
         ]
 
@@ -283,6 +285,7 @@ class Calendars(Controller):
             'comment': comment,
             'attendeesEmail': [email['email'] for email in attendees_list]
         }
+
         deferred.defer(self.update_calendar_events, update_event, False, current_user_email)
 
     @classmethod
@@ -353,7 +356,10 @@ class Calendars(Controller):
                         '%s calendar' % params['user_email'],
                         '%s' % params['body']['summary'], '')
 
-                    AuditLogModel.attendees_update_notification(params['attendeesEmail'], params['selectedEmail'], params['body']['summary'])
+                    if params['user_email'] in params['attendeesEmail']:
+                        logging.info('== USER EMAIL==')
+                        logging.info(params['user_email'])
+                        AuditLogModel.attendees_update_notification(params['user_email'], params['selectedEmail'], params['body']['summary'])
             else:
                 insert_audit_log(
                     "Event %s resource has been updated. " % (params['body']['summary']),

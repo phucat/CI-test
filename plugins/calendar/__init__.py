@@ -33,7 +33,7 @@ def get_all_events(email):
     while True:
         try:
             calendar = build_client(email)
-            param = {'calendarId': email, 'timeZone': 'GMT', 'singleEvents': True, 'showDeleted': True, 'pageToken': page_token}
+            param = {'calendarId': email, 'timeZone': 'GMT', 'singleEvents': True, 'pageToken': page_token}
 
             events = calendar.events().list(**param).execute()
 
