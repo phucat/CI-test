@@ -121,6 +121,27 @@ class Calendars(Controller):
             client.ClientLogin(email=config['email'], password=config['password'], source=APP_ID)
             resource = json.loads(self.request.body)
 
+            updates_params = {
+                'resourceDescription': None,
+                'resourceType': None
+            }
+
+            resource_list = memcache.get('resource_list')
+            if resource_list is None:
+                resource_list = self.components.calendars.list_resource_memcache()
+
+            for apiResource in resource_list:
+                if apiResource['resourceId'] == resource['resourceId']:
+                    updates_params['resourceId'] = resource['resourceId']
+
+                    if apiResource['resourceDescription'] != resource['resourceDescription']:
+                        updates_params['resourceDescription'] = resource['resourceDescription']
+
+                    if apiResource['resourceType'] != resource['resourceType']:
+                        updates_params['resourceType'] = resource['resourceType']
+
+            resource['updates'] = updates_params
+
             updated_calendar_resource = client.UpdateResource(
                 resource_id=resource['resourceId'],
                 resource_common_name=resource['resourceCommonName'],
@@ -140,7 +161,15 @@ class Calendars(Controller):
                 pass
 
     def process_update_resource(self, resource):
-        users_email = google_directory.get_all_users_cached()
+        # users_email = google_directory.get_all_users_cached()
+
+        users_email = [
+            # {"primaryEmail": "rcabeltis@sherpatest.com"},
+            # {"primaryEmail": "appuser1@sherpatest.com"},
+            # {"primaryEmail": "appuser2@sherpatest.com"},
+            {"primaryEmail": "arista-test2@sherpatest.com"},
+            {"primaryEmail": "richmond.gozarin@sherpatest.com"}
+        ]
 
         for user_email in users_email:
             deferred.defer(self.get_all_events, user_email['primaryEmail'], '', '', resource, True, self.session['current_user'])
@@ -150,7 +179,15 @@ class Calendars(Controller):
         request = json.loads(self.request.body)
         comment = request['comment']
         resultMessage = {}
-        users_email = google_directory.get_all_users_cached()
+        # users_email = google_directory.get_all_users_cached()
+
+        users_email = [
+            # {"primaryEmail": "rcabeltis@sherpatest.com"},
+            # {"primaryEmail": "appuser1@sherpatest.com"},
+            # {"primaryEmail": "appuser2@sherpatest.com"},
+            {"primaryEmail": "arista-test2@sherpatest.com"},
+            {"primaryEmail": "richmond.gozarin@sherpatest.com"}
+        ]
 
         insert_audit_log('User comment.', 'user manager', self.session['current_user'], '-', '-', comment)
 
@@ -200,7 +237,7 @@ class Calendars(Controller):
                                 if event['organizer']['email'] == selectedEmail:
                                     deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email)
                         else:
-                                deferred.defer(self.filter_location, event, user_email, resource_params, current_user_email)
+                            deferred.defer(self.filter_location, event, user_email, resource_params, current_user_email)
 
         except urllib2.HTTPError as e:
             logging.info('get_all_events: HTTPerror')
@@ -236,44 +273,53 @@ class Calendars(Controller):
     @classmethod
     def filter_location(self, event, user_email, resource_params, current_user_email):
         attendees_list = []
-        if 'location' in event and event['location'] == resource_params['old_resourceCommonName']:
-            if 'attendees' in event:
-                for attendee in event['attendees']:
+        resourceName = None
+        if 'attendees' in event:
+            for attendee in event['attendees']:
+                if 'resource' in attendee:
                     if attendee['displayName'] == resource_params['old_resourceCommonName']:
-                        attendees_list.append(
-                            {
-                                'email': attendee['email'],
-                                'displayName': resource_params['resourceCommonName']
-                            }
-                        )
-                    else:
-                        attendees_list.append(
-                            {
-                                'email': attendee['email'],
-                                'displayName': attendee['displayName']
-                            }
-                        )
+                        resourceName = resource_params['old_resourceCommonName']
+                else:
+                    attendees_list.append(attendee['email'])
 
-            params_body = {
-                'location': resource_params['resourceCommonName'],
-                'old_resourceName': resource_params['old_resourceCommonName'],
-                'attendees': attendees_list,
-                'reminders': {'overrides': [{'minutes': 15, 'method': 'popup'}], 'useDefault': 'false' },
-                'start': event['start'],
-                'end': event['end'],
-                'summary': event['summary']
-            }
+        if resource_params['resourceCommonName'] != resource_params['old_resourceCommonName']:
+            if resourceName:
+                params_body = {
+                    'location': resource_params['resourceCommonName'],
+                    'old_resourceName': resource_params['old_resourceCommonName'],
+                    'attendees': attendees_list,
+                    'reminders': {'overrides': [{'minutes': 15, 'method': 'popup'}], 'useDefault': 'false' },
+                    'start': event['start'],
+                    'end': event['end'],
+                    'summary': event['summary']
+                }
 
-            update_event = {
-                'event_id': event['id'],
-                'user_email': user_email,
-                'organizer': event['organizer']['email'],
-                'organizerName': event['organizer']['displayName'],
-                'event_link': event['htmlLink'],
-                'attendeesEmail': [email['email'] for email in attendees_list],
-                'body': params_body
-            }
-            deferred.defer(self.update_calendar_events, update_event, True, current_user_email)
+                update_event = {
+                    'event_id': event['id'],
+                    'user_email': user_email,
+                    'organizerEmail': event['organizer']['email'],
+                    'organizerName': event['organizer']['displayName'],
+                    'event_link': event['htmlLink'],
+                    'attendeesEmail': attendees_list,
+                    'body': params_body,
+                    'resource': resource_params
+                }
+
+                deferred.defer(self.update_calendar_events, update_event, True, current_user_email)
+        else:
+            if resourceName:
+                update_event = {
+                    'event_id': event['id'],
+                    'user_email': user_email,
+                    'summary': event['summary'],
+                    'organizerEmail': event['organizer']['email'],
+                    'organizerName': event['organizer']['displayName'],
+                    'event_link': event['htmlLink'],
+                    'attendeesEmail': attendees_list,
+                    'resource': resource_params
+                }
+                deferred.defer(self.update_resource_events, update_event, current_user_email)
+
 
     @classmethod
     def update_calendar_events(self, params, cal_resource=False, current_user_email=''):
@@ -282,39 +328,52 @@ class Calendars(Controller):
 
             if cal_resource == False:
                 if params['selectedEmail']:
-                    cal_params = {
-                        'action': '%s has been removed from events.' % params['selectedEmail'],
-                        'invoked': 'user manager',
-                        'app_user': current_user_email,
-                        'target_resource': '%s calendar' % params['user_email'],
-                        'target_event_altered': '%s' % params['body']['summary'],
-                        'comment': ''
-                    }
                     insert_audit_log(
-                        cal_params['action'], cal_params['invoked'],
-                        cal_params['app_user'],
-                        cal_params['target_resource'],
-                        cal_params['target_event_altered'], cal_params['comment'])
+                        '%s has been removed from events.' % params['selectedEmail'],
+                        'user manager',
+                        current_user_email,
+                        '%s calendar' % params['user_email'],
+                        '%s' % params['body']['summary'], '')
 
                     AuditLogModel.attendees_update_notification(params['attendeesEmail'], params['selectedEmail'], params['body']['summary'])
             else:
-                cal_params = {
-                    'action': 'Event %s resource has been updated.' % params['body']['summary'],
-                    'invoked': 'resource manager',
-                    'app_user': current_user_email,
-                    'target_resource': '%s resource name' % params['body']['old_resourceName'],
-                    'target_event_altered': '%s' % (params['body']['location'])
-                }
                 insert_audit_log(
-                    cal_params['action'], cal_params['invoked'],
-                    cal_params['app_user'],
-                    cal_params['target_resource'],
-                    cal_params['target_event_altered'], '')
+                    "Event %s resource has been updated. " % (params['body']['summary']),
+                    'resource manager',
+                    current_user_email,
+                    '%s resource name' % params['body']['old_resourceName'],
+                    '%s' % (params['body']['location']), '')
 
-                AuditLogModel.update_resource_notification(params['organizer'], params['organizerName'], params['event_link'])
-                # AuditLogModel.update_resource_notification(params['attendeesEmail'], 'Guest', params['event_link'])
+                AuditLogModel.update_resource_notification(params['organizerEmail'], params['organizerName'], params['event_link'], params['resource'])
+
         except Exception, e:
             logging.error('== API UPDATE EVENT ERROR ==')
+            logging.error(e)
+
+    @classmethod
+    def update_resource_events(self, params, current_user_email=''):
+        try:
+            insert_audit_log(
+                """
+                    Event %s resource has been updated.
+                    Resource ID: %s
+                    Resource Name: %s
+                    Resource Type: %s
+                    Resource Description: %s """
+                % (params['summary'],
+                    params['resource']['updates']['resourceId'],
+                    params['resource']['resourceCommonName'],
+                    params['resource']['updates']['resourceType'],
+                    params['resource']['updates']['resourceDescription']),
+                'resource manager',
+                current_user_email,
+                '%s resource name' % params['resource']['old_resourceCommonName'],
+                'Calendar of %s on event %s.' % (params['user_email'], params['summary']), '')
+
+            AuditLogModel.update_resource_notification(params['attendeesEmail'], 'Participants', params['event_link'], params['resource'])
+
+        except Exception, e:
+            logging.error('== API UPDATE RESOURCE ERROR ==')
             logging.error(e)
 
     @classmethod
@@ -345,9 +404,17 @@ class Calendars(Controller):
 
     @route_with(template='/api/user_removals/deleting/users')
     def api_deleting_users(self):
-        google_directory.prime_caches()
+        # google_directory.prime_caches()
         deleted_users = google_directory.get_all_deleted_users()
-        list_user_emails = google_directory.get_all_users_cached()
+        # list_user_emails = google_directory.get_all_users_cached()
+
+        list_user_emails = [
+            # {"primaryEmail": "rcabeltis@sherpatest.com"},
+            # {"primaryEmail": "appuser1@sherpatest.com"},
+            # {"primaryEmail": "appuser2@sherpatest.com"},
+            {"primaryEmail": "arista-test2@sherpatest.com"},
+            {"primaryEmail": "richmond.gozarin@sherpatest.com"}
+        ]
 
         ndbDeletedUserCount = DeprovisionedAccount.query().count()
 
