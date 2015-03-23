@@ -90,7 +90,7 @@ class Calendars(Controller):
             res = self.components.calendars.find_resource(str(calendar_resource))
 
             action = 'A new Calendar Resource has been created'
-            insert_audit_log(action, 'add new resource', self.session['current_user'], resource['resourceCommonName'], None, None)
+            insert_audit_log(action, 'add new resource', self.session['current_user'], resource['resourceCommonName'], None, '')
 
             # AuditLogModel.new_resource_notification(config['email'], current_user.nickname(), resource)
 
@@ -152,6 +152,8 @@ class Calendars(Controller):
         resultMessage = {}
         users_email = google_directory.get_all_users_cached()
 
+        insert_audit_log('User comment.', 'user manager', self.session['current_user'], '-', '-', comment)
+
         resultMessage['message'] = 'The app is in the process of removing %s in calendar events.' % selectedEmail
         self.context['data'] = resultMessage
 
@@ -183,7 +185,7 @@ class Calendars(Controller):
                                 else:
                                     if len(event['attendees']) > 1:
                                         action = 'Oops, %s is the owner in %s event with %s attendees.' % (selectedEmail, event['summary'], len(event['attendees']))
-                                        insert_audit_log(action, 'Remove user in calendar events', current_user_email, selectedEmail, '%s' % event['summary'], None)
+                                        insert_audit_log(action, 'Remove user in calendar events', current_user_email, selectedEmail, '%s' % event['summary'], '')
                                         attendees_list = []
                                         for attendee in event['attendees']:
                                             if attendee['email'] != selectedEmail and 'resource' not in attendee:
@@ -286,7 +288,7 @@ class Calendars(Controller):
                         'app_user': current_user_email,
                         'target_resource': '%s calendar' % params['user_email'],
                         'target_event_altered': '%s' % params['body']['summary'],
-                        'comment': params['comment']
+                        'comment': ''
                     }
                     insert_audit_log(
                         cal_params['action'], cal_params['invoked'],
