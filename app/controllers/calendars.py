@@ -122,8 +122,8 @@ class Calendars(Controller):
             resource = json.loads(self.request.body)
 
             updates_params = {
-                'resourceDescription': None,
-                'resourceType': None
+                'resourceDescription': resource['resourceDescription'],
+                'resourceType': resource['resourceType']
             }
 
             resource_list = memcache.get('resource_list')
@@ -134,11 +134,13 @@ class Calendars(Controller):
                 if apiResource['resourceId'] == resource['resourceId']:
                     updates_params['resourceId'] = resource['resourceId']
 
-                    if apiResource['resourceDescription'] != resource['resourceDescription']:
-                        updates_params['resourceDescription'] = resource['resourceDescription']
+                    if 'resourceDescription' in apiResource and 'resourceDescription' in resource :
+                        if apiResource['resourceDescription'] != resource['resourceDescription']:
+                            updates_params['resourceDescription'] = resource['resourceDescription']
 
-                    if apiResource['resourceType'] != resource['resourceType']:
-                        updates_params['resourceType'] = resource['resourceType']
+                    if 'resourceType' in apiResource and 'resourceType' in resource :
+                        if apiResource['resourceType'] != resource['resourceType']:
+                            updates_params['resourceType'] = resource['resourceType']
 
             resource['updates'] = updates_params
 
@@ -167,6 +169,11 @@ class Calendars(Controller):
             # {"primaryEmail": "rcabeltis@sherpatest.com"},
             # {"primaryEmail": "appuser1@sherpatest.com"},
             # {"primaryEmail": "appuser2@sherpatest.com"},
+            # {"primaryEmail": "test.account29@sherpatest.com"},
+            # {"primaryEmail": "test.account30@sherpatest.com"},
+            # {"primaryEmail": "test.account31@sherpatest.com"},
+            # {"primaryEmail": "test.account32@sherpatest.com"},
+            # {"primaryEmail": "test.account33@sherpatest.com"},
             {"primaryEmail": "arista-test2@sherpatest.com"},
             {"primaryEmail": "richmond.gozarin@sherpatest.com"}
         ]
@@ -182,9 +189,14 @@ class Calendars(Controller):
         # users_email = google_directory.get_all_users_cached()
 
         users_email = [
-            # {"primaryEmail": "rcabeltis@sherpatest.com"},
-            # {"primaryEmail": "appuser1@sherpatest.com"},
-            # {"primaryEmail": "appuser2@sherpatest.com"},
+            {"primaryEmail": "rcabeltis@sherpatest.com"},
+            {"primaryEmail": "appuser1@sherpatest.com"},
+            {"primaryEmail": "appuser2@sherpatest.com"},
+            {"primaryEmail": "test.account29@sherpatest.com"},
+            {"primaryEmail": "test.account30@sherpatest.com"},
+            {"primaryEmail": "test.account31@sherpatest.com"},
+            {"primaryEmail": "test.account32@sherpatest.com"},
+            {"primaryEmail": "test.account33@sherpatest.com"},
             {"primaryEmail": "arista-test2@sherpatest.com"},
             {"primaryEmail": "richmond.gozarin@sherpatest.com"}
         ]
@@ -222,13 +234,16 @@ class Calendars(Controller):
                                 else:
                                     if len(event['attendees']) > 1:
                                         action = 'Oops, %s is the owner in %s event with %s attendees.' % (selectedEmail, event['summary'], len(event['attendees']))
-                                        insert_audit_log(action, 'Remove user in calendar events', current_user_email, selectedEmail, '%s' % event['summary'], '')
+                                        insert_audit_log(action, 'Remove user in calendar events', current_user_email, selectedEmail, '%s %s' % (user_email, event['summary']), '')
+
                                         attendees_list = []
                                         for attendee in event['attendees']:
                                             if attendee['email'] != selectedEmail and 'resource' not in attendee:
                                                 attendees_list.append(attendee['email'])
-                                        attendees_list.append(current_user_email)
-                                        DeprovisionedAccount.remove_owner_failed_notification(attendees_list, selectedEmail, event['summary'], event['htmlLink'])
+
+                                        if user_email in attendees_list:
+                                            DeprovisionedAccount.remove_owner_failed_notification(user_email, current_user_email, selectedEmail, event['summary'], event['htmlLink'])
+
                                     elif len(event['attendees']) == 1:
                                         for attendee in event['attendees']:
                                             if attendee['email'] == selectedEmail and 'resource' not in attendee:
@@ -273,21 +288,24 @@ class Calendars(Controller):
     @classmethod
     def filter_location(self, event, user_email, resource_params, current_user_email):
         attendees_list = []
+        resource_list = []
         resourceName = None
         if 'attendees' in event:
             for attendee in event['attendees']:
                 if 'resource' in attendee:
                     if attendee['displayName'] == resource_params['old_resourceCommonName']:
                         resourceName = resource_params['old_resourceCommonName']
+                        resource_list.append({'email': attendee['email'], 'displayName': resource_params['resourceCommonName']})
                 else:
                     attendees_list.append(attendee['email'])
+                    resource_list.append({'email': attendee['email'], 'displayName': attendee['displayName']})
 
         if resource_params['resourceCommonName'] != resource_params['old_resourceCommonName']:
             if resourceName:
                 params_body = {
                     'location': resource_params['resourceCommonName'],
                     'old_resourceName': resource_params['old_resourceCommonName'],
-                    'attendees': attendees_list,
+                    'attendees': resource_list,
                     'reminders': {'overrides': [{'minutes': 15, 'method': 'popup'}], 'useDefault': 'false' },
                     'start': event['start'],
                     'end': event['end'],
@@ -318,8 +336,8 @@ class Calendars(Controller):
                     'attendeesEmail': attendees_list,
                     'resource': resource_params
                 }
-                deferred.defer(self.update_resource_events, update_event, current_user_email)
-
+                if user_email in attendees_list:
+                    deferred.defer(self.update_resource_events, update_event, current_user_email)
 
     @classmethod
     def update_calendar_events(self, params, cal_resource=False, current_user_email=''):
@@ -370,7 +388,7 @@ class Calendars(Controller):
                 '%s resource name' % params['resource']['old_resourceCommonName'],
                 'Calendar of %s on event %s.' % (params['user_email'], params['summary']), '')
 
-            AuditLogModel.update_resource_notification(params['attendeesEmail'], 'Participants', params['event_link'], params['resource'])
+            AuditLogModel.update_resource_notification(params['user_email'], 'Participants', params['event_link'], params['resource'])
 
         except Exception, e:
             logging.error('== API UPDATE RESOURCE ERROR ==')
@@ -409,9 +427,14 @@ class Calendars(Controller):
         # list_user_emails = google_directory.get_all_users_cached()
 
         list_user_emails = [
-            # {"primaryEmail": "rcabeltis@sherpatest.com"},
-            # {"primaryEmail": "appuser1@sherpatest.com"},
-            # {"primaryEmail": "appuser2@sherpatest.com"},
+            {"primaryEmail": "rcabeltis@sherpatest.com"},
+            {"primaryEmail": "appuser1@sherpatest.com"},
+            {"primaryEmail": "appuser2@sherpatest.com"},
+            {"primaryEmail": "test.account29@sherpatest.com"},
+            {"primaryEmail": "test.account30@sherpatest.com"},
+            {"primaryEmail": "test.account31@sherpatest.com"},
+            {"primaryEmail": "test.account32@sherpatest.com"},
+            {"primaryEmail": "test.account33@sherpatest.com"},
             {"primaryEmail": "arista-test2@sherpatest.com"},
             {"primaryEmail": "richmond.gozarin@sherpatest.com"}
         ]
