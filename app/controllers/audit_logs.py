@@ -19,9 +19,8 @@ class AuditLogs(Controller):
         'What App User invoked the action', 'Targetted user or resource', 'Target event altered', 'Comment']
 
         now = datetime.now()
-        one_day = timedelta(hours=24)
-        fromdate = now - one_day
-        todate = now
+        fromdate = datetime(now.year, now.month, now.day, 0, 0, 0)
+        todate = datetime(now.year, now.month, now.day, 23, 59, 59)
 
         out = StringIO.StringIO()
         logs = AuditLogModel.fetch_date_range(fromdate, todate)

@@ -1,6 +1,5 @@
 from ferris import BasicModel, ndb
 from google.appengine.api import mail, app_identity
-import logging
 APP_ID = app_identity.get_application_id()
 
 
@@ -18,7 +17,20 @@ class AuditLog(BasicModel):
 
     @classmethod
     def fetch_date_range(cls, fromdate, todate):
-        return cls.query(cls.created >= fromdate, cls.created <= todate).fetch()
+
+        return cls.query(
+            ndb.AND(
+                ndb.OR(
+                    cls.created > fromdate,
+                    cls.created == fromdate
+                ),
+                ndb.OR(
+                    cls.created < todate,
+                    cls.created == todate
+                )
+            )
+
+        ).fetch()
 
     @classmethod
     def create(cls, params):
@@ -95,16 +107,16 @@ class AuditLog(BasicModel):
 
             Resource Id: %s
             Resource Name: %s
-            Resource Description: %s
             Resource Type: %s
+            Resource Description: %s
 
             Thank You.
-        """ % (name, resource['resourceId'], resource['resourceCommonName'], resource['resourceDescription'], resource['resourceType'])
+        """ % (name, resource['resourceId'], resource['resourceCommonName'], resource['resourceType'], resource['resourceDescription'])
 
         mail.send_mail("no-reply@" + APP_ID + ".appspotmail.com", email, subject, body)
 
     @staticmethod
-    def update_resource_notification(email, name, event_link):
+    def update_resource_notification(email, name, event_link, resource):
 
         subject = "Arista Inc. - Update on Calendar Resource. "
         body = """
@@ -112,9 +124,14 @@ class AuditLog(BasicModel):
 
             A Calendar Event you are a participant on has a Resource that has been changed. Please use the link below to review this Event.
 
+            Resource ID: %s
+            Resource Name: %s
+            Resource Type: %s
+            Resource Description: %s
+
             %s
 
         Thank You.
-        """ % (name, event_link)
+        """ % (name, resource['updates']['resourceId'], resource['resourceCommonName'], resource['updates']['resourceType'], resource['updates']['resourceDescription'], event_link)
 
         mail.send_mail("no-reply@" + APP_ID + ".appspotmail.com", email, subject, body)
