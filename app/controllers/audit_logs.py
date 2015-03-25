@@ -1,5 +1,6 @@
 from ferris import Controller, route_with, messages, settings
 from app.models.audit_log import AuditLog as AuditLogModel
+from app.models.system_setting import SystemSetting
 import StringIO
 import csv
 import logging
@@ -89,11 +90,13 @@ class AuditLogs(Controller):
             writer.writerow(data)
 
         filename = "arista-calendar-log-%s.csv" % datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
-        email = config['email']
+        settings = SystemSetting.list_all()
+        emails = [setting.email_group for setting in settings]
+        logging.info(emails)
         if key == 'daily':
-            AuditLogModel.daily_notification_on_major_actions(email, filename, out.getvalue())
+            AuditLogModel.daily_notification_on_major_actions(emails, filename, out.getvalue())
         elif key == 'weekly':
-            AuditLogModel.weekly_notification_on_major_actions(email, filename, out.getvalue())
+            AuditLogModel.weekly_notification_on_major_actions(emails, filename, out.getvalue())
 
         out.close()
 
