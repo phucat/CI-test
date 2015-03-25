@@ -60,7 +60,9 @@ class AuditLogs(Controller):
         now = datetime.now()
 
         if key == 'daily':
-            fromdate = datetime(now.year, now.month, now.day, 0, 0, 0)
+            one_day = timedelta(days=1)
+            fromdate1 = now - one_day
+            fromdate = datetime(fromdate1.year, fromdate1.month, fromdate1.day, 0, 0, 0)
             todate = datetime(now.year, now.month, now.day, 23, 59, 59)
         elif key == 'weekly':
             one_week = timedelta(weeks=1)

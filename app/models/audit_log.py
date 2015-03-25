@@ -69,7 +69,7 @@ class AuditLog(BasicModel):
         body = """
         Dear app user,
 
-            This is to notify you on major actions performed yesterday.
+            This is to notify you on major actions performed today.
         """
 
         mail.send_mail(
@@ -87,7 +87,7 @@ class AuditLog(BasicModel):
         body = """
         Dear app user,
 
-            This is to notify you on major actions performed last week.
+            This is to notify you on major actions performed this week.
         """
 
         mail.send_mail(
