@@ -40,11 +40,16 @@ Quick Start Guide
             'password': 'admin password'
         }
 
+3. In plugins/service_account/settings.py update the ff:
+        domain = ndb.StringProperty(indexed=False, verbose_name="DOMAIN")
+        default_user = ndb.StringProperty(indexed=False, verbose_name="ADMIN_USER")
+        client_email = ndb.StringProperty(indexed=False, verbose_name="***@developer.gserviceaccount.com")
 
-3. Since were using google_directory plugin: run **/api/google/directory/prime** to cache users.
+4. Since were using google_directory plugin: run **/api/google/directory/prime** to cache users.
 
-4. Endpoint for schedule removal run **/api/schedule/remove/user/<email>**
+5. Endpoint for schedule removal run **/api/schedule/remove/user/<email>**
 
+6. Endpoint for system settings **/admin** to add email group for daily notifications
 
 
 Live Deployment Checklist
