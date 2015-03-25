@@ -64,8 +64,8 @@ L7iWJhp8JLq1qbg7DbjKNyndB3xU8JDnvGMCkMwVB17V4mIdBYvim7jIxrzuFYPI
 1+/1D9yG+2L+PVA=
 -----END PRIVATE KEY-----""",  # Must be in PEM format
     'developer_key': 'AIzaSyBkMhZAbepklUuV5ZXrzPDdu5zOSSRUhZA',  # Optional
-    'domain': 'sherpatest.com',
-    'default_user': 'richmond.gozarin@sherpatest.com'
+    'domain': 'arista.com',
+    'default_user': 'sherpa_bot@arista.com'
 }
 
 
@@ -86,13 +86,13 @@ settings['appstats'] = {
 
 
 settings['google_directory'] = {
-    'domain': 'sherpatest.com'
+    'domain': 'arista.com'
 }
 
 settings['admin_account'] = {
-    'email': 'richmond.gozarin@sherpatest.com',
-    'domain': 'sherpatest.com',
-    'password': 'cloudsherpas'
+    'email': 'sherpa_bot@arista.com',
+    'domain': 'arista.com',
+    'password': 'ar1sc1oudca1'
 }
 
 # Optionally, you may use the settings plugin to dynamically
