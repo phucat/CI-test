@@ -92,7 +92,7 @@ class AuditLogs(Controller):
         filename = "arista-calendar-log-%s.csv" % datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
         settings = SystemSetting.list_all()
         emails = [setting.email_group for setting in settings]
-        logging.info(emails)
+
         if key == 'daily':
             AuditLogModel.daily_notification_on_major_actions(emails, filename, out.getvalue())
         elif key == 'weekly':
