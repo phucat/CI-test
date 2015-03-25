@@ -166,22 +166,16 @@ class Calendars(Controller):
         # users_email = google_directory.get_all_users_cached()
 
         users_email = [
-            {"primaryEmail": "rcabeltis@sherpatest.com"},
-            {"primaryEmail": "appuser1@sherpatest.com"},
-            {"primaryEmail": "test.account34@sherpatest.com"},
-            {"primaryEmail": "test.account35@sherpatest.com"},
-            {"primaryEmail": "test.account36@sherpatest.com"},
-            {"primaryEmail": "test.account37@sherpatest.com"},
-            {"primaryEmail": "test.account38@sherpatest.com"},
-            {"primaryEmail": "test.account39@sherpatest.com"},
-            {"primaryEmail": "test.account40@sherpatest.com"},
-            {"primaryEmail": "arista-test2@sherpatest.com"},
-            {"primaryEmail": "hoa61@sherpatest.com"},
-            {"primaryEmail": "papachristian@sherpatest.com"},
-            {"primaryEmail": "hoa4@sherpatest.com"},
-            {"primaryEmail": "hoa9@sherpatest.com"},
-            {"primaryEmail": "test.again4@sherpatest.com"},
-            {"primaryEmail": "richmond.gozarin@sherpatest.com"}
+            {"primaryEmail": "test.account1@arista.com"},
+            {"primaryEmail": "test.account2@arista.com"},
+            {"primaryEmail": "test.account3@arista.com"},
+            {"primaryEmail": "test.account4@arista.com"},
+            {"primaryEmail": "test.account5@arista.com"},
+            {"primaryEmail": "test.account6@arista.com"},
+            {"primaryEmail": "test.account7@arista.com"},
+            {"primaryEmail": "test.account8@arista.com"},
+            {"primaryEmail": "test.account9@arista.com"},
+            {"primaryEmail": "test.account10@arista.com"}
         ]
 
         for user_email in users_email:
@@ -195,22 +189,16 @@ class Calendars(Controller):
         # users_email = google_directory.get_all_users_cached()
 
         users_email = [
-            {"primaryEmail": "rcabeltis@sherpatest.com"},
-            {"primaryEmail": "appuser1@sherpatest.com"},
-            {"primaryEmail": "test.account34@sherpatest.com"},
-            {"primaryEmail": "test.account35@sherpatest.com"},
-            {"primaryEmail": "test.account36@sherpatest.com"},
-            {"primaryEmail": "test.account37@sherpatest.com"},
-            {"primaryEmail": "test.account38@sherpatest.com"},
-            {"primaryEmail": "test.account39@sherpatest.com"},
-            {"primaryEmail": "test.account40@sherpatest.com"},
-            {"primaryEmail": "arista-test2@sherpatest.com"},
-            {"primaryEmail": "hoa61@sherpatest.com"},
-            {"primaryEmail": "papachristian@sherpatest.com"},
-            {"primaryEmail": "hoa4@sherpatest.com"},
-            {"primaryEmail": "hoa9@sherpatest.com"},
-            {"primaryEmail": "test.again4@sherpatest.com"},
-            {"primaryEmail": "richmond.gozarin@sherpatest.com"}
+            {"primaryEmail": "test.account1@arista.com"},
+            {"primaryEmail": "test.account2@arista.com"},
+            {"primaryEmail": "test.account3@arista.com"},
+            {"primaryEmail": "test.account4@arista.com"},
+            {"primaryEmail": "test.account5@arista.com"},
+            {"primaryEmail": "test.account6@arista.com"},
+            {"primaryEmail": "test.account7@arista.com"},
+            {"primaryEmail": "test.account8@arista.com"},
+            {"primaryEmail": "test.account9@arista.com"},
+            {"primaryEmail": "test.account10@arista.com"}
         ]
 
         insert_audit_log('User comment.', 'user manager', self.session['current_user'], '-', '-', comment)
@@ -441,22 +429,16 @@ class Calendars(Controller):
         # list_user_emails = google_directory.get_all_users_cached()
 
         list_user_emails = [
-            {"primaryEmail": "rcabeltis@sherpatest.com"},
-            {"primaryEmail": "appuser1@sherpatest.com"},
-            {"primaryEmail": "test.account34@sherpatest.com"},
-            {"primaryEmail": "test.account35@sherpatest.com"},
-            {"primaryEmail": "test.account36@sherpatest.com"},
-            {"primaryEmail": "test.account37@sherpatest.com"},
-            {"primaryEmail": "test.account38@sherpatest.com"},
-            {"primaryEmail": "test.account39@sherpatest.com"},
-            {"primaryEmail": "test.account40@sherpatest.com"},
-            {"primaryEmail": "arista-test2@sherpatest.com"},
-            {"primaryEmail": "hoa61@sherpatest.com"},
-            {"primaryEmail": "papachristian@sherpatest.com"},
-            {"primaryEmail": "hoa4@sherpatest.com"},
-            {"primaryEmail": "hoa9@sherpatest.com"},
-            {"primaryEmail": "test.again4@sherpatest.com"},
-            {"primaryEmail": "richmond.gozarin@sherpatest.com"}
+            {"primaryEmail": "test.account1@arista.com"},
+            {"primaryEmail": "test.account2@arista.com"},
+            {"primaryEmail": "test.account3@arista.com"},
+            {"primaryEmail": "test.account4@arista.com"},
+            {"primaryEmail": "test.account5@arista.com"},
+            {"primaryEmail": "test.account6@arista.com"},
+            {"primaryEmail": "test.account7@arista.com"},
+            {"primaryEmail": "test.account8@arista.com"},
+            {"primaryEmail": "test.account9@arista.com"},
+            {"primaryEmail": "test.account10@arista.com"}
         ]
 
         ndbDeletedUserCount = DeprovisionedAccount.query().count()
