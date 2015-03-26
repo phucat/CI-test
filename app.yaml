@@ -1,5 +1,5 @@
 application: arista-calendar-01     #.appspot.com
-version: production
+version: baseline
 
 runtime: python27
 api_version: 1
