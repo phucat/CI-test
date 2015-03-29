@@ -9,7 +9,7 @@ factory('aristaREST', function($http) {
 
     service.get_all_resources = function (feed){
         if(feed){
-            feed == 'feed' ? feed : feed = feed.slice(75);
+            feed == 'feed' ? feed : feed = feed.split("?")[1];
         }
         else{
             feed = 'feed';
