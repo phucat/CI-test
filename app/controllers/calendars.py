@@ -44,7 +44,7 @@ class Calendars(Controller):
         if feed == 'feed':
             calendar_resources = str(client.GetResourceFeed())
         else:
-            calendar_resources = str(client.GetResourceFeed(uri="https://apps-apis.google.com/a/feeds/calendar/resource/2.0/sherpatest.com/?%s" % feed))
+            calendar_resources = str(client.GetResourceFeed(uri="https://apps-apis.google.com/a/feeds/calendar/resource/2.0/%s/?%s" % (config['domain'], feed)))
             data['previous'] = 'feed'
 
         nextpage, res = self.components.calendars.find_resource(calendar_resources)
@@ -163,20 +163,7 @@ class Calendars(Controller):
                 pass
 
     def process_update_resource(self, resource):
-        # users_email = google_directory.get_all_users_cached()
-
-        users_email = [
-            {"primaryEmail": "test.account1@arista.com"},
-            {"primaryEmail": "test.account2@arista.com"},
-            {"primaryEmail": "test.account3@arista.com"},
-            {"primaryEmail": "test.account4@arista.com"},
-            {"primaryEmail": "test.account5@arista.com"},
-            {"primaryEmail": "test.account6@arista.com"},
-            {"primaryEmail": "test.account7@arista.com"},
-            {"primaryEmail": "test.account8@arista.com"},
-            {"primaryEmail": "test.account9@arista.com"},
-            {"primaryEmail": "test.account10@arista.com"}
-        ]
+        users_email = google_directory.get_all_users_cached()
 
         for user_email in users_email:
             deferred.defer(self.get_all_events, user_email['primaryEmail'], '', '', resource, True, self.session['current_user'])
@@ -186,20 +173,7 @@ class Calendars(Controller):
         request = json.loads(self.request.body)
         comment = request['comment']
         resultMessage = {}
-        # users_email = google_directory.get_all_users_cached()
-
-        users_email = [
-            {"primaryEmail": "test.account1@arista.com"},
-            {"primaryEmail": "test.account2@arista.com"},
-            {"primaryEmail": "test.account3@arista.com"},
-            {"primaryEmail": "test.account4@arista.com"},
-            {"primaryEmail": "test.account5@arista.com"},
-            {"primaryEmail": "test.account6@arista.com"},
-            {"primaryEmail": "test.account7@arista.com"},
-            {"primaryEmail": "test.account8@arista.com"},
-            {"primaryEmail": "test.account9@arista.com"},
-            {"primaryEmail": "test.account10@arista.com"}
-        ]
+        users_email = google_directory.get_all_users_cached()
 
         insert_audit_log('User comment.', 'user manager', self.session['current_user'], '-', '-', comment)
 
@@ -424,22 +398,22 @@ class Calendars(Controller):
 
     @route_with(template='/api/user_removals/deleting/users')
     def api_deleting_users(self):
-        # google_directory.prime_caches()
+        google_directory.prime_caches()
         deleted_users = google_directory.get_all_deleted_users()
-        # list_user_emails = google_directory.get_all_users_cached()
+        list_user_emails = google_directory.get_all_users_cached()
 
-        list_user_emails = [
-            {"primaryEmail": "test.account1@arista.com"},
-            {"primaryEmail": "test.account2@arista.com"},
-            {"primaryEmail": "test.account3@arista.com"},
-            {"primaryEmail": "test.account4@arista.com"},
-            {"primaryEmail": "test.account5@arista.com"},
-            {"primaryEmail": "test.account6@arista.com"},
-            {"primaryEmail": "test.account7@arista.com"},
-            {"primaryEmail": "test.account8@arista.com"},
-            {"primaryEmail": "test.account9@arista.com"},
-            {"primaryEmail": "test.account10@arista.com"}
-        ]
+        # list_user_emails = [
+        #     {"primaryEmail": "test.account1@arista.com"},
+        #     {"primaryEmail": "test.account2@arista.com"},
+        #     {"primaryEmail": "test.account3@arista.com"},
+        #     {"primaryEmail": "test.account4@arista.com"},
+        #     {"primaryEmail": "test.account5@arista.com"},
+        #     {"primaryEmail": "test.account6@arista.com"},
+        #     {"primaryEmail": "test.account7@arista.com"},
+        #     {"primaryEmail": "test.account8@arista.com"},
+        #     {"primaryEmail": "test.account9@arista.com"},
+        #     {"primaryEmail": "test.account10@arista.com"}
+        # ]
 
         ndbDeletedUserCount = DeprovisionedAccount.query().count()
 
