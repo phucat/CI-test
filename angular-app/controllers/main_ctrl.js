@@ -93,9 +93,18 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
                         }
                     }
                     $scope.calendar_resources = old_resource;
+                    $log.info('success', d);
                     $window.alert(d.message);
                 }).error(function(d){
-                    $window.alert(d.error);
+                    $log.error('failed', d);
+                    if(d.code == 500)
+                    {
+                        $window.alert('You are not authorized to use this Calendar Resource API.');
+                    }
+                    else{
+                        $window.alert(d.error);
+                    }
+
                 });
             }
         });
