@@ -398,7 +398,6 @@ class Calendars(Controller):
 
     @route_with(template='/api/user_removals/deleting/users')
     def api_deleting_users(self):
-        google_directory.prime_caches()
         deleted_users = google_directory.get_all_deleted_users()
         list_user_emails = google_directory.get_all_users_cached()
 

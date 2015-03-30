@@ -6,7 +6,7 @@ import json
 
 
 def require_domain(controller):
-    if not controller.__class__.__name__ in ("AuditLogs", "Calendars"):
+    if not controller.__class__.__name__ in ("AuditLogs", "Calendars", "GoogleDirectory"):
         if not controller.user:
             return False, "You must be logged in"
 

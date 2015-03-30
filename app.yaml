@@ -53,6 +53,10 @@ handlers:
   script: main.main_app
   login: optional
 
+- url: /api/google/directory/prime
+  script: main.main_app
+  login: optional
+
 - url: /api/calendar/resource_memcache
   script: main.main_app
   login: optional
