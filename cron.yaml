@@ -1,11 +1,11 @@
 cron:
 - description: Delete user from domain
   url: /api/user_removals/deleting/users
-  schedule: every tues,fri 00:00
+  schedule: every tue,thu 00:00
   timezone: US/Eastern
 
 - description: Refresh users directory
-  url: /api/google/directory/prime
+  url: /api/google_directory/users/prime
   schedule: every day 00:00
   timezone: US/Eastern
 

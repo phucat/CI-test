@@ -25,7 +25,7 @@ class DeprovisionedAccount(BasicModel):
         )
 
     @staticmethod
-    def remove_owner_failed_notification(email, cc, selectedEmail, event_summary, event_link):
+    def remove_owner_failed_notification(email, selectedEmail, event_summary, event_link):
 
         subject = "Arista Inc. - An attempt to remove an Owner of a Calendar Event has failed. "
         body = """
@@ -40,7 +40,7 @@ class DeprovisionedAccount(BasicModel):
         Arista IT
         """ % (selectedEmail, event_summary, event_link)
 
-        mail.send_mail(sender="no-reply@" + APP_ID + ".appspotmail.com", to=email, cc=cc, subject=subject, body=body)
+        mail.send_mail(sender="no-reply@" + APP_ID + ".appspotmail.com", to=email, subject=subject, body=body)
 
 
     @staticmethod

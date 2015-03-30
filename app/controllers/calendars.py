@@ -210,13 +210,7 @@ class Calendars(Controller):
                                         action = 'Oops, %s is the owner in %s event with %s attendees.' % (selectedEmail, event['summary'], len(event['attendees']))
                                         insert_audit_log(action, 'Remove user in calendar events', current_user_email, selectedEmail, '%s %s' % (user_email, event['summary']), '')
 
-                                        attendees_list = []
-                                        for attendee in event['attendees']:
-                                            if attendee['email'] != selectedEmail and 'resource' not in attendee:
-                                                attendees_list.append(attendee['email'])
-
-                                        if user_email in attendees_list:
-                                            DeprovisionedAccount.remove_owner_failed_notification(user_email, current_user_email, selectedEmail, event['summary'], event['htmlLink'])
+                                        DeprovisionedAccount.remove_owner_failed_notification(current_user_email, selectedEmail, event['summary'], event['htmlLink'])
 
                                     elif len(event['attendees']) == 1:
                                         for attendee in event['attendees']:
@@ -460,6 +454,11 @@ class Calendars(Controller):
         for remover in schedule_user_removal:
             if remover.email == d_user:
                 return remover.modified_by.email()
+
+    @route_with(template='/api/google_directory/users/prime')
+    def api_prime_user(self):
+        google_directory.prime_caches()
+        return 'user prime cache.'
 
     @classmethod
     def process_deleted_account(self, d_user, x_email, list_user_emails, current_user_email):

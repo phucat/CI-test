@@ -53,7 +53,7 @@ handlers:
   script: main.main_app
   login: optional
 
-- url: /api/google/directory/prime
+- url: /api/google_directory/users/prime
   script: main.main_app
   login: optional
 
