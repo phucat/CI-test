@@ -4,6 +4,7 @@ version: baseline
 runtime: python27
 api_version: 1
 threadsafe: yes
+instance_class: F2
 
 default_expiration: 1h
 
