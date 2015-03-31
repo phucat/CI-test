@@ -27,13 +27,15 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
     };
 
     $scope.refreshUsers = function (query) {
-        $scope.users = [];
-        regexp = new RegExp(query, 'i');
+        if (query.length >= 3){
+            $scope.users = [];
+            regexp = new RegExp(query, 'i');
 
-        for (var i = 0; i < users_search.length; i++) {
-            var node = users_search[i];
-            if (node.primaryEmail.search(regexp) > -1 || node.name.fullName.search(regexp) > -1) {
-                $scope.users.push(node);
+            for (var i = 0; i < users_search.length; i++) {
+                var node = users_search[i];
+                if (node.primaryEmail.search(regexp) > -1 || node.name.fullName.search(regexp) > -1) {
+                    $scope.users.push(node);
+                }
             }
         }
     };
