@@ -25,35 +25,32 @@ def build_client(user):
         return build_client(user)
 
 
-def get_all_events(email, selectedEmail):
+def get_all_events(email, selectedEmail, page_token=None):
     logging.info('calendar: get_all_events')
     response = None
-    page_token = None
+    try:
+        calendar = build_client(email)
+        param = {'calendarId': email, 'timeZone': 'GMT', 'singleEvents': True, 'q': selectedEmail, 'pageToken': page_token}
 
-    while True:
-        try:
-            calendar = build_client(email)
-            param = {'calendarId': email, 'timeZone': 'GMT', 'singleEvents': True, 'q': selectedEmail, 'pageToken': page_token}
+        events = calendar.events().list(**param).execute()
 
-            events = calendar.events().list(**param).execute()
+        if not page_token:
+            response = events
+        else:
+            response['items'].extend(events['items'])
 
-            if not page_token:
-                response = events
-            else:
-                response['items'].extend(events['items'])
+        # logging.info("google event response ==> %s" % response)
 
-            # logging.info("google event response ==> %s" % response)
+        page_token = events.get('nextPageToken')
+        # if not page_token:
+        #     break
 
-            page_token = events.get('nextPageToken')
-            if not page_token:
-                break
+    except urllib2.HTTPError, err:
+        logging.info('get_all_events: HTTPerror')
+        logging.info(err)
+        pass
 
-        except urllib2.HTTPError, err:
-            logging.info('get_all_events: HTTPerror')
-            logging.info(err)
-            pass
-
-    return response
+    return response, page_token
 
 
 def get_all_modified_events(email, updatedMin):

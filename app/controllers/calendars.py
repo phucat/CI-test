@@ -187,8 +187,23 @@ class Calendars(Controller):
 
     @classmethod
     def get_all_events(self, user_email, selectedEmail, comment, resource_params, resource=False, current_user_email=''):
+        pageToken = None
+        while True:
+            try:
+                events, pageToken = calendar_api.get_all_events(user_email, selectedEmail, pageToken)
+                if events is not None:
+                    deferred.defer(self.get_events, events, user_email, selectedEmail, comment, resource_params, resource, current_user_email)
+
+                if not pageToken:
+                    break
+            except urllib2.HTTPError as e:
+                logging.info('get_all_events: HTTPerror')
+                logging.info(e.code)
+                pass
+
+    @classmethod
+    def get_events(self, events, user_email, selectedEmail, comment, resource_params, resource=False, current_user_email=''):
         try:
-            events = calendar_api.get_all_events(user_email, selectedEmail)
             if events is not None:
                 for event in events['items']:
                     if 'dateTime' in event['start']:
@@ -225,9 +240,10 @@ class Calendars(Controller):
                             deferred.defer(self.filter_location, event, user_email, resource_params, current_user_email)
 
         except urllib2.HTTPError as e:
-            logging.info('get_all_events: HTTPerror')
+            logging.info('get_events: HTTPerror')
             logging.info(e.code)
             pass
+
 
     @classmethod
     def filter_attendees(self, event, selectedEmail, user_email, comment, current_user_email):
