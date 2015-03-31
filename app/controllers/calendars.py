@@ -25,10 +25,12 @@ class Calendars(Controller):
         components = (Calendars,)
         View = 'json'
 
-    @route_with(template='/api/calendar/events/<email>', methods=['GET'])
-    def api_list_calendar_events(self, email):
+    @route_with(template='/api/calendar/events/<email>/<selectedemail>', methods=['GET'])
+    def api_list_calendar_events(self, email, selectedemail):
         feed = []
-        feed = calendar_api.get_all_events(email)
+
+        feed = calendar_api.get_all_events(email, selectedemail)
+
         self.context['data'] = feed
 
     @route_with(template='/api/calendar/users', methods=['GET'])
@@ -166,7 +168,7 @@ class Calendars(Controller):
         users_email = google_directory.get_all_users_cached()
 
         for user_email in users_email:
-            deferred.defer(self.get_all_events, user_email['primaryEmail'], '', '', resource, True, self.session['current_user'])
+            deferred.defer(self.get_all_events, user_email['primaryEmail'], resource['old_resourceCommonName'], '', resource, True, self.session['current_user'])
 
     @route_with('/api/calendar/remove_user/events/<selectedEmail>', methods=['POST'])
     def api_remove_users_events(self, selectedEmail):
@@ -186,7 +188,7 @@ class Calendars(Controller):
     @classmethod
     def get_all_events(self, user_email, selectedEmail, comment, resource_params, resource=False, current_user_email=''):
         try:
-            events = calendar_api.get_all_events(user_email)
+            events = calendar_api.get_all_events(user_email, selectedEmail)
             if events is not None:
                 for event in events['items']:
                     if 'dateTime' in event['start']:
