@@ -175,15 +175,13 @@ class Calendars(Controller):
         request = json.loads(self.request.body)
         comment = request['comment']
         resultMessage = {}
-        users_email = google_directory.get_all_users_cached()
 
         insert_audit_log('User comment.', 'user manager', self.session['current_user'], '-', '-', comment)
 
         resultMessage['message'] = 'The app is in the process of removing %s in calendar events.' % selectedEmail
         self.context['data'] = resultMessage
 
-        for user_email in users_email:
-            deferred.defer(self.get_all_events, user_email['primaryEmail'], selectedEmail, comment, '', False, self.session['current_user'])
+        deferred.defer(self.get_all_events, selectedEmail, selectedEmail, comment, '', False, self.session['current_user'])
 
     @classmethod
     def get_all_events(self, user_email, selectedEmail, comment, resource_params, resource=False, current_user_email=''):
