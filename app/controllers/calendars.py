@@ -326,10 +326,10 @@ class Calendars(Controller):
     @classmethod
     def update_calendar_events(self, params, cal_resource=False, current_user_email=''):
         try:
-            for attendee_email in params['attendeesEmail']:
-                calendar_api.update_event(params['event_id'], attendee_email, params['body'], True)
+            if cal_resource == False:
+                for attendee_email in params['attendeesEmail']:
+                    calendar_api.update_event(params['event_id'], attendee_email, params['body'], True)
 
-                if cal_resource == False:
                     if params['selectedEmail']:
                         insert_audit_log(
                             '%s has been removed from events.' % params['selectedEmail'],
@@ -338,17 +338,17 @@ class Calendars(Controller):
                             '%s calendar' % params['user_email'],
                             '%s' % params['body']['summary'], '')
 
-                        if params['user_email'] in params['attendeesEmail']:
-                            AuditLogModel.attendees_update_notification(params['user_email'], params['selectedEmail'], params['body']['summary'])
-                else:
-                    insert_audit_log(
-                        "Event %s resource has been updated. " % (params['body']['summary']),
-                        'resource manager',
-                        current_user_email,
-                        '%s resource name' % params['body']['old_resourceName'],
-                        '%s' % (params['body']['location']), '')
+                        AuditLogModel.attendees_update_notification(attendee_email, params['selectedEmail'], params['body']['summary'])
+            else:
+                calendar_api.update_event(params['event_id'], params['user_email'], params['body'], True)
+                insert_audit_log(
+                    "Event %s resource has been updated. " % (params['body']['summary']),
+                    'resource manager',
+                    current_user_email,
+                    '%s resource name' % params['body']['old_resourceName'],
+                    '%s' % (params['body']['location']), '')
 
-                    AuditLogModel.update_resource_notification(params['organizerEmail'], params['organizerName'], params['event_link'], params['resource'])
+                AuditLogModel.update_resource_notification(params['organizerEmail'], params['organizerName'], params['event_link'], params['resource'])
 
         except Exception, e:
             logging.error('== API UPDATE EVENT ERROR ==')
