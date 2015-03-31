@@ -9,11 +9,14 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
     };
     $scope.load_identity();
 
+    $scope.users = [];
+    var users_search = []
+
     var users = function (){
         $scope.loader = true;
         aristaREST.get_all_users()
         .success(function(data, status, headers, config){
-            $scope.users = data;
+            users_search = data.slice(0);
             $log.info('success users',data);
             $scope.loader = false;
         }).error(function(data, status, headers, config){
@@ -21,6 +24,18 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
             $log.info('errors users', data);
             $scope.loader = false;
         });
+    };
+
+    $scope.refreshUsers = function (query) {
+        $scope.users = [];
+        regexp = new RegExp(query, 'i');
+
+        for (var i = 0; i < users_search.length; i++) {
+            var node = users_search[i];
+            if (node.primaryEmail.search(regexp) > -1 || node.name.fullName.search(regexp) > -1) {
+                $scope.users.push(node);
+            }
+        }
     };
 
     $scope.cal_resources = function(feed){

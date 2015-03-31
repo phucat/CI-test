@@ -244,7 +244,6 @@ class Calendars(Controller):
             logging.info(e.code)
             pass
 
-
     @classmethod
     def filter_attendees(self, event, selectedEmail, user_email, comment, current_user_email):
         attendees_list = []
