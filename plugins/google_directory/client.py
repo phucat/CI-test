@@ -56,7 +56,7 @@ def get_all_users():
             for user in response['users']:
                 result.append(dict(
                     (k, v) for k, v in user.iteritems()
-                    if k in ('orgUnitPath', 'primaryEmail', 'name', 'thumbnailPhotoUrl', 'id', 'isAdmin')
+                    if k in ('orgUnitPath', 'primaryEmail', 'name', 'thumbnailPhotoUrl', 'id', 'isAdmin', 'suspended', 'lastLoginTime')
                 ))
 
             page_token = response.get('nextPageToken')
