@@ -144,7 +144,7 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
                     $window.alert(d.message);
                 }).error(function(d){
                     $log.info(d);
-                    $window.alert('Error while removing user from the domain.');
+                    $window.alert('This User has already been de-provisioned, kindly wait to sync to the domain directory.');
                 });
             });
         }
