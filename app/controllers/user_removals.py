@@ -21,7 +21,7 @@ class UserRemovals(Controller):
             user = users.get_current_user()
             UserRemoval.create({'email': email})
             self.insert_audit_log('%s has been schedule for removal.' % email, 'api endpoint', user.email(), 'Schedule User Removal', '', '')
-            return 200
+            return 'The user has been added to the approval list.'
         else:
             return 'invalid email'
 
