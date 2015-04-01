@@ -46,7 +46,7 @@ angular.module('app.controllers').controller('RequestCtrl', function($log, $wind
     $scope.cancel_user = function(email){
         $scope.identity_loading = loading.new();
         $scope.loader = true;
-        aristaREST.update_schedule_user(email,'Cancel')
+        aristaREST.remove_schedule_user(email,'Cancel')
         .success(function(d){
             $scope.loader = false;
             $scope.get_scheduled_pending_users();

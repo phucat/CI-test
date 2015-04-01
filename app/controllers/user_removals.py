@@ -65,6 +65,21 @@ class UserRemovals(Controller):
 
             return params['status']
 
+    @route_with(template='/api/schedule/cancel/user', methods=['POST'])
+    def api_delete_user_removal(self):
+        user = users.get_current_user()
+        params = json.loads(self.request.body)
+        response = UserRemoval.remove({'email': params['email']})
+
+        if response == 403:
+            return 403
+        else:
+            params['status'] += 'led'
+
+            self.insert_audit_log('%s has been %s for removal.' % (params['email'], params['status']), 'api endpoint', user.email(), 'Schedule User Removal', '', '')
+
+            return params['status']
+
     def insert_audit_log(self, action, invoked, app_user, target_resource, target_event_altered, comment=None):
         params = {
             'action': action,

@@ -41,5 +41,11 @@ factory('aristaREST', function($http) {
         return $http.post('/api/schedule/update/user', {'email':email, 'status': status});
     };
 
+    service.remove_schedule_user = function(email,status){
+        return $http.post('/api/schedule/cancel/user', {'email':email, 'status': status});
+    };
+
+
+
     return service;
 });

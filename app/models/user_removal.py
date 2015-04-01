@@ -37,3 +37,10 @@ class UserRemoval(BasicModel):
             return instance
         else:
             return 403
+
+    @classmethod
+    def remove(cls, params):
+        ndb.delete_multi(
+            cls.query(cls.email == params['email']).fetch(keys_only=True)
+        )
+
