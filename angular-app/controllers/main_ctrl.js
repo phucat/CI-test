@@ -55,6 +55,8 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
             if (data.next) $scope.next_page = data.next;
             else $scope.next_page = '';
 
+            console.log('previous',data.previous);
+            console.log('Next',data.next);
         }).error(function(data, status, headers, config){
             $scope.calendar_resources = [];
         });

@@ -48,12 +48,14 @@ class Calendars(Controller):
             calendar_resources = str(client.GetResourceFeed())
         else:
             calendar_resources = str(client.GetResourceFeed(uri="https://apps-apis.google.com/a/feeds/calendar/resource/2.0/%s/?%s" % (config['domain'], feed)))
-            data['previous'] = 'feed'
 
         nextpage, res = self.components.calendars.find_resource(calendar_resources)
         sortedResource = sorted(res, key=lambda resource: resource['resourceCommonName'])
         data['items'] = sortedResource
         data['next'] = nextpage
+        data['previous'] = None
+        if feed != 'feed':
+            data['previous'] = feed
 
         self.context['data'] = data
 

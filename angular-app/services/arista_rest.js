@@ -10,6 +10,10 @@ factory('aristaREST', function($http) {
     service.get_all_resources = function (feed){
         if(feed){
             feed == 'feed' ? feed : feed = feed.split("?")[1];
+
+            if (feed == undefined){
+                feed = 'feed';
+            }
         }
         else{
             feed = 'feed';
