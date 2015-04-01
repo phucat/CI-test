@@ -6,7 +6,7 @@ cron:
 
 - description: Refresh users directory
   url: /api/google_directory/users/prime
-  schedule: every 5 minutes
+  schedule: every 30 minutes
   timezone: US/Eastern
 
 - description: Daily Report

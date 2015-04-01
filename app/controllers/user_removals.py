@@ -57,6 +57,7 @@ class UserRemovals(Controller):
                 params['status'] += 'd'
 
                 google_directory.revoke_user(params['email'])
+                google_directory.prime_caches()
 
             elif params['status'] == 'Cancel':
                 params['status'] += 'led'
