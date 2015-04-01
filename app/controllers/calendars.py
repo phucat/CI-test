@@ -6,6 +6,7 @@ from app.components.calendars import Calendars
 from google.appengine.ext import deferred
 from google.appengine.api import users, app_identity, urlfetch, memcache
 from gdata.calendar_resource.client import CalendarResourceClient
+import xml.etree.ElementTree as ET
 import json
 import time
 import datetime
@@ -123,16 +124,46 @@ class Calendars(Controller):
             client.ClientLogin(email=config['email'], password=config['password'], source=APP_ID)
             resource = json.loads(self.request.body)
 
+            updated_calendar_resource = client.UpdateResource(
+                resource_id=resource['resourceId'],
+                resource_common_name=resource['resourceCommonName'],
+                resource_description=resource['resourceDescription'],
+                resource_type=resource['resourceType'])
+
+            res = self.components.calendars.find_resource(str(updated_calendar_resource))
+
+            resultMessage['message'] = 'The app is in the process of updating the calendar.'
+            resultMessage['items'] = res
+            self.context['data'] = resultMessage
+
             updates_params = {
                 'resourceDescription': resource['resourceDescription'],
                 'resourceType': resource['resourceType']
             }
 
-            resource_list = memcache.get('resource_list')
-            if resource_list is None:
-                resource_list = self.components.calendars.list_resource_memcache()
+            deferred.defer(self.update_resource_calendar, resource, updates_params, self.session['current_user'])
 
-            for apiResource in resource_list:
+        except urllib2.HTTPError as e:
+            logging.info('get_all_events: HTTPerror')
+            logging.info(e.code)
+            if e.code == 401:
+                pass
+
+    @classmethod
+    def update_resource_calendar(self, resource, updates_params, current_user):
+        params = {}
+        nextpage = None
+        client = CalendarResourceClient(domain=config['domain'])
+        client.ClientLogin(email=config['email'], password=config['password'], source=APP_ID)
+
+        while True:
+            if nextpage:
+                params['uri'] = nextpage
+
+            calendar_resources = str(client.GetResourceFeed(**params))
+            nextpage, res = find_resource(calendar_resources)
+
+            for apiResource in res:
                 if apiResource['resourceId'] == resource['resourceId']:
                     updates_params['resourceId'] = resource['resourceId']
 
@@ -143,32 +174,20 @@ class Calendars(Controller):
                     if 'resourceType' in apiResource and 'resourceType' in resource :
                         if apiResource['resourceType'] != resource['resourceType']:
                             updates_params['resourceType'] = resource['resourceType']
+                    break
 
-            resource['updates'] = updates_params
+            if not nextpage:
+                break
 
-            updated_calendar_resource = client.UpdateResource(
-                resource_id=resource['resourceId'],
-                resource_common_name=resource['resourceCommonName'],
-                resource_description=resource['resourceDescription'],
-                resource_type=resource['resourceType'])
+        resource['updates'] = updates_params
+        self.process_update_resource(resource, current_user)
 
-            self.process_update_resource(resource)
-            res = self.components.calendars.find_resource(str(updated_calendar_resource))
-
-            resultMessage['message'] = 'The app is in the process of updating the calendar.'
-            resultMessage['items'] = res
-            self.context['data'] = resultMessage
-        except urllib2.HTTPError as e:
-            logging.info('get_all_events: HTTPerror')
-            logging.info(e.code)
-            if e.code == 401:
-                pass
-
-    def process_update_resource(self, resource):
+    @classmethod
+    def process_update_resource(self, resource, current_user):
         users_email = google_directory.get_all_users_cached()
 
         for user_email in users_email:
-            deferred.defer(self.get_all_events, user_email['primaryEmail'], resource['old_resourceCommonName'], '', resource, True, self.session['current_user'])
+            deferred.defer(self.get_all_events, user_email['primaryEmail'], resource['old_resourceCommonName'], '', resource, True, current_user)
 
     @route_with('/api/calendar/remove_user/events/<selectedEmail>', methods=['POST'])
     def api_remove_users_events(self, selectedEmail):
@@ -504,3 +523,30 @@ def insert_audit_log(action, invoked, app_user, target_resource, target_event_al
         'comment': comment
     }
     AuditLogModel.create(cal_params)
+
+
+def find_resource(resource):
+        res = []
+        nextpage = ''
+        root = ET.fromstring(resource)
+        if root.tag == '{http://www.w3.org/2005/Atom}feed':
+            for link in root.iterfind('{http://www.w3.org/2005/Atom}link'):
+                if link.get('rel') == 'next':
+                    nextpage = link.get('href')
+
+            for entry in root.iterfind('{http://www.w3.org/2005/Atom}entry'):
+                param = {}
+                for child in entry.getchildren():
+                    label = ['resourceId', 'resourceCommonName', 'resourceDescription', 'resourceType']
+                    if (child.get('name') in label):
+                        param[child.get('name')] = child.get('value')
+                res.append(param)
+            return nextpage, res
+        else:
+            param = {}
+            for child in root.getchildren():
+                label = ['resourceId', 'resourceCommonName', 'resourceDescription', 'resourceType']
+                if (child.get('name') in label):
+                    param[child.get('name')] = child.get('value')
+            res.append(param)
+            return res
