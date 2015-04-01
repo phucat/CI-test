@@ -4,6 +4,7 @@ from app.models.user_removal import UserRemoval
 from app.models.audit_log import AuditLog as AuditLogModel
 from plugins import google_directory
 from google.appengine.api import users
+from google.appengine.ext import deferred
 import re
 import json
 
@@ -57,7 +58,7 @@ class UserRemovals(Controller):
                 params['status'] += 'd'
 
                 google_directory.revoke_user(params['email'])
-                google_directory.prime_caches()
+                deferred.defer(self.prime_caches)
 
             elif params['status'] == 'Cancel':
                 params['status'] += 'led'
@@ -65,6 +66,10 @@ class UserRemovals(Controller):
             self.insert_audit_log('%s has been %s for removal.' % (params['email'], params['status']), 'api endpoint', user.email(), 'Schedule User Removal', '', '')
 
             return params['status']
+
+    @classmethod
+    def prime_caches(self):
+        google_directory.prime_caches()
 
     @route_with(template='/api/schedule/cancel/user', methods=['POST'])
     def api_delete_user_removal(self):
