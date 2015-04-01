@@ -141,7 +141,8 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
                     $scope.loader = false;
                     $window.alert(d.message);
                 }).error(function(d){
-                    $window.alert(d);
+                    $log.info(d);
+                    $window.alert('Error while removing user from the domain.');
                 });
             });
         }
