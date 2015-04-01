@@ -1,7 +1,7 @@
 cron:
 - description: Delete user from domain
   url: /api/user_removals/deleting/users
-  schedule: every tue,thu 00:00
+  schedule: every day 00:00
   timezone: US/Eastern
 
 - description: Refresh users directory
