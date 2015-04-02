@@ -91,8 +91,7 @@ settings['google_directory'] = {
 
 settings['admin_account'] = {
     'email': 'sherpa_bot@arista.com',
-    'domain': 'arista.com',
-    'password': 'ar1sc1oudca1'
+    'domain': 'arista.com'
 }
 
 # Optionally, you may use the settings plugin to dynamically

@@ -1,8 +1,10 @@
 from ferris import settings
 from google.appengine.api import memcache, app_identity
 from gdata.calendar_resource.client import CalendarResourceClient
+from oauth2client.client import SignedJwtAssertionCredentials
 import xml.etree.ElementTree as ET
 config = settings.get('admin_account')
+oauth_config = settings.get('oauth2_service_account')
 APP_ID = app_identity.get_application_id()
 
 
@@ -15,8 +17,26 @@ class Calendars(object):
         params = {}
         result = []
         nextpage = None
-        client = CalendarResourceClient(domain=config['domain'])
-        client.ClientLogin(email=config['email'], password=config['password'], source=APP_ID)
+
+        scope = [
+            "https://www.googleapis.com/auth/calendar",
+            "https://www.googleapis.com/auth/admin.directory.user",
+            "https://apps-apis.google.com/a/feeds/calendar/resource/#readonly",
+            "https://www.googleapis.com/auth/admin.directory.group.readonly",
+            "https://www.googleapis.com/auth/admin.directory.orgunit.readonly",
+        ]
+
+        # Impersonate Admin user
+        creds = SignedJwtAssertionCredentials(
+            service_account_name=oauth_config['client_email'],
+            private_key=oauth_config['private_key'],
+            scope=scope,
+            sub=config['email'])
+
+        client = CalendarResourceClient(domain=config['domain'], auth_token=creds)
+
+        #client = CalendarResourceClient(domain=config['domain'])
+        #client.ClientLogin(email=config['email'], password=config['password'], source=APP_ID)
 
         while True:
             if nextpage:
