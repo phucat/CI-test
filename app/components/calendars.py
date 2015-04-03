@@ -1,6 +1,7 @@
 from ferris import settings
 from google.appengine.api import memcache, app_identity
 from gdata.calendar_resource.client import CalendarResourceClient
+import httplib2
 from oauth2client.client import SignedJwtAssertionCredentials
 import xml.etree.ElementTree as ET
 config = settings.get('admin_account')
@@ -26,14 +27,20 @@ class Calendars(object):
             "https://www.googleapis.com/auth/admin.directory.orgunit.readonly",
         ]
 
+        f = file('/key/cs-arista-calendar-qa-f606d3c123cb.p12', 'rb')
+        key = f.read()
+        f.close()
+
         # Impersonate Admin user
         creds = SignedJwtAssertionCredentials(
-            service_account_name=oauth_config['client_email'],
-            private_key=oauth_config['private_key'],
+            oauth_config['client_email'],
+            key,
             scope=scope,
             sub=config['email'])
+        http = httplib2.Http()
+        http = creds.authorize(http)
 
-        client = CalendarResourceClient(domain=config['domain'], auth_token=creds)
+        client = CalendarResourceClient(domain=config['domain'], auth_token=http)
 
         #client = CalendarResourceClient(domain=config['domain'])
         #client.ClientLogin(email=config['email'], password=config['password'], source=APP_ID)

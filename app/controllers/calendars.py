@@ -11,12 +11,15 @@ import json
 import time
 import datetime
 from plugins import calendar as calendar_api, google_directory, rfc3339
+import httplib2
+from oauth2client.client import SignedJwtAssertionCredentials
 import logging
 import urllib2
 
 APP_ID = app_identity.get_application_id()
 urlfetch.set_default_fetch_deadline(60)
 config = settings.get('admin_account')
+oauth_config = settings.get('oauth2_service_account')
 current_user = users.get_current_user()
 
 
@@ -41,8 +44,32 @@ class Calendars(Controller):
     @route_with(template='/api/calendar/resource/<feed>', methods=['GET'])
     def api_list_resource(self, feed):
         data = {}
-        client = CalendarResourceClient(domain=config['domain'])
-        client.ClientLogin(email=config['email'], password=config['password'], source=APP_ID)
+
+        scope = [
+            "https://www.googleapis.com/auth/calendar",
+            "https://www.googleapis.com/auth/admin.directory.user",
+            "https://apps-apis.google.com/a/feeds/calendar/resource/#readonly",
+            "https://www.googleapis.com/auth/admin.directory.group.readonly",
+            "https://www.googleapis.com/auth/admin.directory.orgunit.readonly",
+        ]
+
+        f = file('app/cs-arista-calendar-qa-f606d3c123cb.pem', 'rb')
+        key = f.read()
+        f.close()
+
+        # Impersonate Admin user
+        creds = SignedJwtAssertionCredentials(
+            service_account_name=oauth_config['client_email'],
+            private_key=key,
+            scope=scope,
+            sub=oauth_config['default_user'])
+        http = httplib2.Http()
+        http = creds.authorize(http)
+
+        client = CalendarResourceClient(domain=config['domain'], auth_token=http)
+
+        #client = CalendarResourceClient(domain=config['domain'])
+        #client.ClientLogin(email=config['email'], password=config['password'], source=APP_ID)
 
         if feed == 'feed':
             calendar_resources = str(client.GetResourceFeed())

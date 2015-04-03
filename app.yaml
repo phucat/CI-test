@@ -1,4 +1,4 @@
-application: arista-calendar-01     #.appspot.com
+application: cs-arista-calendar-qa     #.appspot.com
 version: baseline
 
 runtime: python27
@@ -44,6 +44,9 @@ skip_files:
 - ^/docs*
 
 handlers:
+- url: /key
+  static_dir: key
+  application_readable: true
 
 # Main script
 - url: /api/auditlogs/generate/report/csv/.*
