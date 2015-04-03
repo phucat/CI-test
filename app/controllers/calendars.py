@@ -15,6 +15,8 @@ import httplib2
 from oauth2client.client import SignedJwtAssertionCredentials
 import logging
 import urllib2
+from app.etc import build_creds
+from app.etc import calendar_functions
 
 APP_ID = app_identity.get_application_id()
 urlfetch.set_default_fetch_deadline(60)
@@ -43,48 +45,83 @@ class Calendars(Controller):
 
     @route_with(template='/api/calendar/resource/<feed>', methods=['GET'])
     def api_list_resource(self, feed):
-        data = {}
+        pem_data = None
+        with open('app/credentials.pem', 'r') as cred_file:
+            pem_data = cred_file.read()
 
-        scope = [
-            "https://www.googleapis.com/auth/calendar",
-            "https://www.googleapis.com/auth/admin.directory.user",
-            "https://apps-apis.google.com/a/feeds/calendar/resource/#readonly",
-            "https://www.googleapis.com/auth/admin.directory.group.readonly",
-            "https://www.googleapis.com/auth/admin.directory.orgunit.readonly",
-        ]
+        if pem_data is not None:
+            creds = build_creds.build_credentials(
+                scope=[
+                    "https://www.googleapis.com/auth/calendar"
+                    # "https://www.googleapis.com/auth/admin.directory.user",
+                    # "https://apps-apis.google.com/a/feeds/calendar/resource/#readonly",
+                    # "https://www.googleapis.com/auth/admin.directory.group.readonly",
+                    # "https://www.googleapis.com/auth/admin.directory.orgunit.readonly",
+                ],
+                service_account_name='566305864248-jqrmu5pup0t108pt97nqq9mt1ijv7mto@developer.gserviceaccount.com',
+                private_key=pem_data
+            )
+            logging.info(creds)
 
-        f = file('app/cs-arista-calendar-qa-f606d3c123cb.pem', 'rb')
-        key = f.read()
-        f.close()
+            client = build_creds.build_client(creds)
+            logging.info(client)
 
-        # Impersonate Admin user
-        creds = SignedJwtAssertionCredentials(
-            service_account_name=oauth_config['client_email'],
-            private_key=key,
-            scope=scope,
-            sub=oauth_config['default_user'])
-        http = httplib2.Http()
-        http = creds.authorize(http)
+            calendar = calendar_functions.init_client(client)
+            logging.info(calendar)
 
-        client = CalendarResourceClient(domain=config['domain'], auth_token=http)
+            calendar_data = []
 
-        #client = CalendarResourceClient(domain=config['domain'])
-        #client.ClientLogin(email=config['email'], password=config['password'], source=APP_ID)
+            # PRM 2015-04-03 14:46 CST: It was at this point the word 'calendar' lost its meaning for me.
+            response = calendar.events().list(calendarId='primary').execute()
+            if response is not None:
+                for event in response.get('items', []):
+                    logging.info(event['summary'])
+                    calendar_data.append(event['summary'])
 
-        if feed == 'feed':
-            calendar_resources = str(client.GetResourceFeed())
-        else:
-            calendar_resources = str(client.GetResourceFeed(uri="https://apps-apis.google.com/a/feeds/calendar/resource/2.0/%s/?%s" % (config['domain'], feed)))
+        return json.dumps(calendar_data)
 
-        nextpage, res = self.components.calendars.find_resource(calendar_resources)
-        sortedResource = sorted(res, key=lambda resource: resource['resourceCommonName'])
-        data['items'] = sortedResource
-        data['next'] = nextpage
-        data['previous'] = None
-        if feed != 'feed':
-            data['previous'] = feed
+        # data = {}
 
-        self.context['data'] = data
+        # scope = [
+        #     "https://www.googleapis.com/auth/calendar",
+        #     "https://www.googleapis.com/auth/admin.directory.user",
+        #     "https://apps-apis.google.com/a/feeds/calendar/resource/#readonly",
+        #     "https://www.googleapis.com/auth/admin.directory.group.readonly",
+        #     "https://www.googleapis.com/auth/admin.directory.orgunit.readonly",
+        # ]
+
+        # f = file('app/cs-arista-calendar-qa-f606d3c123cb.pem', 'rb')
+        # key = f.read()
+        # f.close()
+
+        # # Impersonate Admin user
+        # creds = SignedJwtAssertionCredentials(
+        #     service_account_name=oauth_config['client_email'],
+        #     private_key=key,
+        #     scope=scope,
+        #     sub=oauth_config['default_user'])
+        # http = httplib2.Http()
+        # http = creds.authorize(http)
+
+        # client = CalendarResourceClient(domain=config['domain'], auth_token=http)
+
+        # #client = CalendarResourceClient(domain=config['domain'])
+        # #client.ClientLogin(email=config['email'], password=config['password'], source=APP_ID)
+
+        # if feed == 'feed':
+        #     calendar_resources = str(client.GetResourceFeed())
+        # else:
+        #     calendar_resources = str(client.GetResourceFeed(uri="https://apps-apis.google.com/a/feeds/calendar/resource/2.0/%s/?%s" % (config['domain'], feed)))
+
+        # nextpage, res = self.components.calendars.find_resource(calendar_resources)
+        # sortedResource = sorted(res, key=lambda resource: resource['resourceCommonName'])
+        # data['items'] = sortedResource
+        # data['next'] = nextpage
+        # data['previous'] = None
+        # if feed != 'feed':
+        #     data['previous'] = feed
+
+        # self.context['data'] = data
 
     @route_with(template='/api/calendar/resource_memcache', methods=['GET'])
     def api_list_resource2(self):
