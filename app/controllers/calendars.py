@@ -16,9 +16,6 @@ import logging
 import urllib2
 
 pagination = []
-first_pagination = []
-last_pagination = []
-total_page = 0
 
 TEAM_EMAILS = EmailRecipient.list_all()
 IT_ADMIN_EMAIL = [team_email.email for team_email in TEAM_EMAILS]
@@ -65,9 +62,6 @@ class Calendars(Controller):
         data['previous'] = None
 
         page = "start=%s" % res[0]['resourceId']
-        if nextpage is None:
-            last_pagination.append(page)
-
         if page not in pagination:
             pagination.append(page)
 
@@ -75,9 +69,6 @@ class Calendars(Controller):
             current_page = pagination.index(page)-1
             logging.info("INDEX: %s" % pagination.index(page))
             data['previous'] = pagination[current_page]
-
-            if nextpage is None:
-                data['previous'] = last_pagination[0]
 
             if pagination.index(page) is 0:
                 data['previous'] = None
