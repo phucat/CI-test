@@ -84,7 +84,7 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
                     function(errorPayload) {
                         if (errorPayload.status == 406)
                         {
-                            $window.alert("There is an existing Resource with that ID");
+                            $window.alert("There is an existing Resource with that ID. Please try again.");
                         }
                         else if (errorPayload.status == 402)
                         {

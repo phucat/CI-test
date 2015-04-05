@@ -6,6 +6,7 @@ from app.components.calendars import Calendars
 from google.appengine.ext import deferred
 from google.appengine.api import users, app_identity, urlfetch, memcache
 from gdata.calendar_resource.client import CalendarResourceClient
+from app.models.email_recipient import EmailRecipient
 import xml.etree.ElementTree as ET
 import json
 import time
@@ -14,6 +15,13 @@ from plugins import calendar as calendar_api, google_directory, rfc3339
 import logging
 import urllib2
 
+pagination = []
+first_pagination = []
+last_pagination = []
+total_page = 0
+
+TEAM_EMAILS = EmailRecipient.list_all()
+IT_ADMIN_EMAIL = [team_email.email for team_email in TEAM_EMAILS]
 APP_ID = app_identity.get_application_id()
 urlfetch.set_default_fetch_deadline(60)
 config = settings.get('admin_account')
@@ -41,6 +49,7 @@ class Calendars(Controller):
     @route_with(template='/api/calendar/resource/<feed>', methods=['GET'])
     def api_list_resource(self, feed):
         data = {}
+
         client = CalendarResourceClient(domain=config['domain'])
         client.ClientLogin(email=config['email'], password=config['password'], source=APP_ID)
 
@@ -50,12 +59,28 @@ class Calendars(Controller):
             calendar_resources = str(client.GetResourceFeed(uri="https://apps-apis.google.com/a/feeds/calendar/resource/2.0/%s/?%s" % (config['domain'], feed)))
 
         nextpage, res = self.components.calendars.find_resource(calendar_resources)
-        sortedResource = sorted(res, key=lambda resource: resource['resourceCommonName'])
-        data['items'] = sortedResource
+        # sortedResource = sorted(res, key=lambda resource: resource['resourceId'])
+        data['items'] = res
         data['next'] = nextpage
         data['previous'] = None
+
+        page = "start=%s" % res[0]['resourceId']
+        if nextpage is None:
+            last_pagination.append(page)
+
+        if page not in pagination:
+            pagination.append(page)
+
         if feed != 'feed':
-            data['previous'] = feed
+            current_page = pagination.index(page)-1
+            logging.info("INDEX: %s" % pagination.index(page))
+            data['previous'] = pagination[current_page]
+
+            if nextpage is None:
+                data['previous'] = last_pagination[0]
+
+            if pagination.index(page) is 0:
+                data['previous'] = None
 
         self.context['data'] = data
 
@@ -73,6 +98,8 @@ class Calendars(Controller):
         resource = json.loads(self.request.body)
 
         try:
+            resource['resourceId'] = generate_random_numbers(12)
+
             resource_list = memcache.get('resource_list')
             if resource_list is None:
                 resource_list = self.components.calendars.list_resource_memcache()
@@ -246,7 +273,7 @@ class Calendars(Controller):
                                         action = 'Oops, %s is the owner in %s event with %s attendees.' % (selectedEmail, event['summary'], len(event['attendees']))
                                         insert_audit_log(action, 'Remove user in calendar events', current_user_email, selectedEmail, '%s %s' % (user_email, event['summary']), '')
 
-                                        DeprovisionedAccount.remove_owner_failed_notification(current_user_email, selectedEmail, event['summary'], event['htmlLink'])
+                                        DeprovisionedAccount.remove_owner_failed_notification(IT_ADMIN_EMAIL, selectedEmail, event['summary'], event['htmlLink'])
 
                                     elif len(event['attendees']) == 1:
                                         for attendee in event['attendees']:
@@ -551,3 +578,11 @@ def find_resource(resource):
                     param[child.get('name')] = child.get('value')
             res.append(param)
             return res
+
+
+def generate_random_numbers(n):
+    from random import randint
+    range_start = 10**(n-1)
+    range_end = (10**n)-1
+    gen_number = randint(range_start, range_end)
+    return str("-%s" % gen_number)

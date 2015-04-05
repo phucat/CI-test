@@ -42,11 +42,11 @@
                 </div>
                 <form name="calendar_resource_form" ng-submit="save()" novalidate>
                     <div class="modal-body">
-                        <div class="form-group" >
+                        <!-- <div class="form-group" >
                             <label>Resource ID</label>
-                            <input type="text" name="resourceId" class="form-control" ng-model="model.resourceId" ng-disabled="model.title == 'Update resource'" required/>
+                            <input type="text" name="resourceId" class="form-control" ng-model="model.resourceId" ng-disabled="model.title == 'Update resource'"/>
                             <span ng-show="calendar_resource_form.resourceId.$dirty && calendar_resource_form.resourceId.$error.required" class="help-block">Resource ID is required</span>
-                        </div>
+                        </div> -->
                         <div class="form-group">
                             <label>Resource Name</label>
                             <input type="text" name="resourceCommonName" class="form-control" ng-model="model.resourceCommonName" required/>
