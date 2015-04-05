@@ -30,7 +30,7 @@ class Calendars(Controller):
     def api_list_calendar_events(self, email, selectedemail):
         feed = []
 
-        feed = calendar_api.get_all_events(email, selectedemail)
+        feed = calendar_api.get_all_events(email, selectedemail, None, False)
 
         self.context['data'] = feed
 
@@ -189,7 +189,7 @@ class Calendars(Controller):
         users_email = google_directory.get_all_users_cached()
 
         for user_email in users_email:
-            deferred.defer(self.get_all_events, user_email['primaryEmail'], resource['old_resourceCommonName'], '', resource, True, current_user)
+            deferred.defer(self.get_all_events, user_email['primaryEmail'], resource['old_resourceCommonName'], '', resource, True, current_user, _countdown=1)
 
     @route_with('/api/calendar/remove_user/events/<selectedEmail>', methods=['POST'])
     def api_remove_users_events(self, selectedEmail):
@@ -209,7 +209,7 @@ class Calendars(Controller):
         pageToken = None
         while True:
             try:
-                events, pageToken = calendar_api.get_all_events(user_email, selectedEmail, pageToken)
+                events, pageToken = calendar_api.get_all_events(user_email, selectedEmail, pageToken, False)
                 if events is not None:
                     deferred.defer(self.get_events, events, user_email, selectedEmail, comment, resource_params, resource, current_user_email)
 
@@ -327,7 +327,6 @@ class Calendars(Controller):
                     'body': params_body,
                     'resource': resource_params
                 }
-
                 deferred.defer(self.update_calendar_events, update_event, True, current_user_email)
         else:
             if resourceName:
@@ -347,7 +346,17 @@ class Calendars(Controller):
     @classmethod
     def update_calendar_events(self, params, cal_resource=False, current_user_email=''):
         try:
-            if cal_resource == False:
+            if cal_resource:
+                calendar_api.update_event(params['event_id'], params['user_email'], params['body'], True)
+                insert_audit_log(
+                    "Event %s resource has been updated. " % (params['body']['summary']),
+                    'resource manager',
+                    current_user_email,
+                    '%s resource name' % params['body']['old_resourceName'],
+                    '%s' % (params['body']['location']), '')
+
+                AuditLogModel.update_resource_notification(params['user_email'], 'Participant', params['event_link'], params['resource'])
+            else:
                 for attendee_email in params['attendeesEmail']:
                     calendar_api.update_event(params['event_id'], attendee_email, params['body'], True)
 
@@ -360,16 +369,6 @@ class Calendars(Controller):
                             '%s' % params['body']['summary'], '')
 
                         AuditLogModel.attendees_update_notification(attendee_email, params['selectedEmail'], params['body']['summary'])
-            else:
-                calendar_api.update_event(params['event_id'], params['user_email'], params['body'], True)
-                insert_audit_log(
-                    "Event %s resource has been updated. " % (params['body']['summary']),
-                    'resource manager',
-                    current_user_email,
-                    '%s resource name' % params['body']['old_resourceName'],
-                    '%s' % (params['body']['location']), '')
-
-                AuditLogModel.update_resource_notification(params['organizerEmail'], params['organizerName'], params['event_link'], params['resource'])
 
         except Exception, e:
             logging.error('== API UPDATE EVENT ERROR ==')
