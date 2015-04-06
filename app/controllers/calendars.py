@@ -449,19 +449,6 @@ class Calendars(Controller):
         deleted_users = google_directory.get_all_deleted_users()
         list_user_emails = google_directory.get_all_users_cached()
 
-        # list_user_emails = [
-        #     {"primaryEmail": "test.account1@arista.com"},
-        #     {"primaryEmail": "test.account2@arista.com"},
-        #     {"primaryEmail": "test.account3@arista.com"},
-        #     {"primaryEmail": "test.account4@arista.com"},
-        #     {"primaryEmail": "test.account5@arista.com"},
-        #     {"primaryEmail": "test.account6@arista.com"},
-        #     {"primaryEmail": "test.account7@arista.com"},
-        #     {"primaryEmail": "test.account8@arista.com"},
-        #     {"primaryEmail": "test.account9@arista.com"},
-        #     {"primaryEmail": "test.account10@arista.com"}
-        # ]
-
         ndbDeletedUserCount = DeprovisionedAccount.query().count()
 
         if ndbDeletedUserCount == 0:
