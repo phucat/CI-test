@@ -25,12 +25,12 @@ def build_client(user):
         return build_client(user)
 
 
-def get_all_events(email, selectedEmail, page_token=None):
+def get_all_events(email, selectedEmail, page_token=None, all_events=True):
     logging.info('calendar: get_all_events')
     response = None
     try:
         calendar = build_client(email)
-        param = {'calendarId': email, 'timeZone': 'GMT', 'singleEvents': True, 'q': selectedEmail, 'pageToken': page_token}
+        param = {'calendarId': email, 'timeZone': 'GMT', 'singleEvents': all_events, 'q': selectedEmail, 'pageToken': page_token}
 
         events = calendar.events().list(**param).execute()
 

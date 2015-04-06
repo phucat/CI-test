@@ -209,7 +209,7 @@ class Calendars(Controller):
         pageToken = None
         while True:
             try:
-                events, pageToken = calendar_api.get_all_events(user_email, selectedEmail, pageToken)
+                events, pageToken = calendar_api.get_all_events(user_email, selectedEmail, pageToken, False)
                 if events is not None:
                     deferred.defer(self.get_events, events, user_email, selectedEmail, comment, resource_params, resource, current_user_email)
 
