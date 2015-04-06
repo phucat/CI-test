@@ -20,14 +20,8 @@ class AuditLog(BasicModel):
 
         return cls.query(
             ndb.AND(
-                ndb.OR(
-                    cls.created > fromdate,
-                    cls.created == fromdate
-                ),
-                ndb.OR(
-                    cls.created < todate,
-                    cls.created == todate
-                )
+                cls.created >= fromdate,
+                cls.created < todate
             )
 
         ).fetch()

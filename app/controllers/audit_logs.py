@@ -25,8 +25,9 @@ class AuditLogs(Controller):
         'What App User invoked the action', 'Targetted user or resource', 'Target event altered', 'Comment']
 
         now = datetime.now()
+        tomorrow = now + timedelta(days=1)
         fromdate = datetime(now.year, now.month, now.day, 0, 0, 0)
-        todate = datetime(now.year, now.month, now.day, 23, 59, 59)
+        todate = datetime(tomorrow.year, tomorrow.month, tomorrow.day, 0, 0, 0)
 
         out = StringIO.StringIO()
         logs = AuditLogModel.fetch_date_range(fromdate, todate)
@@ -61,10 +62,9 @@ class AuditLogs(Controller):
         now = datetime.now()
 
         if key == 'daily':
-            one_day = timedelta(days=1)
-            fromdate1 = now - one_day
-            fromdate = datetime(fromdate1.year, fromdate1.month, fromdate1.day, 0, 0, 0)
-            todate = datetime(now.year, now.month, now.day, 23, 59, 59)
+            tomorrow = now + timedelta(days=1)
+            fromdate = datetime(now.year, now.month, now.day, 0, 0, 0)
+            todate = datetime(tomorrow.year, tomorrow.month, tomorrow.day, 0, 0, 0)
         elif key == 'weekly':
             one_week = timedelta(weeks=1)
             fromdate1 = now - one_week
