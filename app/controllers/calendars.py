@@ -15,6 +15,12 @@ import httplib2
 from oauth2client.client import SignedJwtAssertionCredentials
 import logging
 import urllib2
+import httplib2
+
+import gdata.sites.client
+import gdata.sites.data
+
+
 from app.etc import build_creds
 from app.etc import calendar_functions
 
@@ -52,33 +58,39 @@ class Calendars(Controller):
         if pem_data is not None:
             creds = build_creds.build_credentials(
                 scope=[
-                    "https://www.googleapis.com/auth/calendar"
-                    # "https://www.googleapis.com/auth/admin.directory.user",
-                    # "https://apps-apis.google.com/a/feeds/calendar/resource/#readonly",
-                    # "https://www.googleapis.com/auth/admin.directory.group.readonly",
-                    # "https://www.googleapis.com/auth/admin.directory.orgunit.readonly",
+                    "https://www.googleapis.com/auth/calendar",
+                    "https://www.googleapis.com/auth/admin.directory.user",
+                    "https://apps-apis.google.com/a/feeds/calendar/resource/",
+                    "https://www.googleapis.com/auth/admin.directory.group.readonly",
+                    "https://www.googleapis.com/auth/admin.directory.orgunit.readonly",
                 ],
                 service_account_name='566305864248-jqrmu5pup0t108pt97nqq9mt1ijv7mto@developer.gserviceaccount.com',
                 private_key=pem_data
             )
             logging.info(creds)
+            auth2token = gdata.gauth.OAuth2TokenFromCredentials(creds)
+            logging.info(auth2token)
+            client = CalendarResourceClient(domain=config['domain'])
+            auth2token.authorize(client)
 
-            client = build_creds.build_client(creds)
-            logging.info(client)
+            calendar_resources = str(client.GetResourceFeed(uri="https://apps-apis.google.com/a/feeds/calendar/resource/2.0/%s/?%s" % (config['domain'], feed)))
 
-            calendar = calendar_functions.init_client(client)
-            logging.info(calendar)
+        return calendar_resources
+        #     client = build_creds.build_client(creds)
+        #     logging.info(client)
 
-            calendar_data = []
+        #     calendar = calendar_functions.init_client(client)
+        #     logging.info(calendar)
 
-            # PRM 2015-04-03 14:46 CST: It was at this point the word 'calendar' lost its meaning for me.
-            response = calendar.events().list(calendarId='primary').execute()
-            if response is not None:
-                for event in response.get('items', []):
-                    logging.info(event['summary'])
-                    calendar_data.append(event['summary'])
+        #     calendar_data = []
 
-        return json.dumps(calendar_data)
+        #     # PRM 2015-04-03 14:46 CST: It was at this point the word 'calendar' lost its meaning for me.
+        #     response = calendar.events().list(calendarId='primary').execute()
+        #     if response is not None:
+        #         for event in response.get('items', []):
+        #             logging.info(event['summary'])
+        #             calendar_data.append(event['summary'])
+
 
         # data = {}
 
@@ -90,23 +102,50 @@ class Calendars(Controller):
         #     "https://www.googleapis.com/auth/admin.directory.orgunit.readonly",
         # ]
 
-        # f = file('app/cs-arista-calendar-qa-f606d3c123cb.pem', 'rb')
-        # key = f.read()
-        # f.close()
+        # # f = file('app/cs-arista-calendar-qa-f606d3c123cb.pem', 'rb')
+        # # key = f.read()
+        # # f.close()
+        # logging.info("TEST1")
+        # pem_data = None
+        # with open('app/credentials.pem', 'r') as cred_file:
+        #     pem_data = cred_file.read()
 
-        # # Impersonate Admin user
+        # logging.info("TEST2")
+
+        # #Impersonate Admin user
         # creds = SignedJwtAssertionCredentials(
         #     service_account_name=oauth_config['client_email'],
-        #     private_key=key,
+        #     private_key=oauth_config['private_key'],
         #     scope=scope,
         #     sub=oauth_config['default_user'])
-        # http = httplib2.Http()
-        # http = creds.authorize(http)
 
-        # client = CalendarResourceClient(domain=config['domain'], auth_token=http)
+        # logging.info("TEST3")
+        # auth2token = gdata.gauth.OAuth2TokenFromCredentials(creds)
+
+        # logging.info("TEST4")
 
         # #client = CalendarResourceClient(domain=config['domain'])
-        # #client.ClientLogin(email=config['email'], password=config['password'], source=APP_ID)
+        # #client = gdata.sites.client.SitesClient(source='sites-test', domain=config['domain'])
+
+        # logging.info("TEST5")
+        # #auth2token.authorize(client)
+
+        # #feed = client.GetSiteFeed()
+        # logging.info("TEST6")
+
+        # try:
+        #     http = httplib2.Http()
+        #     creds.authorize(http)
+        # except:
+        #     http = False
+        # #client = build_creds.build_client(creds)
+        # logging.info(http)
+        # calendar = calendar_functions.init_client(http)
+        # logging.info(calendar)
+        # #calendar_data = []
+
+        #client = CalendarResourceClient(domain=config['domain'])
+        #client.ClientLogin(email=config['email'], password=config['password'], source=APP_ID)
 
         # if feed == 'feed':
         #     calendar_resources = str(client.GetResourceFeed())
@@ -122,6 +161,8 @@ class Calendars(Controller):
         #     data['previous'] = feed
 
         # self.context['data'] = data
+
+
 
     @route_with(template='/api/calendar/resource_memcache', methods=['GET'])
     def api_list_resource2(self):
