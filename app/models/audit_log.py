@@ -17,14 +17,7 @@ class AuditLog(BasicModel):
 
     @classmethod
     def fetch_date_range(cls, fromdate, todate):
-
-        return cls.query(
-            ndb.AND(
-                cls.created >= fromdate,
-                cls.created < todate
-            )
-
-        ).fetch()
+        return cls.query().filter(ndb.AND(cls.created >= fromdate, cls.created < todate))
 
     @classmethod
     def create(cls, params):
@@ -142,6 +135,6 @@ class AuditLog(BasicModel):
             %s
 
         Thank You.
-        """ % (name, resource['updates']['resourceId'], resource['resourceCommonName'], resource['updates']['resourceType'], resource['updates']['resourceDescription'], event_link)
+        """ % (name, resource['resourceId'], resource['resourceCommonName'], resource['resourceType'], resource['resourceDescription'], event_link)
 
         mail.send_mail("no-reply@" + APP_ID + ".appspotmail.com", email, subject, body)

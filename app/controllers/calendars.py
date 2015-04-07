@@ -144,25 +144,39 @@ class Calendars(Controller):
             client.ClientLogin(email=config['email'], password=config['password'], source=APP_ID)
             resource = json.loads(self.request.body)
 
-            updated_calendar_resource = client.UpdateResource(
-                resource_id=resource['resourceId'],
-                resource_common_name=resource['resourceCommonName'],
-                resource_description=resource['resourceDescription'],
-                resource_type=resource['resourceType'])
+            if resource['resourceCommonName'] != resource['old_resourceCommonName']:
+                client.DeleteResource(resource_id=resource['resourceId'])
+                resource['resourceId'] = generate_random_numbers(12)
+                client.CreateResource(
+                    resource_id=resource['resourceId'],
+                    resource_common_name=resource['resourceCommonName'],
+                    resource_description=resource['resourceDescription'],
+                    resource_type=resource['resourceType'])
 
-            res = self.components.calendars.find_resource(str(updated_calendar_resource))
+                calendar_resource_email = client.GetResource(resource_id=resource['resourceId'])
+            else:
+                client.UpdateResource(
+                    resource_id=resource['resourceId'],
+                    resource_common_name=resource['resourceCommonName'],
+                    resource_description=resource['resourceDescription'],
+                    resource_type=resource['resourceType'])
 
+                calendar_resource_email = client.GetResource(resource_id=resource['resourceId'])
+
+            res = self.components.calendars.find_resource(str(calendar_resource_email))
+            logging.info("RESOURCE: %s" % res)
             resultMessage['message'] = 'The app is in the process of updating the calendar.'
             resultMessage['items'] = res
             self.context['data'] = resultMessage
 
-            updates_params = {
-                'resourceDescription': resource['resourceDescription'],
-                'resourceType': resource['resourceType']
-            }
+            # updates_params = {
+            #     'resourceDescription': resource['resourceDescription'],
+            #     'resourceType': resource['resourceType']
+            # }
 
-            deferred.defer(self.update_resource_calendar, resource, updates_params, self.session['current_user'])
-
+            # deferred.defer(self.update_resource_calendar, resource, updates_params, self.session['current_user'])
+            resource['new_email'] = res[0]['resourceEmail']
+            deferred.defer(self.process_update_resource, resource, self.session['current_user'])
         except urllib2.HTTPError as e:
             logging.info('get_all_events: HTTPerror')
             logging.info(e.code)
@@ -205,7 +219,6 @@ class Calendars(Controller):
     @classmethod
     def process_update_resource(self, resource, current_user):
         users_email = google_directory.get_all_users_cached()
-
         for user_email in users_email:
             deferred.defer(self.get_all_events, user_email['primaryEmail'], resource['old_resourceCommonName'], '', resource, True, current_user, _countdown=1)
 
@@ -274,7 +287,7 @@ class Calendars(Controller):
                                 if event['organizer']['email'] == selectedEmail:
                                     deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email)
                         else:
-                            deferred.defer(self.filter_location, event, user_email, resource_params, current_user_email)
+                            deferred.defer(self.filter_location, event, user_email, selectedEmail, resource_params, current_user_email)
 
         except urllib2.HTTPError as e:
             logging.info('get_events: HTTPerror')
@@ -309,19 +322,19 @@ class Calendars(Controller):
         deferred.defer(self.update_calendar_events, update_event, False, current_user_email)
 
     @classmethod
-    def filter_location(self, event, user_email, resource_params, current_user_email):
+    def filter_location(self, event, user_email, old_resourceCommonName, resource_params, current_user_email):
         attendees_list = []
         resource_list = []
         resourceName = None
         if 'attendees' in event:
             for attendee in event['attendees']:
                 if 'resource' in attendee:
-                    if attendee['displayName'] == resource_params['old_resourceCommonName']:
-                        resourceName = resource_params['old_resourceCommonName']
-                        resource_list.append({'email': attendee['email'], 'displayName': resource_params['resourceCommonName']})
+                    if attendee['displayName'] == old_resourceCommonName:
+                        resourceName = old_resourceCommonName
+                        resource_list.append({'email': resource_params['new_email']})
                 else:
                     attendees_list.append(attendee['email'])
-                    resource_list.append({'email': attendee['email'], 'displayName': attendee['displayName']})
+                    resource_list.append({'email': attendee['email']})
 
         if resource_params['resourceCommonName'] != resource_params['old_resourceCommonName']:
             if resourceName:
@@ -348,6 +361,8 @@ class Calendars(Controller):
                 deferred.defer(self.update_calendar_events, update_event, True, current_user_email)
         else:
             if resourceName:
+                logging.info("RESOURCE NOTIFY: %s" % attendees_list)
+                logging.info("RESOURCE: %s" % resource_params)
                 update_event = {
                     'event_id': event['id'],
                     'user_email': user_email,
@@ -358,8 +373,7 @@ class Calendars(Controller):
                     'attendeesEmail': attendees_list,
                     'resource': resource_params
                 }
-                if user_email in attendees_list:
-                    deferred.defer(self.update_resource_events, update_event, current_user_email)
+                deferred.defer(self.update_resource_events, update_event, current_user_email)
 
     @classmethod
     def update_calendar_events(self, params, cal_resource=False, current_user_email=''):
@@ -403,15 +417,16 @@ class Calendars(Controller):
                     Resource Type: %s
                     Resource Description: %s """
                 % (params['summary'],
-                    params['resource']['updates']['resourceId'],
+                    params['resource']['resourceId'],
                     params['resource']['resourceCommonName'],
-                    params['resource']['updates']['resourceType'],
-                    params['resource']['updates']['resourceDescription']),
+                    params['resource']['resourceType'],
+                    params['resource']['resourceDescription']),
                 'resource manager',
                 current_user_email,
                 '%s resource name' % params['resource']['old_resourceCommonName'],
                 'Calendar of %s on event %s.' % (params['user_email'], params['summary']), '')
 
+            logging.info("update resource Event: %s" % params['user_email'])
             AuditLogModel.update_resource_notification(params['user_email'], 'Participants', params['event_link'], params['resource'])
 
         except Exception, e:
@@ -543,7 +558,7 @@ def find_resource(resource):
             for entry in root.iterfind('{http://www.w3.org/2005/Atom}entry'):
                 param = {}
                 for child in entry.getchildren():
-                    label = ['resourceId', 'resourceCommonName', 'resourceDescription', 'resourceType']
+                    label = ['resourceId', 'resourceCommonName', 'resourceDescription', 'resourceType', 'resourceEmail']
                     if (child.get('name') in label):
                         param[child.get('name')] = child.get('value')
                 res.append(param)
@@ -551,7 +566,7 @@ def find_resource(resource):
         else:
             param = {}
             for child in root.getchildren():
-                label = ['resourceId', 'resourceCommonName', 'resourceDescription', 'resourceType']
+                label = ['resourceId', 'resourceCommonName', 'resourceDescription', 'resourceType', 'resourceEmail']
                 if (child.get('name') in label):
                     param[child.get('name')] = child.get('value')
             res.append(param)

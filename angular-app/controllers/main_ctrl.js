@@ -1,7 +1,7 @@
 
 angular.module('app.controllers').controller('MainCtrl', function($log, $window, $scope, $rootScope,aristaFactory, aristaREST, pubsub, loading){
     "use_strict";
-
+    $scope.tz_offset = new Date().getTimezoneOffset()/60*-1;
     $scope.calendar_resources = [];
 
     $scope.load_identity = function(reload_route) {
@@ -112,6 +112,7 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
                         }
                     }
                     $scope.calendar_resources = old_resource;
+                    $scope.cal_resources();
                     $log.info('success', d);
                     $window.alert(d.message);
                 }).error(function(d){
@@ -154,6 +155,11 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
         }
     }
 
+
+}).controller('TzCtrl', function($scope){
+    "use strict";
+    $scope.tz_offset = new Date().getTimezoneOffset()/60;
+
 }).controller('ResourceModal', function($scope, $rootScope, $log){
     "use strict";
 
@@ -164,8 +170,11 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
         $scope.model.resourceId = $rootScope.model.resourceId || '';
         $scope.model.resourceCommonName = $scope.model.resourceCommonName || $rootScope.model.resourceCommonName;
         $scope.model.old_resourceCommonName = $rootScope.model.resourceCommonName || '';
+        $scope.model.old_resourceType = $rootScope.model.resourceType || '';
+        $scope.model.old_resourceDescription = $rootScope.model.resourceDescription || '';
         $scope.model.resourceType = $scope.model.resourceType || $rootScope.model.resourceType;
         $scope.model.resourceDescription = $scope.model.resourceDescription || $rootScope.model.resourceDescription;
+        $scope.model.resourceEmail = $scope.model.resourceEmail || $rootScope.model.resourceEmail;
     };
 
     $scope.save = function(){

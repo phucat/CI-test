@@ -34,13 +34,9 @@ class Calendars(object):
                 break
 
         sortedResource = sorted(result, key=lambda resource: resource['resourceCommonName'])
-        data = memcache.get('resource_list')
-        if data is not None:
-            return data
-        else:
-            memcache.add('resource_list', sortedResource, 600)
-            data = memcache.get('resource_list')
-            return data
+
+        memcache.add('resource_list', sortedResource, 600)
+        return sortedResource
 
     def find_resource(self, resource):
         res = []
@@ -54,7 +50,7 @@ class Calendars(object):
             for entry in root.iterfind('{http://www.w3.org/2005/Atom}entry'):
                 param = {}
                 for child in entry.getchildren():
-                    label = ['resourceId', 'resourceCommonName', 'resourceDescription', 'resourceType']
+                    label = ['resourceId', 'resourceCommonName', 'resourceDescription', 'resourceType', 'resourceEmail']
                     if (child.get('name') in label):
                         param[child.get('name')] = child.get('value')
                 res.append(param)
@@ -62,7 +58,7 @@ class Calendars(object):
         else:
             param = {}
             for child in root.getchildren():
-                label = ['resourceId', 'resourceCommonName', 'resourceDescription', 'resourceType']
+                label = ['resourceId', 'resourceCommonName', 'resourceDescription', 'resourceType', 'resourceEmail']
                 if (child.get('name') in label):
                     param[child.get('name')] = child.get('value')
             res.append(param)

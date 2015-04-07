@@ -17,12 +17,12 @@
 
     <!-- Markup -->
     <div x-loading="identity_loading"></div>
-    <div class="container" style="margin-top: 20px;">
+    <div class="container" style="margin-top: 20px;" ng-controller="TzCtrl">
         <div class="content">
             <div class="body" style="float:right;">
                 <a href="#/main" class="btn btn-info" tabindex="1">Main</a>
                 <a href="#/main/request" class="btn btn-info" tabindex="2">Schedule removal</a>
-                <a href="/api/audit_logs/downloads" class="btn btn-info" tabindex="3">Download Audit Log</a>
+               {%raw%} <a ng-href="/api/audit_logs/downloads/{{tz_offset}}" class="btn btn-info" tabindex="3">Download Audit Log</a>{%endraw%}
                 <a href="/api/app_logout" class="btn btn-info" tabindex="4">Logout</a>
             </div>
 
@@ -62,6 +62,7 @@
                             <textarea class="form-control input-sm" name="resourceDescription"
                             style="width:558px;height:108px;" ng-model="model.resourceDescription"></textarea>
                         </div>
+                        <input type="hidden" name="resourceEmail" ng-model="model.resourceEmail" />
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>

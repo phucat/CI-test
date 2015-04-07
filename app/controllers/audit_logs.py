@@ -1,4 +1,5 @@
 from ferris import Controller, route_with, messages, settings
+from ferris.core import time_util
 from app.models.audit_log import AuditLog as AuditLogModel
 from app.models.email_recipient import EmailRecipient
 import StringIO
@@ -6,6 +7,7 @@ import csv
 import logging
 from time import sleep
 from datetime import date, timedelta, datetime
+import dateutil.tz
 config = settings.get('admin_account')
 
 
@@ -15,9 +17,10 @@ class AuditLogs(Controller):
         components = (messages.Messaging, )
         Model = AuditLogModel
 
+    @route_with(template='/api/audit_logs/downloads/<tz_offset>', methods=['GET'])
     @route_with(template='/api/audit_logs/downloads', methods=['GET'])
-    def api_generate_report(self):
-
+    def api_generate_report(self, tz_offset=None):
+        tz_offset = int(tz_offset) if tz_offset else 0
         # for x in xrange(1, 201):
         #     AuditLogModel.email_fluff(config['email'])
 
@@ -25,16 +28,17 @@ class AuditLogs(Controller):
         'What App User invoked the action', 'Targetted user or resource', 'Target event altered', 'Comment']
 
         now = datetime.now()
-        tomorrow = now + timedelta(days=1)
-        fromdate = datetime(now.year, now.month, now.day, 0, 0, 0)
-        todate = datetime(tomorrow.year, tomorrow.month, tomorrow.day, 0, 0, 0)
-
+        local_now = time_util.localize(now, tz=dateutil.tz.tzoffset(None, tz_offset*60*60))
+        tomorrow = local_now + timedelta(days=1)
+        fromdate = time_util.localize(datetime(now.year, now.month, now.day, 0, 0, 0), tz=dateutil.tz.tzoffset(None, 0))
+        todate = time_util.localize(datetime(tomorrow.year, tomorrow.month, tomorrow.day, 0, 0, 0), tz=dateutil.tz.tzoffset(None, 0))
+        logging.info("RANGE: %s %s " % (fromdate, todate))
         out = StringIO.StringIO()
         logs = AuditLogModel.fetch_date_range(fromdate, todate)
         writer = csv.DictWriter(out, fieldnames=fields)
         writer.writeheader()
 
-        for log in logs:
+        for log in logs.iter():
             data = {
                 'Timestamp': datetime.strftime(log.created, '%m/%d/%Y %I:%M:%S %p'),
                 'The action performed': log.action,
@@ -60,6 +64,8 @@ class AuditLogs(Controller):
         'What App User invoked the action', 'Targetted user or resource', 'Target event altered', 'Comment']
 
         now = datetime.now()
+
+        # localize
 
         if key == 'daily':
             tomorrow = now + timedelta(days=1)
@@ -101,3 +107,10 @@ class AuditLogs(Controller):
         out.close()
 
         return 'Email Sent'
+
+
+def get_midnight(offset):
+    midnight = 24 + offset
+    if midnight > 24:
+        midnight -= 24
+    return midnight
