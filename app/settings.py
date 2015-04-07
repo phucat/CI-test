@@ -63,7 +63,7 @@ OnrfRRf01CufM6/gG0vHGm+5RNQijAN/z+o6ZjyY4lXBRRU6mqeqOQJAbLllhUMY
 wk/GS5bPTcro3c1iQAGto1X8nQNEc0HMOHaAaVsz6sn2rJpjOhJc3fyIGAb/Uq4Z
 D8/8xduc0qeZBw==
 -----END PRIVATE KEY-----""",  # Must be in PEM format
-    'developer_key': 'db0d0521a1d64e8ab3c2dce3a63296fad82a5490',  # Optional
+    'developer_key': 'AIzaSyCY2AHYltYng1JbyHJk8EH80JbMqaiy9NU',  # Optional
     'domain': 'sherpatest.com',
     'default_user': 'andrew.fleming@sherpatest.com'
 }
