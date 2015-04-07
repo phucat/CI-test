@@ -17,19 +17,13 @@ class AuditLog(BasicModel):
 
     @classmethod
     def fetch_date_range(cls, fromdate, todate):
-
+        fromDt = fromdate  # datetime.datetime(now.year, now.month, now.day, 0, 0, 0)
+        toDt = todate  # datetime.datetime(tomorrow.year, tomorrow.month, tomorrow.day, 0, 0, 0)
         return cls.query(
             ndb.AND(
-                ndb.OR(
-                    cls.created > fromdate,
-                    cls.created == fromdate
-                ),
-                ndb.OR(
-                    cls.created < todate,
-                    cls.created == todate
-                )
+                cls.created >= fromDt,
+                cls.created < toDt
             )
-
         ).fetch()
 
     @classmethod
