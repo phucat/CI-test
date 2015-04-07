@@ -34,7 +34,8 @@ def get_all_users():
     directory = build('admin', 'directory_v1', http=build_client())
     page_token = None
     param = {
-        'maxResults': '100'
+        'maxResults': '100',
+        'query': 'isSuspended=False'
     }
 
     directory_settings = settings.get('google_directory', {

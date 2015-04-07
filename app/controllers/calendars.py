@@ -273,10 +273,20 @@ class Calendars(Controller):
                                     else:
                                         pass
                                 else:
-                                    if len(event['attendees']) > 1:
+                                    if len(event['attendees']) == 2:
+                                        for attendee in event['attendees']:
+                                            if 'resource' in attendee:
+                                                deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email)
+                                            else:
+                                                action = 'Oops, %s is the owner in %s event with %s attendees.' % (selectedEmail, event['summary'], len(event['attendees']))
+                                                insert_audit_log(action, 'Remove user in calendar events', current_user_email, selectedEmail, '%s %s' % (user_email, event['summary']), '')
+                                                logging.info("IT EMAIL: %s " % IT_ADMIN_EMAIL)
+                                                DeprovisionedAccount.remove_owner_failed_notification(IT_ADMIN_EMAIL, selectedEmail, event['summary'], event['htmlLink'])
+
+                                    elif len(event['attendees']) > 1:
                                         action = 'Oops, %s is the owner in %s event with %s attendees.' % (selectedEmail, event['summary'], len(event['attendees']))
                                         insert_audit_log(action, 'Remove user in calendar events', current_user_email, selectedEmail, '%s %s' % (user_email, event['summary']), '')
-
+                                        logging.info("IT EMAIL: %s " % IT_ADMIN_EMAIL)
                                         DeprovisionedAccount.remove_owner_failed_notification(IT_ADMIN_EMAIL, selectedEmail, event['summary'], event['htmlLink'])
 
                                     elif len(event['attendees']) == 1:
@@ -453,7 +463,7 @@ class Calendars(Controller):
                 cal_params['target_event_altered'], cal_params['comment']
             )
 
-            DeprovisionedAccount.remove_owner_success_notification(current_user_email, selectedEmail, event['summary'], event['htmlLink'])
+            DeprovisionedAccount.remove_owner_success_notification(IT_ADMIN_EMAIL, selectedEmail, event['summary'], event['htmlLink'])
 
         except Exception, e:
             logging.error('== API DELETE EVENT ERROR ==')
