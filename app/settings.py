@@ -46,22 +46,22 @@ settings['oauth2'] = {
 settings['oauth2_service_account'] = {
     # OAuth2 service account configuration should be generated
     # from the google cloud console (Service Account Credentials)
-    'client_email': '566305864248-41dsmsoqtbqc77d7op2og3u73ib7b982.apps.googleusercontent.com',  # XXX@developer.gserviceaccount.com
+    'client_email': '566305864248-jqrmu5pup0t108pt97nqq9mt1ijv7mto@developer.gserviceaccount.com',  # XXX@developer.gserviceaccount.com
     'private_key': """-----BEGIN PRIVATE KEY-----
-MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBANhi5BK2/RiS5N+W
-l8j9Z3qXdmRtVsh/eklGSCPvE2t20a7nINS+mDugbegi2FAfB0fuTavuUnAnjGfg
-BQDMkZwsf40w1HE8QARV+cOY0wFT+ObFcrJFXIXE0872ehO1nzKHx3BrGsUrkKct
-6qPB8V06U3y+isR849N2a4Q56wFdAgMBAAECgYBZdfEjR6I2Aa08P097mkCo72vU
-M1w4wnN1TehPau1VdadVL1tkeXQI2tf1rEpQPbPN6lkUZxCQK9mhrH2FCg58huyC
-qUb6Nbt+IALpLn45b/VmzhnwzVGdQFrnPUDqG2wdq2K0b5X2T1m1m9s8QB7WYPAQ
-/3EDOlcuwreX3OfWpQJBAPq1/m//VuqGNkkeg30meMpjReMjt709Q79S2o14Dhlo
-tf4CyMjHSh86cRjPf6brjaZ4aFb+bVZJGlPD/5N9ke8CQQDc84Vrn0fykOLLNbJS
-86ag22V/QW5HljJFhgXXOFr2YBE60xpVO/IybCQY28LhPIfDfVW799YOYnoUKrhp
-i71zAkEAurrKY0heyBZmYFdlv9Tjqnn+F4sG0t/Kkbl4Jl4AwlQHGMWiHkiwoEm6
-6qvBe+V9fzu3GvQtI1MXVMRqmsOv6QJAZO+urLqoEIzVvoV6QGDkZymzFU5bxcI8
-lvwh4O7yxwid9mSH7BYlj5lNaDnErkaLsuen6eXPWOTt5haaBkV7NwJBAJc2Ds0u
-BfDq24UauPCKT88NS9Uolj2/85bZaWdha/TFT1ozNXrujF6qP21Yh44NSe4OzD9Z
-cZIKnCB2tJZWZ8M=
+MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBAN5zpukOfpLSaUNc
+EQDPLnTLadd6Oh0FwRZHXQeW7nGHthgTziDqp4EuOgod8TpXB+vnX+zyY35Clegm
+0CDx8PTy5/TKlGubd10FQBy2Xsahv5gO1pc4L1bDqmSpoxsRRRXoquUYhlvY4Df5
+ctXOcBuOLaV9XXNSuECKKH1kWCc9AgMBAAECgYAyy6vgaevjMOLSe9JyId0U1GId
+zw44FFlL8g2/LurRx9B/3P3jrFGFgP3F06KC1N69Mn9IBu1LJn8+nKZH75c6msS8
+XWenvQbnxES/PUy+0FjwqFCybbUrd6nfiyJV17JTT0umKH1dGmJ37NEXd2I/sdWd
+GuqZZoxwl+NfgSLIjQJBAO+J5TBym+QfJ4Ke403NxOg0gPrfDg6wlSwxTxPnWnBZ
+bnbk3tygia064t9qyVzRdH/7UAwd7uuDzxnL6UtLJjcCQQDtvSd2nlPneLKtGL0/
+gsoKkHYm6jszUjmLv8hDVURvK/UmJWLC17cLM7SI0DmY2Zm6XnykP3Xgi2kaNqWA
+7yQrAkEAi2BsF+2H4YtzHODAl8PT/9yU8+QXtNpwYd9rCMTD7b1LtihjuHI8yawK
+2D61XamOJO2g3PwJycXPGk54t1PJrwJAL/w59utGLDZkeiPALw2LEk7OSlSE1nsG
+OnrfRRf01CufM6/gG0vHGm+5RNQijAN/z+o6ZjyY4lXBRRU6mqeqOQJAbLllhUMY
+wk/GS5bPTcro3c1iQAGto1X8nQNEc0HMOHaAaVsz6sn2rJpjOhJc3fyIGAb/Uq4Z
+D8/8xduc0qeZBw==
 -----END PRIVATE KEY-----""",  # Must be in PEM format
     'developer_key': 'AIzaSyBkMhZAbepklUuV5ZXrzPDdu5zOSSRUhZA',  # Optional
     'domain': 'sherpatest.com',

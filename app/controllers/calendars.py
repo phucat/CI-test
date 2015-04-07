@@ -51,29 +51,26 @@ class Calendars(Controller):
 
     @route_with(template='/api/calendar/resource/<feed>', methods=['GET'])
     def api_list_resource(self, feed):
-        pem_data = None
-        with open('app/credentials.pem', 'r') as cred_file:
-            pem_data = cred_file.read()
+        #pem_data = None
+        #with open('app/credentials.pem', 'r') as cred_file:
+        #    pem_data = cred_file.read()
 
-        if pem_data is not None:
-            creds = build_creds.build_credentials(
-                scope=[
-                    "https://www.googleapis.com/auth/calendar",
-                    "https://www.googleapis.com/auth/admin.directory.user",
-                    "https://apps-apis.google.com/a/feeds/calendar/resource/",
-                    "https://www.googleapis.com/auth/admin.directory.group.readonly",
-                    "https://www.googleapis.com/auth/admin.directory.orgunit.readonly",
-                ],
-                service_account_name='566305864248-jqrmu5pup0t108pt97nqq9mt1ijv7mto@developer.gserviceaccount.com',
-                private_key=pem_data
-            )
-            logging.info(creds)
-            auth2token = gdata.gauth.OAuth2TokenFromCredentials(creds)
-            logging.info(auth2token)
-            client = CalendarResourceClient(domain=config['domain'])
-            auth2token.authorize(client)
+        #if pem_data is not None:
+        creds = build_creds.build_credentials(
+            scope=[
+                "https://apps-apis.google.com/a/feeds/calendar/resource/"
+            ],
+            service_account_name=oauth_config['client_email'],
+            private_key=oauth_config['private_key'],
+            user=config['email']
+        )
+        logging.info(creds)
+        auth2token = gdata.gauth.OAuth2TokenFromCredentials(creds)
+        logging.info(auth2token)
+        client = CalendarResourceClient(domain=config['domain'])
+        auth2token.authorize(client)
 
-            calendar_resources = str(client.GetResourceFeed(uri="https://apps-apis.google.com/a/feeds/calendar/resource/2.0/%s/?%s" % (config['domain'], feed)))
+        calendar_resources = str(client.GetResourceFeed(uri="https://apps-apis.google.com/a/feeds/calendar/resource/2.0/%s/?%s" % (config['domain'], feed)))
 
         return calendar_resources
         #     client = build_creds.build_client(creds)
