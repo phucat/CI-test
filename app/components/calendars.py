@@ -23,7 +23,7 @@ class Calendars(object):
 
         creds = build_creds.build_credentials(
             scope=[
-                "https://apps-apis.google.com/a/feeds/calendar/resource/#readonly"
+                "https://apps-apis.google.com/a/feeds/calendar/resource/"
             ],
             service_account_name=oauth_config['client_email'],
             private_key=oauth_config['private_key'],
