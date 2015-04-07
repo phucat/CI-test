@@ -307,12 +307,16 @@ class Calendars(Controller):
     @classmethod
     def filter_attendees(self, event, selectedEmail, user_email, comment, current_user_email):
         attendees_list = []
+        resource_list = []
         for attendee in event['attendees']:
             if attendee['email'] != selectedEmail and 'resource' not in attendee:
                 attendees_list.append({'email': attendee['email']})
 
+            if attendee['email'] != selectedEmail or 'resource' in attendee:
+                resource_list.append({'email': attendee['email']})
+
         params_body = {
-            'attendees': attendees_list,
+            'attendees': resource_list,
             'reminders': {'overrides': [{'minutes': 15, 'method': 'popup'}], 'useDefault': 'false' },
             'start': event['start'],
             'end': event['end'],
