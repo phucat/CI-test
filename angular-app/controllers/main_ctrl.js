@@ -121,7 +121,7 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
                     $log.error('failed', d);
                     if(d.code == 500)
                     {
-                        $window.alert('You are not authorized to use this Calendar Resource API.');
+                        $window.alert("There was an error when attempting to connect to the Resource API. Please wait a few moments and try again.");
                     }
                     else{
                         $window.alert(d.error);
