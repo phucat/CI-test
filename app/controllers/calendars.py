@@ -269,7 +269,7 @@ class Calendars(Controller):
             elif params['status'] == 'Cancel':
                 params['status'] += 'led'
 
-            self.insert_audit_log('%s has been %s for removal.' % (params['email'], params['status']), 'api endpoint', user.email(), 'Schedule User Removal', '', '')
+            insert_audit_log('%s has been %s for removal.' % (params['email'], params['status']), 'api endpoint', user.email(), 'Schedule User Removal', '', '')
 
             return params['status']
 
