@@ -42,56 +42,31 @@ settings['oauth2'] = {
     'developer_key': None  # Optional
 }
 
-# cs-arista-calendar-qa
+# arista-qa
 settings['oauth2_service_account'] = {
     # OAuth2 service account configuration should be generated
     # from the google cloud console (Service Account Credentials)
-    'client_email': '566305864248-jqrmu5pup0t108pt97nqq9mt1ijv7mto.apps.googleusercontent.com',  # XXX@developer.gserviceaccount.com
+    'client_email': '566305864248-jqrmu5pup0t108pt97nqq9mt1ijv7mto@developer.gserviceaccount.com',  # XXX@developer.gserviceaccount.com
     'private_key': """-----BEGIN PRIVATE KEY-----
-MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBANyA4PjRM/eKF0kN
-IfjOoFdRKB/b33c28wO7mrZ1JFj2vEMfN/j+8EeyZRogMgav5uCYcXocM/09gft+
-IeSdXvGx0+xKALilZBUJcVZwxw+Y10mCS4hAijiZ/tlYtaM0rN6KMPKD5hxbghJR
-EtL/HJYo/2U+CpgaP7z/1kvZ3K7VAgMBAAECgYAQZ9ZVLNt8811AJiX86QKs/HDL
-zgQWTpROFsswAA8wP0tKgywa7nzaGL/E7dhK/xNianUm7KpBkS32lC/ZXowNtBtC
-CQlVqWV9A6NxkZI9IfOU5gsS8R3NmVH6KC/AWslu8sMdEIh7vRvHi5Vk1Yunl2R/
-yEo+AG3H7rK/oSiQEQJBAPQ1+HJr8BpSOu58yJdvcBTpvPRmZXEOQ7LaZ8/X+SsL
-qAN730WxZFK/ySLsPwY7Bx/0QUO2QJr9YSAWDogdaX8CQQDnJezleYz3sEgXJq7E
-WgBRss6fHf8ZXjPzjhrlzKAIsiHvZKav8vjX2jFF1RKprq1Tl3gmUyvimsDc4Uxx
-3kmrAkAZe/RURG1G4ePidUUdgHSKyiV8v57AYIOyC1af+uK2mj3LN0cCZ9OXSwo7
-Sbn99XT14bBZ15AAXIahKYwUqjUTAkBctPRPkTG9weEYD/a2X9aS7eE7Jj/DP+oc
-PBmDo09oTXGY30iPdybhA+0RMgU7MwjnZu/UhzUpvKGvtVkAroPjAkEAmhKQjEdj
-Gb8LMw41tiCxqcVG1wsVcRcj98x+SnEdI+wdN8Nh7BJGWef3Zqy3uZdDGEZVIFFG
-Hw96eE0+zfKzhQ==
+MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAJqTms3P+p9OTyOL
+Pv+Xpxb7loL/tEWcCvmVbq+y938O4z6KQhNSlh135cpkYdUmak0vy7PJeaGYd9hD
+UNbfRN0JLudbMCUWvV8QkIBJgbeDa+hJV3KK3ZTJxDL07WwE8VfXnpPtaZ605ISk
+2K4rkYwlQI0hxebSXyuiFZAcmfdtAgMBAAECgYEAkxEWevSCvajS0L197c3Ksqoh
+tHc2e/gP1RBgpBfBNAjlGi6O2TV9D4JwhdRl5FdNUizEQUTSTXXzqDW7pwP7zlqT
+0axRDOvlCjOWNzzWKm8kJqFJTKtSyNsMabdOvkBD2nvS3YYTNRTJQQbAzytoYLvw
+1Hk29kRAW21kDHS8O4ECQQDHOG7VVPU6IvrDm0x62ZsFcAXjUX4Q8xjqk3FN9zET
+gM1RAjon+8diOcuVm+Yc+vF6b09T5YyzmliHnwtQdOxNAkEAxqHbNcGHnLYFwMOt
+MvCWW+vGU4xQEiTEXKun+PMtbWF4ZHiE6NqRA3nBaAK3Klk3P1qENkCwdQjKfaEI
+j6hHoQJBALIBbJbVaKBfrOymkLmcQfWj2L76i8gdToAa6jydyI4ConHlqY0cXVUZ
+Cx1MxVnTp3ychKcUDppUKRJVO8jSEGkCQCCHr2vdVwVONiD8qufVyPoi4eca6p4e
+EV6P6kF2KfFo7hueNT4hVXB5RzhugWrZE5g3jcGI1J1GJEtwzQMh7yECQEEBDkh+
+mFCQw6Ca1YME8dXcxzIRCOpMa9ZSSGw6ib7Uwi2LPNQYUg1zWNCIbJZTXWjxhfmQ
+OXQX6pqMRBhm5xg=
 -----END PRIVATE KEY-----""",  # Must be in PEM format
-    'developer_key': 'db0d0521a1d64e8ab3c2dce3a63296fad82a5490',  # Optional
-    'domain': 'sherpatest.com',
-    'default_user': 'andrew.fleming@sherpatest.com'
+    'developer_key': 'AIzaSyCY2AHYltYng1JbyHJk8EH80JbMqaiy9NU',  # Optional
+    'domain': 'sherpademo.com',
+    'default_user': 'ray.tenorio@sherpademo.com'
 }
-# # arista-calendar-01
-# settings['oauth2_service_account'] = {
-#     # OAuth2 service account configuration should be generated
-#     # from the google cloud console (Service Account Credentials)
-#     'client_email': '61726108322-6jprbbvjrge9m5e6uqknskg534hgra8g@developer.gserviceaccount.com',  # XXX@developer.gserviceaccount.com
-#     'private_key': """-----BEGIN PRIVATE KEY-----
-# MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBALCUhVrvCi6e061i
-# yyuusNKuqUUPaia/NmN3W0/Je81Vo7wJSMIj4VGrioL3/6TZF8a12NxFyYSXoZwn
-# 4qTXXopDYOi7c7AuLSH001Hc+4y/WYruZKSCIsB/ZbUmKzOAMcYjG3AscAS/VTFc
-# RJE++odGW1nCV9TLRGBY39qYTd+DAgMBAAECgYA2hpYrPzcIsFiy6JfONFI7rF1u
-# itT/g/n6eufCWngVLsWxkbha4pN4EZ1i1cumDrdNz+dYFWClxeDMhHBy8GIrkjrR
-# T72LkAhkgkDUw3tRhesoo+FuIxH5ICUQ5Ut+4IRo3AbPAxazz3WHVGkoGVg/a/1o
-# 9+8s/o7mzonieUO7UQJBAN1fstcrssKw3jzdEUmfd8SW+1xX1+zXKeu6mBR++jVE
-# FN2Wq8gfDwy6mHPBc7IdXI/lXqbHumwjcoY2Yj06qqkCQQDMMy8nodO7ASWdqHdy
-# ogL5ts1DuD7lUYGGjD8uiQqtSsEkVDcxWkWBTVvFZulzaFVg5dInqs7qyXlpQK00
-# uuBLAkEAtJiy1LkQj6Ys16hdxxsyYQ3vKCl9vPjXeTjzgp0IUFYnU5Lst0knRPIh
-# FyY11ZQAhF/R9Oux2TCd6IILaPooaQJBAKIrxDdlfhH2Rzl+od6YbGSFmV8+5DSb
-# FpMUrtj2XVRjGiEQAQVg+/JEza1ond7Z7XSXEOAP92TfvVyp0OUfxSECQHfNs6yB
-# L7iWJhp8JLq1qbg7DbjKNyndB3xU8JDnvGMCkMwVB17V4mIdBYvim7jIxrzuFYPI
-# 1+/1D9yG+2L+PVA=
-# -----END PRIVATE KEY-----""",  # Must be in PEM format
-#     'developer_key': 'AIzaSyBkMhZAbepklUuV5ZXrzPDdu5zOSSRUhZA',  # Optional
-#     'domain': 'arista.com',
-#     'default_user': 'sherpa_bot@arista.com'
-# }
 
 settings['upload'] = {
     # Whether to use Cloud Storage (default) or the blobstore to store uploaded files.
@@ -110,12 +85,12 @@ settings['appstats'] = {
 
 
 settings['google_directory'] = {
-    'domain': 'sherpatest.com'
+    'domain': 'sherpademo.com'
 }
 
 settings['admin_account'] = {
-    'email': 'andrew.fleming@sherpatest.com',
-    'domain': 'sherpatest.com',
+    'email': 'ray.tenorio@sherpademo.com',
+    'domain': 'sherpademo.com',
     'password': 'cloudsherpas'
 }
 
