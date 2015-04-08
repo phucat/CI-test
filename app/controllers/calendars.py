@@ -43,6 +43,16 @@ class Calendars(Controller):
     def api_list_all_users(self):
         self.context['data'] = google_directory.get_all_users_cached()
 
+    @route_with(template='/api/calendar/users/deleted', methods=['GET'])
+    def api_deleted_users(self):
+        deleted_users = google_directory.get_all_deleted_users(showDeleted=True)
+        suspended_users = google_directory.get_all_deleted_users(showDeleted=False)
+
+        for suspended in suspended_users:
+            deleted_users.append(suspended)
+
+        self.context['data'] = deleted_users
+
     @route_with(template='/api/calendar/resource/<feed>', methods=['GET'])
     def api_list_resource(self, feed):
         data = {}
@@ -475,7 +485,12 @@ class Calendars(Controller):
 
     @route_with(template='/api/user_removals/deleting/users')
     def api_deleting_users(self):
-        deleted_users = google_directory.get_all_deleted_users()
+        deleted_users = google_directory.get_all_deleted_users(showDeleted=True)
+        suspended_users = google_directory.get_all_deleted_users(showDeleted=False)
+
+        for suspended in suspended_users:
+            deleted_users.append(suspended)
+
         list_user_emails = google_directory.get_all_users_cached()
 
         ndbDeletedUserCount = DeprovisionedAccount.query().count()

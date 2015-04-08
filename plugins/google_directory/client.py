@@ -120,14 +120,17 @@ def get_group_members(group_id):
     return response
 
 
-def get_all_deleted_users():
+def get_all_deleted_users(showDeleted=True):
     result = []
     directory = build('admin', 'directory_v1', http=build_client())
     page_token = None
     param = {
-        'maxResults': '100',
-        'showDeleted': True
+        'maxResults': '100'
     }
+    if showDeleted:
+        param['showDeleted'] = True
+    else:
+        param['query'] = 'isSuspended=True'
 
     directory_settings = settings.get('google_directory', {
         'domain': service_account.get_config()['domain']
