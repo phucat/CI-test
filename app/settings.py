@@ -46,24 +46,24 @@ settings['oauth2'] = {
 settings['oauth2_service_account'] = {
     # OAuth2 service account configuration should be generated
     # from the google cloud console (Service Account Credentials)
-    'client_email': '566305864248-jqrmu5pup0t108pt97nqq9mt1ijv7mto.apps.googleusercontent.com',  # XXX@developer.gserviceaccount.com
+    'client_email': '566305864248-jqrmu5pup0t108pt97nqq9mt1ijv7mto@developer.gserviceaccount.com',  # XXX@developer.gserviceaccount.com
     'private_key': """-----BEGIN PRIVATE KEY-----
-MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBANyA4PjRM/eKF0kN
-IfjOoFdRKB/b33c28wO7mrZ1JFj2vEMfN/j+8EeyZRogMgav5uCYcXocM/09gft+
-IeSdXvGx0+xKALilZBUJcVZwxw+Y10mCS4hAijiZ/tlYtaM0rN6KMPKD5hxbghJR
-EtL/HJYo/2U+CpgaP7z/1kvZ3K7VAgMBAAECgYAQZ9ZVLNt8811AJiX86QKs/HDL
-zgQWTpROFsswAA8wP0tKgywa7nzaGL/E7dhK/xNianUm7KpBkS32lC/ZXowNtBtC
-CQlVqWV9A6NxkZI9IfOU5gsS8R3NmVH6KC/AWslu8sMdEIh7vRvHi5Vk1Yunl2R/
-yEo+AG3H7rK/oSiQEQJBAPQ1+HJr8BpSOu58yJdvcBTpvPRmZXEOQ7LaZ8/X+SsL
-qAN730WxZFK/ySLsPwY7Bx/0QUO2QJr9YSAWDogdaX8CQQDnJezleYz3sEgXJq7E
-WgBRss6fHf8ZXjPzjhrlzKAIsiHvZKav8vjX2jFF1RKprq1Tl3gmUyvimsDc4Uxx
-3kmrAkAZe/RURG1G4ePidUUdgHSKyiV8v57AYIOyC1af+uK2mj3LN0cCZ9OXSwo7
-Sbn99XT14bBZ15AAXIahKYwUqjUTAkBctPRPkTG9weEYD/a2X9aS7eE7Jj/DP+oc
-PBmDo09oTXGY30iPdybhA+0RMgU7MwjnZu/UhzUpvKGvtVkAroPjAkEAmhKQjEdj
-Gb8LMw41tiCxqcVG1wsVcRcj98x+SnEdI+wdN8Nh7BJGWef3Zqy3uZdDGEZVIFFG
-Hw96eE0+zfKzhQ==
+MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBAN5zpukOfpLSaUNc
+EQDPLnTLadd6Oh0FwRZHXQeW7nGHthgTziDqp4EuOgod8TpXB+vnX+zyY35Clegm
+0CDx8PTy5/TKlGubd10FQBy2Xsahv5gO1pc4L1bDqmSpoxsRRRXoquUYhlvY4Df5
+ctXOcBuOLaV9XXNSuECKKH1kWCc9AgMBAAECgYAyy6vgaevjMOLSe9JyId0U1GId
+zw44FFlL8g2/LurRx9B/3P3jrFGFgP3F06KC1N69Mn9IBu1LJn8+nKZH75c6msS8
+XWenvQbnxES/PUy+0FjwqFCybbUrd6nfiyJV17JTT0umKH1dGmJ37NEXd2I/sdWd
+GuqZZoxwl+NfgSLIjQJBAO+J5TBym+QfJ4Ke403NxOg0gPrfDg6wlSwxTxPnWnBZ
+bnbk3tygia064t9qyVzRdH/7UAwd7uuDzxnL6UtLJjcCQQDtvSd2nlPneLKtGL0/
+gsoKkHYm6jszUjmLv8hDVURvK/UmJWLC17cLM7SI0DmY2Zm6XnykP3Xgi2kaNqWA
+7yQrAkEAi2BsF+2H4YtzHODAl8PT/9yU8+QXtNpwYd9rCMTD7b1LtihjuHI8yawK
+2D61XamOJO2g3PwJycXPGk54t1PJrwJAL/w59utGLDZkeiPALw2LEk7OSlSE1nsG
+OnrfRRf01CufM6/gG0vHGm+5RNQijAN/z+o6ZjyY4lXBRRU6mqeqOQJAbLllhUMY
+wk/GS5bPTcro3c1iQAGto1X8nQNEc0HMOHaAaVsz6sn2rJpjOhJc3fyIGAb/Uq4Z
+D8/8xduc0qeZBw==
 -----END PRIVATE KEY-----""",  # Must be in PEM format
-    'developer_key': 'db0d0521a1d64e8ab3c2dce3a63296fad82a5490',  # Optional
+    'developer_key': 'AIzaSyCY2AHYltYng1JbyHJk8EH80JbMqaiy9NU',  # Optional
     'domain': 'sherpatest.com',
     'default_user': 'andrew.fleming@sherpatest.com'
 }
@@ -116,7 +116,6 @@ settings['google_directory'] = {
 settings['admin_account'] = {
     'email': 'andrew.fleming@sherpatest.com',
     'domain': 'sherpatest.com',
-    'password': 'cloudsherpas'
 }
 
 # Optionally, you may use the settings plugin to dynamically
