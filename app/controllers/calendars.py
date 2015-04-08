@@ -162,24 +162,13 @@ class Calendars(Controller):
             client.ClientLogin(email=config['email'], password=config['password'], source=APP_ID)
             resource = json.loads(self.request.body)
 
-            if resource['resourceCommonName'] != resource['old_resourceCommonName']:
-                client.DeleteResource(resource_id=resource['resourceId'])
-                resource['resourceId'] = generate_random_numbers(12)
-                client.CreateResource(
-                    resource_id=resource['resourceId'],
-                    resource_common_name=resource['resourceCommonName'],
-                    resource_description=resource['resourceDescription'],
-                    resource_type=resource['resourceType'])
+            client.UpdateResource(
+                resource_id=resource['resourceId'],
+                resource_common_name=resource['resourceCommonName'],
+                resource_description=resource['resourceDescription'],
+                resource_type=resource['resourceType'])
 
-                calendar_resource_email = client.GetResource(resource_id=resource['resourceId'])
-            else:
-                client.UpdateResource(
-                    resource_id=resource['resourceId'],
-                    resource_common_name=resource['resourceCommonName'],
-                    resource_description=resource['resourceDescription'],
-                    resource_type=resource['resourceType'])
-
-                calendar_resource_email = client.GetResource(resource_id=resource['resourceId'])
+            calendar_resource_email = client.GetResource(resource_id=resource['resourceId'])
 
             res = self.components.calendars.find_resource(str(calendar_resource_email))
 
