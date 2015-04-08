@@ -20,7 +20,7 @@ class AuditLogs(Controller):
     @route_with(template='/api/audit_logs/downloads/<tz_offset>', methods=['GET'])
     @route_with(template='/api/audit_logs/downloads', methods=['GET'])
     def api_generate_report(self, tz_offset=None):
-        tz_offset = int(tz_offset) if tz_offset else 0
+        tz_offset = float(tz_offset) if tz_offset else 0
         # for x in xrange(1, 201):
         #     AuditLogModel.email_fluff(config['email'])
 

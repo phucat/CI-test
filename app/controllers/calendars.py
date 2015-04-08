@@ -290,13 +290,13 @@ class Calendars(Controller):
                                             else:
                                                 action = 'Oops, %s is the owner in %s event with %s attendees.' % (selectedEmail, event['summary'], len(event['attendees']))
                                                 insert_audit_log(action, 'Remove user in calendar events', current_user_email, selectedEmail, '%s %s' % (user_email, event['summary']), '')
-                                                logging.info("IT EMAIL: %s " % IT_ADMIN_EMAIL)
+
                                                 DeprovisionedAccount.remove_owner_failed_notification(IT_ADMIN_EMAIL, selectedEmail, event['summary'], event['htmlLink'])
 
                                     elif len(event['attendees']) > 1:
                                         action = 'Oops, %s is the owner in %s event with %s attendees.' % (selectedEmail, event['summary'], len(event['attendees']))
                                         insert_audit_log(action, 'Remove user in calendar events', current_user_email, selectedEmail, '%s %s' % (user_email, event['summary']), '')
-                                        logging.info("IT EMAIL: %s " % IT_ADMIN_EMAIL)
+
                                         DeprovisionedAccount.remove_owner_failed_notification(IT_ADMIN_EMAIL, selectedEmail, event['summary'], event['htmlLink'])
 
                                     elif len(event['attendees']) == 1:
@@ -385,8 +385,6 @@ class Calendars(Controller):
                 deferred.defer(self.update_calendar_events, update_event, True, current_user_email)
         else:
             if resourceName:
-                logging.info("RESOURCE NOTIFY: %s" % attendees_list)
-                logging.info("RESOURCE: %s" % resource_params)
                 update_event = {
                     'event_id': event['id'],
                     'user_email': user_email,
@@ -450,7 +448,6 @@ class Calendars(Controller):
                 '%s resource name' % params['resource']['old_resourceCommonName'],
                 'Calendar of %s on event %s.' % (params['user_email'], params['summary']), '')
 
-            logging.info("update resource Event: %s" % params['user_email'])
             AuditLogModel.update_resource_notification(params['user_email'], 'Participants', params['event_link'], params['resource'])
 
         except Exception, e:
@@ -488,8 +485,9 @@ class Calendars(Controller):
         deleted_users = google_directory.get_all_deleted_users(showDeleted=True)
         suspended_users = google_directory.get_all_deleted_users(showDeleted=False)
 
-        for suspended in suspended_users:
-            deleted_users.append(suspended)
+        if suspended_users:
+            for suspended in suspended_users:
+                deleted_users.append(suspended)
 
         list_user_emails = google_directory.get_all_users_cached()
 
