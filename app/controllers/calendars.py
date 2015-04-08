@@ -266,49 +266,53 @@ class Calendars(Controller):
         try:
             if events is not None:
                 for event in events['items']:
-                    if 'dateTime' in event['start']:
-                        current_date = time.time()
-                        startDate = rfc3339.strtotimestamp(event['start']['dateTime'])
-                    elif 'date' in event['start']:
-                        current_date = str(datetime.date.today())
-                        startDate = event['start']['date']
+                    if 'start' in event:
+                        if 'dateTime' in event['start']:
+                            current_date = time.time()
+                            startDate = rfc3339.strtotimestamp(event['start']['dateTime'])
+                        elif 'date' in event['start']:
+                            current_date = str(datetime.date.today())
+                            startDate = event['start']['date']
 
-                    if startDate >= current_date:
-                        if resource == False:
-                            if 'attendees' in event:
-                                if event['organizer']['email'] != selectedEmail:
-                                    participants_email = [participant['email'] for participant in event['attendees']]
-                                    if selectedEmail in participants_email:
-                                        deferred.defer(self.filter_attendees, event, selectedEmail, user_email, comment, current_user_email)
+                        if startDate >= current_date:
+                            if resource == False:
+                                if 'attendees' in event:
+                                    if event['organizer']['email'] != selectedEmail:
+                                        participants_email = [participant['email'] for participant in event['attendees']]
+                                        if selectedEmail in participants_email:
+                                            deferred.defer(self.filter_attendees, event, selectedEmail, user_email, comment, current_user_email)
+                                        else:
+                                            pass
                                     else:
-                                        pass
+                                        logging.info('Attendees: %s' % event['attendees'])
+                                        logging.info('Count Attendees: %s' % len(event['attendees']))
+                                        if len(event['attendees']) == 2:
+                                            for attendee in event['attendees']:
+                                                if 'resource' in attendee:
+                                                    deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email)
+                                                else:
+                                                    action = 'Oops, %s is the owner in %s event with %s attendees.' % (selectedEmail, event['summary'], len(event['attendees']))
+                                                    insert_audit_log(action, 'Remove user in calendar events', current_user_email, selectedEmail, '%s %s' % (user_email, event['summary']), '')
+
+                                                    DeprovisionedAccount.remove_owner_failed_notification(IT_ADMIN_EMAIL, selectedEmail, event['summary'], event['htmlLink'])
+
+                                        elif len(event['attendees']) > 1:
+                                            action = 'Oops, %s is the owner in %s event with %s attendees.' % (selectedEmail, event['summary'], len(event['attendees']))
+                                            insert_audit_log(action, 'Remove user in calendar events', current_user_email, selectedEmail, '%s %s' % (user_email, event['summary']), '')
+
+                                            DeprovisionedAccount.remove_owner_failed_notification(IT_ADMIN_EMAIL, selectedEmail, event['summary'], event['htmlLink'])
+
+                                        elif len(event['attendees']) == 1:
+                                            for attendee in event['attendees']:
+                                                if attendee['email'] == selectedEmail and 'resource' not in attendee:
+                                                    deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email)
                                 else:
-                                    if len(event['attendees']) == 2:
-                                        for attendee in event['attendees']:
-                                            if 'resource' in attendee:
-                                                deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email)
-                                            else:
-                                                action = 'Oops, %s is the owner in %s event with %s attendees.' % (selectedEmail, event['summary'], len(event['attendees']))
-                                                insert_audit_log(action, 'Remove user in calendar events', current_user_email, selectedEmail, '%s %s' % (user_email, event['summary']), '')
-
-                                                DeprovisionedAccount.remove_owner_failed_notification(IT_ADMIN_EMAIL, selectedEmail, event['summary'], event['htmlLink'])
-
-                                    elif len(event['attendees']) > 1:
-                                        action = 'Oops, %s is the owner in %s event with %s attendees.' % (selectedEmail, event['summary'], len(event['attendees']))
-                                        insert_audit_log(action, 'Remove user in calendar events', current_user_email, selectedEmail, '%s %s' % (user_email, event['summary']), '')
-
-                                        DeprovisionedAccount.remove_owner_failed_notification(IT_ADMIN_EMAIL, selectedEmail, event['summary'], event['htmlLink'])
-
-                                    elif len(event['attendees']) == 1:
-                                        for attendee in event['attendees']:
-                                            if attendee['email'] == selectedEmail and 'resource' not in attendee:
-                                                deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email)
+                                    if event['organizer']['email'] == selectedEmail:
+                                        deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email)
                             else:
-                                if event['organizer']['email'] == selectedEmail:
-                                    deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email)
-                        else:
-                            deferred.defer(self.filter_location, event, user_email, selectedEmail, resource_params, current_user_email)
-
+                                deferred.defer(self.filter_location, event, user_email, selectedEmail, resource_params, current_user_email)
+                    else:
+                        pass
         except urllib2.HTTPError as e:
             logging.info('get_events: HTTPerror')
             logging.info(e.code)
