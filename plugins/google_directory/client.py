@@ -168,7 +168,8 @@ def get_all_deleted_users(showDeleted=True):
 
 def revoke_user(email):
     directory = build('admin', 'directory_v1', http=build_client())
-    response = directory.users().delete(userKey=email).execute()
+    params = { "suspended": True }
+    response = directory.users().update(userKey=email, body=params).execute()
     return response
 
 
