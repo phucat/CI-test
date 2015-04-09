@@ -147,7 +147,7 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
                     $window.alert(d.message);
                 }).error(function(d){
                     $log.info(d);
-                    $window.alert('This User has already been de-provisioned, kindly wait to sync to the domain directory.');
+                    $window.alert('There was an error when attempting to connect to the server. Please wait a few moments and try again.');
                 });
             });
         }
