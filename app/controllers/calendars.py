@@ -23,7 +23,6 @@ TEAM_EMAILS = EmailRecipient.list_all()
 IT_ADMIN_EMAIL = [team_email.email for team_email in TEAM_EMAILS]
 APP_ID = app_identity.get_application_id()
 urlfetch.set_default_fetch_deadline(60)
-config = settings.get('admin_account')
 oauth_config = settings.get('oauth2_service_account')
 current_user = users.get_current_user()
 
@@ -77,10 +76,10 @@ class Calendars(Controller):
             ],
             service_account_name=oauth_config['client_email'],
             private_key=oauth_config['private_key'],
-            user=config['email']
+            user=oauth_config['default_user']
         )
         auth2token = CreateToken(creds)
-        client = CalendarResourceClient(domain=config['domain'])
+        client = CalendarResourceClient(domain=oauth_config['domain'])
         auth2token.authorize(client)
 
         if feed == 'feed':
@@ -124,10 +123,10 @@ class Calendars(Controller):
             ],
             service_account_name=oauth_config['client_email'],
             private_key=oauth_config['private_key'],
-            user=config['email']
+            user=oauth_config['default_user']
         )
         auth2token = CreateToken(creds)
-        client = CalendarResourceClient(domain=config['domain'])
+        client = CalendarResourceClient(domain=oauth_config['domain'])
         auth2token.authorize(client)
         resource = json.loads(self.request.body)
 
@@ -192,10 +191,10 @@ class Calendars(Controller):
                 ],
                 service_account_name=oauth_config['client_email'],
                 private_key=oauth_config['private_key'],
-                user=config['email']
+                user=oauth_config['default_user']
             )
             auth2token = CreateToken(creds)
-            client = CalendarResourceClient(domain=config['domain'])
+            client = CalendarResourceClient(domain=oauth_config['domain'])
             auth2token.authorize(client)
             resource = json.loads(self.request.body)
 
@@ -240,10 +239,10 @@ class Calendars(Controller):
             ],
             service_account_name=oauth_config['client_email'],
             private_key=oauth_config['private_key'],
-            user=config['email']
+            user=oauth_config['default_user']
         )
         auth2token = CreateToken(creds)
-        client = CalendarResourceClient(domain=config['domain'])
+        client = CalendarResourceClient(domain=oauth_config['domain'])
         auth2token.authorize(client)
 
         while True:

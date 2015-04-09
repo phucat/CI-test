@@ -4,7 +4,6 @@ from gdata.calendar_resource.client import CalendarResourceClient
 from gdata.gauth import OAuth2TokenFromCredentials as CreateToken
 from app.etc import build_creds
 import xml.etree.ElementTree as ET
-config = settings.get('admin_account')
 oauth_config = settings.get('oauth2_service_account')
 APP_ID = app_identity.get_application_id()
 
@@ -27,10 +26,10 @@ class Calendars(object):
             ],
             service_account_name=oauth_config['client_email'],
             private_key=oauth_config['private_key'],
-            user=config['email']
+            user=oauth_config['default_user']
         )
         auth2token = CreateToken(creds)
-        client = CalendarResourceClient(domain=config['domain'])
+        client = CalendarResourceClient(domain=oauth_config['domain'])
         auth2token.authorize(client)
 
         while True:
