@@ -85,7 +85,7 @@ class Calendars(Controller):
         if feed == 'feed':
             calendar_resources = str(client.GetResourceFeed())
         else:
-            calendar_resources = str(client.GetResourceFeed(uri="https://apps-apis.google.com/a/feeds/calendar/resource/2.0/%s/?%s" % (config['domain'], feed)))
+            calendar_resources = str(client.GetResourceFeed(uri="https://apps-apis.google.com/a/feeds/calendar/resource/2.0/%s/?%s" % (oauth_config['domain'], feed)))
 
         nextpage, res = self.components.calendars.find_resource(calendar_resources)
         data['items'] = res
