@@ -2,6 +2,7 @@ from ferris import Controller, route_with, settings
 from app.models.audit_log import AuditLog as AuditLogModel
 from app.models.deprovisioned_account import DeprovisionedAccount
 from app.models.user_removal import UserRemoval
+from app.models.processed_users import ProcessedUsers
 from app.components.calendars import Calendars
 from google.appengine.ext import deferred
 from google.appengine.api import users, app_identity, urlfetch, memcache
@@ -34,11 +35,11 @@ class Calendars(Controller):
         components = (Calendars,)
         View = 'json'
 
-    @route_with(template='/api/calendar/events/<email>/<selectedemail>', methods=['GET'])
-    def api_list_calendar_events(self, email, selectedemail):
+    @route_with(template='/api/calendar/events/<email>', methods=['GET'])
+    def api_list_calendar_events(self, email):
         feed = []
 
-        feed = calendar_api.get_all_events(email, selectedemail, None, False)
+        feed = calendar_api.get_all_events(email, None, None)
 
         self.context['data'] = feed
 
@@ -46,7 +47,7 @@ class Calendars(Controller):
     def api_list_recurring_events(self, email, selectedemail):
         feed = []
 
-        feed = calendar_api.get_all_events(email, selectedemail, None, True)
+        feed = calendar_api.get_all_events(email, selectedemail, None)
 
         self.context['data'] = feed
 
@@ -68,20 +69,20 @@ class Calendars(Controller):
     def api_list_resource(self, feed):
         data = {}
 
-        # client = CalendarResourceClient(domain=oauth_config['domain'])
-        # client.ClientLogin(email=oauth_config['default_user'], password=oauth_config['password'], source=APP_ID)
-
-        creds = build_creds.build_credentials(
-            scope=[
-                "https://apps-apis.google.com/a/feeds/calendar/resource/"
-            ],
-            service_account_name=oauth_config['client_email'],
-            private_key=oauth_config['private_key'],
-            user=oauth_config['default_user']
-        )
-        auth2token = CreateToken(creds)
         client = CalendarResourceClient(domain=oauth_config['domain'])
-        auth2token.authorize(client)
+        client.ClientLogin(email=oauth_config['default_user'], password=oauth_config['password'], source=APP_ID)
+
+        # creds = build_creds.build_credentials(
+        #     scope=[
+        #         "https://apps-apis.google.com/a/feeds/calendar/resource/"
+        #     ],
+        #     service_account_name=oauth_config['client_email'],
+        #     private_key=oauth_config['private_key'],
+        #     user=oauth_config['default_user']
+        # )
+        # auth2token = CreateToken(creds)
+        # client = CalendarResourceClient(domain=oauth_config['domain'])
+        # auth2token.authorize(client)
 
         if feed == 'feed':
             calendar_resources = str(client.GetResourceFeed())
@@ -119,19 +120,21 @@ class Calendars(Controller):
     def api_create_resource(self):
         resultMessage = {}
 
-        # client = CalendarResourceClient(domain=config['domain'])
-        # client.ClientLogin(email=config['email'], password=config['password'], source=APP_ID)
-        creds = build_creds.build_credentials(
-            scope=[
-                "https://apps-apis.google.com/a/feeds/calendar/resource/"
-            ],
-            service_account_name=oauth_config['client_email'],
-            private_key=oauth_config['private_key'],
-            user=oauth_config['default_user']
-        )
-        auth2token = CreateToken(creds)
         client = CalendarResourceClient(domain=oauth_config['domain'])
-        auth2token.authorize(client)
+        client.ClientLogin(email=oauth_config['default_user'], password=oauth_config['password'], source=APP_ID)
+
+        # creds = build_creds.build_credentials(
+        #     scope=[
+        #         "https://apps-apis.google.com/a/feeds/calendar/resource/"
+        #     ],
+        #     service_account_name=oauth_config['client_email'],
+        #     private_key=oauth_config['private_key'],
+        #     user=oauth_config['default_user']
+        # )
+        # auth2token = CreateToken(creds)
+        # client = CalendarResourceClient(domain=oauth_config['domain'])
+        # auth2token.authorize(client)
+
         resource = json.loads(self.request.body)
 
         try:
@@ -186,20 +189,21 @@ class Calendars(Controller):
     def api_update_resource(self):
         resultMessage = {}
         try:
-            # client = CalendarResourceClient(domain=config['domain'])
-            # client.ClientLogin(email=config['email'], password=config['password'], source=APP_ID)
-
-            creds = build_creds.build_credentials(
-                scope=[
-                    "https://apps-apis.google.com/a/feeds/calendar/resource/"
-                ],
-                service_account_name=oauth_config['client_email'],
-                private_key=oauth_config['private_key'],
-                user=oauth_config['default_user']
-            )
-            auth2token = CreateToken(creds)
             client = CalendarResourceClient(domain=oauth_config['domain'])
-            auth2token.authorize(client)
+            client.ClientLogin(email=oauth_config['default_user'], password=oauth_config['password'], source=APP_ID)
+
+            # creds = build_creds.build_credentials(
+            #     scope=[
+            #         "https://apps-apis.google.com/a/feeds/calendar/resource/"
+            #     ],
+            #     service_account_name=oauth_config['client_email'],
+            #     private_key=oauth_config['private_key'],
+            #     user=oauth_config['default_user']
+            # )
+            # auth2token = CreateToken(creds)
+            # client = CalendarResourceClient(domain=oauth_config['domain'])
+            # auth2token.authorize(client)
+
             resource = json.loads(self.request.body)
 
             client.UpdateResource(
@@ -223,7 +227,18 @@ class Calendars(Controller):
 
             # deferred.defer(self.update_resource_calendar, resource, updates_params, self.session['current_user'])
             resource['new_email'] = res[0]['resourceEmail']
-            deferred.defer(self.process_update_resource, resource, self.session['current_user'])
+
+            pUserCount = ProcessedUsers.query().count()
+
+            if pUserCount == 0:
+                pass
+            else:
+                processedEvents = ProcessedUsers.list_all()
+                existing_events = [isEvent.resource for isEvent in processedEvents]
+                if resource['old_resourceCommonName'] in existing_events:
+                    ProcessedUsers.remove({'resource': resource['old_resourceCommonName']})
+
+            deferred.defer(self.process_update_resource, resource, self.session['current_user'], _queue="uiUpdateResource")
         except urllib2.HTTPError as e:
             logging.info('get_all_events: HTTPerror')
             logging.info(e.code)
@@ -234,20 +249,20 @@ class Calendars(Controller):
     def update_resource_calendar(self, resource, updates_params, current_user):
         params = {}
         nextpage = None
-        # client = CalendarResourceClient(domain=config['domain'])
-        # client.ClientLogin(email=config['email'], password=config['password'], source=APP_ID)
-
-        creds = build_creds.build_credentials(
-            scope=[
-                "https://apps-apis.google.com/a/feeds/calendar/resource/"
-            ],
-            service_account_name=oauth_config['client_email'],
-            private_key=oauth_config['private_key'],
-            user=oauth_config['default_user']
-        )
-        auth2token = CreateToken(creds)
         client = CalendarResourceClient(domain=oauth_config['domain'])
-        auth2token.authorize(client)
+        client.ClientLogin(email=oauth_config['default_user'], password=oauth_config['password'], source=APP_ID)
+
+        # creds = build_creds.build_credentials(
+        #     scope=[
+        #         "https://apps-apis.google.com/a/feeds/calendar/resource/"
+        #     ],
+        #     service_account_name=oauth_config['client_email'],
+        #     private_key=oauth_config['private_key'],
+        #     user=oauth_config['default_user']
+        # )
+        # auth2token = CreateToken(creds)
+        # client = CalendarResourceClient(domain=oauth_config['domain'])
+        # auth2token.authorize(client)
 
         while True:
             if nextpage:
@@ -279,7 +294,7 @@ class Calendars(Controller):
     def process_update_resource(self, resource, current_user):
         users_email = google_directory.get_all_users_cached()
         for user_email in users_email:
-            deferred.defer(self.get_all_events, user_email['primaryEmail'], resource['old_resourceCommonName'], '', resource, True, current_user, _countdown=1)
+            deferred.defer(self.get_resource_events, user_email['primaryEmail'], resource['old_resourceCommonName'], '', resource, True, current_user, _countdown=1, _queue="processUpdateResource")
 
     @route_with('/api/calendar/remove_user/events/<selectedEmail>', methods=['POST'])
     def api_remove_users_events(self, selectedEmail):
@@ -287,12 +302,12 @@ class Calendars(Controller):
         comment = request['comment']
         resultMessage = {}
 
-        insert_audit_log('User comment.', 'user manager', self.session['current_user'], '-', '-', comment)
+        insert_audit_log('User comment: %s' % comment, 'user manager', self.session['current_user'], '-', '-', comment)
 
         resultMessage['message'] = 'The app is in the process of removing %s in calendar events.' % selectedEmail
         self.context['data'] = resultMessage
 
-        deferred.defer(self.get_all_events, selectedEmail, selectedEmail, comment, '', False, self.session['current_user'])
+        deferred.defer(self.get_all_events, selectedEmail, selectedEmail, comment, '', False, self.session['current_user'], _queue="uiRemoveUsers")
 
     @route_with(template='/api/schedule/update/user', methods=['POST'])
     def api_update_user_status(self):
@@ -308,7 +323,7 @@ class Calendars(Controller):
 
                 approved_user = {'email': params['email'], 'status': True}
                 DeprovisionedAccount.create(approved_user)
-                deferred.defer(self.get_all_events, params['email'], params['email'], '', '', False, self.session['current_user'])
+                deferred.defer(self.get_all_events, params['email'], params['email'], '', '', False, self.session['current_user'], _queue="updateUserStatus")
 
             elif params['status'] == 'Cancel':
                 params['status'] += 'led'
@@ -318,13 +333,45 @@ class Calendars(Controller):
             return params['status']
 
     @classmethod
+    def get_resource_events(self, user_email, selectedEmail, comment, resource_params, resource=False, current_user_email=''):
+        pageToken = None
+        try:
+            pUserCount = ProcessedUsers.query().count()
+
+            if pUserCount == 0:
+                existing_events = []
+            else:
+                processedEvents = ProcessedUsers.list_all()
+                existing_events = [isEvent.eventId for isEvent in processedEvents]
+            while True:
+
+                events, pageToken = calendar_api.get_all_events(user_email, selectedEmail, pageToken)
+                if events is not None:
+                    event_id_pool = []
+                    for event in events['items']:
+                        if event['id'] not in existing_events:
+                            ProcessedUsers.create({'resource': resource_params['resourceCommonName'], 'eventId': event['id']})
+                            logging.info('EVENT ID: %s' % existing_events)
+                            logging.info('CALENDAR OWNER: %s' % user_email)
+                            deferred.defer(self.get_events, event, user_email, selectedEmail, comment, resource_params, resource, current_user_email, event_id_pool, _queue="getAllEvents")
+
+                if not pageToken:
+                    break
+        except urllib2.HTTPError as e:
+            logging.info('get_all_events: HTTPerror')
+            logging.info(e.code)
+            pass
+
+    @classmethod
     def get_all_events(self, user_email, selectedEmail, comment, resource_params, resource=False, current_user_email=''):
         pageToken = None
         while True:
             try:
-                events, pageToken = calendar_api.get_all_events(user_email, selectedEmail, pageToken, True)
+                events, pageToken = calendar_api.get_all_events(user_email, selectedEmail, pageToken)
                 if events is not None:
-                    deferred.defer(self.get_events, events, user_email, selectedEmail, comment, resource_params, resource, current_user_email)
+                    event_id_pool = []
+                    for event in events['items']:
+                        deferred.defer(self.get_events, event, user_email, selectedEmail, comment, resource_params, resource, current_user_email, event_id_pool, _queue="getAllEvents")
 
                 if not pageToken:
                     break
@@ -334,258 +381,233 @@ class Calendars(Controller):
                 pass
 
     @classmethod
-    def get_events(self, events, user_email, selectedEmail, comment, resource_params, resource=False, current_user_email=''):
+    def get_events(self, event, user_email, selectedEmail, comment, resource_params, resource=False, current_user_email='', event_id_pool=[]):
         try:
-            if events is not None:
-                event_id_pool = []
-                for event in events['items']:
-                    if 'start' in event:
-                        if 'dateTime' in event['start']:
-                            current_date = time.time()
-                            startDate = rfc3339.strtotimestamp(event['start']['dateTime'])
-                        elif 'date' in event['start']:
-                            current_date = str(datetime.date.today())
-                            startDate = event['start']['date']
+            logging.info('RECURRING EVENT ID 1: %s' % event_id_pool)
+            if 'start' in event:
+                if 'dateTime' in event['start']:
+                    current_date = time.time()
+                    startDate = rfc3339.strtotimestamp(event['start']['dateTime'])
+                elif 'date' in event['start']:
+                    current_date = str(datetime.date.today())
+                    startDate = event['start']['date']
 
-                        if startDate >= current_date:
-                            if resource == False:
-                                if 'attendees' in event:
-                                    if event['organizer']['email'] != selectedEmail:
-                                        participants_email = [participant['email'] for participant in event['attendees']]
-                                        if selectedEmail in participants_email:
+                if startDate >= current_date:
 
-                                            attendees_list = []
-                                            resource_list = []
-                                            for attendee in event['attendees']:
-                                                if attendee['email'] != selectedEmail and 'resource' not in attendee:
-                                                    attendees_list.append({'email': attendee['email']})
-
-                                                if attendee['email'] != selectedEmail or 'resource' in attendee:
-                                                    resource_list.append({'email': attendee['email']})
-
-                                            params_body = {
-                                                'attendees': resource_list,
-                                                'reminders': {'overrides': [{'minutes': 15, 'method': 'popup'}], 'useDefault': 'false' },
-                                                'start': event['start'],
-                                                'end': event['end'],
-                                                'summary': event['summary']
-                                            }
-
-                                            update_event = {
-                                                'event_id': event['id'],
-                                                'user_email': user_email,
-                                                'body': params_body,
-                                                'organizer': event['organizer']['email'],
-                                                'selectedEmail': selectedEmail,
-                                                'comment': comment,
-                                                'attendeesEmail': [email['email'] for email in attendees_list]
-                                            }
-
-                                            for attendee_email in update_event['attendeesEmail']:
-                                                if selectedEmail:
-                                                    if 'recurringEventId' in event:
-                                                        if event['recurringEventId'] not in event_id_pool:
-                                                            event_id_pool.append(event['recurringEventId'])
-                                                            calendar_api.update_event(event['id'], attendee_email, params_body, True)
-                                                            insert_audit_log(
-                                                                '%s has been removed from events.' % selectedEmail,
-                                                                'user manager',
-                                                                current_user_email,
-                                                                '%s calendar' % user_email,
-                                                                '%s' % event['summary'], '')
-
-                                                            AuditLogModel.attendees_update_notification(attendee_email, selectedEmail, event['summary'])
-                                                        else:
-                                                            calendar_api.update_event(event['id'], attendee_email, params_body, False)
-                                                    else:
-                                                        calendar_api.update_event(event['id'], attendee_email, params_body, True)
-                                                        insert_audit_log(
-                                                            '%s has been removed from events.' % selectedEmail,
-                                                            'user manager',
-                                                            current_user_email,
-                                                            '%s calendar' % user_email,
-                                                            '%s' % event['summary'], '')
-
-                                                        AuditLogModel.attendees_update_notification(attendee_email, selectedEmail, event['summary'])
-                                        else:
-                                            pass
-                                    else:
-                                        if len(event['attendees']) == 2:
-                                            isResource = search_resource(event['attendees'])
-                                            if isResource:
-                                                if 'recurringEventId' in event:
-                                                    if event['recurringEventId'] not in event_id_pool:
-                                                        event_id_pool.append(event['recurringEventId'])
-                                                        calendar_api.delete_event(event['id'], selectedEmail, True)
-                                                        deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email)
-                                                    else:
-                                                        calendar_api.delete_event(event['id'], selectedEmail, False)
-                                                else:
-                                                    calendar_api.delete_event(event['id'], selectedEmail, True)
-                                                    deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email)
-                                            else:
-                                                if 'recurringEventId' in event:
-                                                    if event['recurringEventId'] not in event_id_pool:
-                                                        event_id_pool.append(event['recurringEventId'])
-                                                        remove_owner_failed(event, user_email, selectedEmail, current_user_email)
-                                                else:
-                                                    remove_owner_failed(event, user_email, selectedEmail, current_user_email)
-
-                                        elif len(event['attendees']) == 1:
-                                            for attendee in event['attendees']:
-                                                if attendee['email'] == selectedEmail and 'resource' not in attendee:
-                                                    if 'recurringEventId' in event:
-                                                        if event['recurringEventId'] not in event_id_pool:
-                                                            calendar_api.delete_event(event['id'], selectedEmail, True)
-                                                            event_id_pool.append(event['recurringEventId'])
-                                                            deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email)
-                                                        else:
-                                                            calendar_api.delete_event(event['id'], selectedEmail, False)
-                                                    else:
-                                                        calendar_api.delete_event(event['id'], selectedEmail, True)
-                                                        deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email)
-
-                                        elif len(event['attendees']) > 1:
-                                            if 'recurringEventId' in event:
-                                                if event['recurringEventId'] not in event_id_pool:
-                                                    event_id_pool.append(event['recurringEventId'])
-                                                    remove_owner_failed(event, user_email, selectedEmail, current_user_email)
-                                            else:
-                                                remove_owner_failed(event, user_email, selectedEmail, current_user_email)
-                                else:
-                                    if event['organizer']['email'] == selectedEmail:
-
-                                        if 'recurringEventId' in event:
-                                            if event['recurringEventId'] not in event_id_pool:
-                                                calendar_api.delete_event(event['id'], selectedEmail, True)
-                                                event_id_pool.append(event['recurringEventId'])
-                                                deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email)
-                                            else:
-                                                calendar_api.delete_event(event['id'], selectedEmail, False)
-                                        else:
-                                            calendar_api.delete_event(event['id'], selectedEmail, True)
-                                            deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email)
-                            else:
-                                attendees_list = []
-                                resource_list = []
-                                resourceName = None
-                                if 'attendees' in event:
-                                    for attendee in event['attendees']:
-                                        if 'resource' in attendee:
-                                            if attendee['displayName'] == selectedEmail:
-                                                resourceName = selectedEmail
-                                                resource_list.append({'email': resource_params['new_email']})
-                                        else:
-                                            attendees_list.append(attendee['email'])
-                                            resource_list.append({'email': attendee['email']})
-
-                                if resource_params['resourceCommonName'] != resource_params['old_resourceCommonName']:
-                                    if resourceName:
-                                        params_body = {
-                                            'location': resource_params['resourceCommonName'],
-                                            'old_resourceName': resource_params['old_resourceCommonName'],
-                                            'attendees': attendees_list,
-                                            'reminders': {'overrides': [{'minutes': 15, 'method': 'popup'}], 'useDefault': 'false' },
-                                            'start': event['start'],
-                                            'end': event['end'],
-                                            'summary': event['summary']
-                                        }
-
-                                        update_event = {
-                                            'event_id': event['id'],
-                                            'user_email': user_email,
-                                            'organizerEmail': event['organizer']['email'],
-                                            'organizerName': event['organizer']['displayName'],
-                                            'event_link': event['htmlLink'],
-                                            'attendeesEmail': attendees_list,
-                                            'body': params_body,
-                                            'resource': resource_params
-                                        }
-
-                                        if 'recurringEventId' in event:
-                                            calendar_api.update_event(event['id'], user_email, params_body, False)
-                                            params_body['attendees'] = resource_list
-                                            calendar_api.update_event(event['id'], user_email, params_body, False)
-
-                                            if event['recurringEventId'] not in event_id_pool:
-                                                event_id_pool.append(event['recurringEventId'])
-                                                deferred.defer(self.update_recurring_events, update_event, current_user_email)
-                                        else:
-                                            calendar_api.update_event(event['id'], user_email, params_body, False)
-                                            params_body['attendees'] = resource_list
-                                            calendar_api.update_event(event['id'], user_email, params_body, True)
-                                            deferred.defer(self.update_calendar_events, update_event, True, current_user_email)
-                                else:
-                                    if resourceName:
-                                        update_event = {
-                                            'event_id': event['id'],
-                                            'user_email': user_email,
-                                            'summary': event['summary'],
-                                            'organizerEmail': event['organizer']['email'],
-                                            'organizerName': event['organizer']['displayName'],
-                                            'event_link': event['htmlLink'],
-                                            'attendeesEmail': attendees_list,
-                                            'resource': resource_params
-                                        }
-
-                                        if 'recurringEventId' in event:
-                                            if event['recurringEventId'] not in event_id_pool:
-                                                event_id_pool.append(event['recurringEventId'])
-                                                deferred.defer(self.update_resource_events, update_event, current_user_email)
-                                        else:
-                                            deferred.defer(self.update_resource_events, update_event, current_user_email)
+                    if resource == False:
+                        if 'recurringEventId' in event:
+                            logging.info('RECURRING EVENT ID: %s' % event_id_pool)
+                            if event['recurringEventId'] not in event_id_pool:
+                                event_id_pool.append(event['recurringEventId'])
+                                deferred.defer(self.filter_attendees, event, user_email, selectedEmail, comment, current_user_email, event_id_pool, _queue="getEvents")
+                        else:
+                            deferred.defer(self.filter_attendees, event, user_email, selectedEmail, comment, current_user_email, event_id_pool, _queue="getEvents")
                     else:
-                        pass
+                        if 'recurringEventId' in event:
+                            if event['recurringEventId'] not in event_id_pool:
+                                event_id_pool.append(event['recurringEventId'])
+                                deferred.defer(self.filter_location, event, user_email, selectedEmail, comment, current_user_email, resource_params, event_id_pool, _queue="getEvents")
+                        else:
+                            deferred.defer(self.filter_location, event, user_email, selectedEmail, comment, current_user_email, resource_params, event_id_pool, _queue="getEvents")
+            else:
+                pass
         except urllib2.HTTPError as e:
             logging.info('get_events: HTTPerror')
             logging.info(e.code)
             pass
 
     @classmethod
-    def update_recurring_events(self, params, current_user_email=''):
-        try:
-            insert_audit_log(
-                "Event %s resource has been updated. " % (params['body']['summary']),
-                'resource manager',
-                current_user_email,
-                '%s resource name' % params['body']['old_resourceName'],
-                '%s' % (params['body']['location']), '')
+    def filter_attendees(self, event, user_email, selectedEmail, comment, current_user_email, event_id_pool):
 
-            AuditLogModel.update_resource_notification(params['user_email'], 'Participant', params['event_link'], params['resource'])
+        if 'attendees' in event:
+            if event['organizer']['email'] != selectedEmail:
+                participants_email = [participant['email'] for participant in event['attendees']]
+                if selectedEmail in participants_email:
 
-        except Exception, e:
-            logging.error('== API UPDATE RECURRING EVENT ERROR ==')
-            logging.error(e)
+                    attendees_list = []
+                    resource_list = []
+                    for attendee in event['attendees']:
+                        if attendee['email'] != selectedEmail and 'resource' not in attendee:
+                            attendees_list.append({'email': attendee['email']})
+
+                        if attendee['email'] != selectedEmail or 'resource' in attendee:
+                            resource_list.append({'email': attendee['email']})
+
+                    params_body = {
+                        'attendees': resource_list,
+                        'reminders': {'overrides': [{'minutes': 15, 'method': 'popup'}], 'useDefault': 'false' },
+                        'start': event['start'],
+                        'end': event['end'],
+                        'summary': event['summary']
+                    }
+
+                    for guest in attendees_list:
+                        deferred.defer(self.attendees_2, event, user_email, selectedEmail, comment, current_user_email, guest, params_body, event_id_pool, _queue="filterAttendees")
+                else:
+                    pass
+            else:
+                deferred.defer(self.event_owner, event, user_email, selectedEmail, comment, current_user_email, event_id_pool, _queue="filterAttendees")
+        else:
+            if event['organizer']['email'] == selectedEmail:
+                if 'recurringEventId' in event:
+                    if event['recurringEventId'] not in event_id_pool:
+                        calendar_api.delete_event(event['id'], selectedEmail, True)
+                        event_id_pool.append(event['recurringEventId'])
+                        deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email, _queue="filterAttendees")
+                    else:
+                        calendar_api.delete_event(event['id'], selectedEmail, False)
+                else:
+                    calendar_api.delete_event(event['id'], selectedEmail, True)
+                    deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email, _queue="filterAttendees")
 
     @classmethod
-    def update_calendar_events(self, params, cal_resource=False, current_user_email=''):
-        try:
-            if cal_resource:
-                insert_audit_log(
-                    "Event %s resource has been updated. " % (params['body']['summary']),
-                    'resource manager',
-                    current_user_email,
-                    '%s resource name' % params['body']['old_resourceName'],
-                    '%s' % (params['body']['location']), '')
+    def attendees_2(self, event, user_email, selectedEmail, comment, current_user_email, guest, params_body, event_id_pool):
+        if selectedEmail:
+            if 'recurringEventId' in event:
+                if event['recurringEventId'] not in event_id_pool:
+                    event_id_pool.append(event['recurringEventId'])
+                    calendar_api.update_event(event['id'], guest['email'], params_body, True)
+                    insert_audit_log(
+                        '%s has been removed from events.' % selectedEmail,
+                        'user manager',
+                        current_user_email,
+                        '%s calendar' % user_email,
+                        '%s' % event['summary'], '')
 
-                AuditLogModel.update_resource_notification(params['user_email'], 'Participant', params['event_link'], params['resource'])
+                    AuditLogModel.attendees_update_notification(guest['email'], selectedEmail, event['summary'])
+                else:
+                    calendar_api.update_event(event['id'], guest['email'], params_body, False)
             else:
-                for attendee_email in params['attendeesEmail']:
-                    calendar_api.update_event(params['event_id'], attendee_email, params['body'], True)
+                calendar_api.update_event(event['id'], guest['email'], params_body, True)
+                insert_audit_log(
+                    '%s has been removed from events.' % selectedEmail,
+                    'user manager',
+                    current_user_email,
+                    '%s calendar' % user_email,
+                    '%s' % event['summary'], '')
 
-                    if params['selectedEmail']:
-                        insert_audit_log(
-                            '%s has been removed from events.' % params['selectedEmail'],
-                            'user manager',
-                            current_user_email,
-                            '%s calendar' % params['user_email'],
-                            '%s' % params['body']['summary'], '')
+                AuditLogModel.attendees_update_notification(guest['email'], selectedEmail, event['summary'])
 
-                        AuditLogModel.attendees_update_notification(attendee_email, params['selectedEmail'], params['body']['summary'])
+    @classmethod
+    def event_owner(self, event, user_email, selectedEmail, current_user_email, event_id_pool):
+        if len(event['attendees']) == 2:
+            isResource = search_resource(event['attendees'])
+            if isResource:
+                if 'recurringEventId' in event:
+                    if event['recurringEventId'] not in event_id_pool:
+                        event_id_pool.append(event['recurringEventId'])
+                        calendar_api.delete_event(event['id'], selectedEmail, True)
+                        deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email, _queue="eventOwner")
+                    else:
+                        calendar_api.delete_event(event['id'], selectedEmail, False)
+                else:
+                    calendar_api.delete_event(event['id'], selectedEmail, True)
+                    deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email, _queue="eventOwner")
+            else:
+                if 'recurringEventId' in event:
+                    if event['recurringEventId'] not in event_id_pool:
+                        event_id_pool.append(event['recurringEventId'])
+                        remove_owner_failed(event, user_email, selectedEmail, current_user_email)
+                else:
+                    remove_owner_failed(event, user_email, selectedEmail, current_user_email)
 
-        except Exception, e:
-            logging.error('== API UPDATE EVENT ERROR ==')
-            logging.error(e)
+        elif len(event['attendees']) == 1:
+            for attendee in event['attendees']:
+                if attendee['email'] == selectedEmail and 'resource' not in attendee:
+                    if 'recurringEventId' in event:
+                        if event['recurringEventId'] not in event_id_pool:
+                            calendar_api.delete_event(event['id'], selectedEmail, True)
+                            event_id_pool.append(event['recurringEventId'])
+                            deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email, _queue="eventOwner")
+                        else:
+                            calendar_api.delete_event(event['id'], selectedEmail, False)
+                    else:
+                        calendar_api.delete_event(event['id'], selectedEmail, True)
+                        deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email, _queue="eventOwner")
+
+        elif len(event['attendees']) > 1:
+            if 'recurringEventId' in event:
+                if event['recurringEventId'] not in event_id_pool:
+                    event_id_pool.append(event['recurringEventId'])
+                    remove_owner_failed(event, user_email, selectedEmail, current_user_email)
+            else:
+                remove_owner_failed(event, user_email, selectedEmail, current_user_email)
+
+    @classmethod
+    def filter_location(self, event, user_email, selectedEmail, comment, current_user_email, resource_params, event_id_pool):
+        attendees_list = []
+        resource_list = []
+        resourceName = None
+        if 'attendees' in event:
+            for attendee in event['attendees']:
+                if 'resource' in attendee:
+                    if attendee['displayName'] == selectedEmail:
+                        resourceName = selectedEmail
+                        resource_list.append({'email': resource_params['new_email']})
+                else:
+                    attendees_list.append(attendee['email'])
+                    resource_list.append({'email': attendee['email']})
+
+        if resource_params['resourceCommonName'] != resource_params['old_resourceCommonName']:
+            if resourceName:
+                params_body = {
+                    'location': resource_params['resourceCommonName'],
+                    'old_resourceName': resource_params['old_resourceCommonName'],
+                    'attendees': attendees_list,
+                    'reminders': {'overrides': [{'minutes': 15, 'method': 'popup'}], 'useDefault': 'false' },
+                    'start': event['start'],
+                    'end': event['end'],
+                    'summary': event['summary']
+                }
+
+                update_event = {
+                    'event_id': event['id'],
+                    'user_email': user_email,
+                    'summary': event['summary'],
+                    'organizerEmail': event['organizer']['email'],
+                    'organizerName': event['organizer']['displayName'],
+                    'event_link': event['htmlLink'],
+                    'attendeesEmail': attendees_list,
+                    'body': params_body,
+                    'resource': resource_params
+                }
+
+                deferred.defer(self.send_event_notification, event, user_email, params_body, resource_list, update_event, current_user_email, event_id_pool, _queue="filterLocation")
+        else:
+            if resourceName:
+                update_event = {
+                    'event_id': event['id'],
+                    'user_email': user_email,
+                    'summary': event['summary'],
+                    'organizerEmail': event['organizer']['email'],
+                    'organizerName': event['organizer']['displayName'],
+                    'event_link': event['htmlLink'],
+                    'attendeesEmail': attendees_list,
+                    'resource': resource_params
+                }
+
+                if 'recurringEventId' in event:
+                    if event['recurringEventId'] not in event_id_pool:
+                        event_id_pool.append(event['recurringEventId'])
+                        deferred.defer(self.update_resource_events, update_event, current_user_email, _queue="filterLocation")
+                else:
+                    deferred.defer(self.update_resource_events, update_event, current_user_email, _queue="filterLocation")
+
+    @classmethod
+    def send_event_notification(self, event, user_email, params_body, resource_list, update_event, current_user_email, event_id_pool):
+        if 'recurringEventId' in event:
+            calendar_api.update_event(event['id'], user_email, params_body, False)
+            params_body['attendees'] = resource_list
+            calendar_api.update_event(event['id'], user_email, params_body, False)
+
+            if event['recurringEventId'] not in event_id_pool:
+                event_id_pool.append(event['recurringEventId'])
+                deferred.defer(self.update_resource_events, update_event, current_user_email, _queue="sendEventNotification")
+        else:
+            calendar_api.update_event(event['id'], user_email, params_body, False)
+            params_body['attendees'] = resource_list
+            calendar_api.update_event(event['id'], user_email, params_body, True)
+            deferred.defer(self.update_resource_events, update_event, current_user_email, _queue="sendEventNotification")
 
     @classmethod
     def update_resource_events(self, params, current_user_email=''):
@@ -684,7 +706,7 @@ class Calendars(Controller):
                     DeprovisionedAccount.deprovision_success_notification(str(modified_approver), d_user)
 
                     DeprovisionedAccount.create(params)
-                    deferred.defer(self.process_deleted_account, d_user, x_email, list_user_emails, str(modified_approver))
+                    deferred.defer(self.process_deleted_account, d_user, x_email, list_user_emails, str(modified_approver), _queue="taskDeletingUsers")
 
             return 'started...'
         else:
@@ -705,7 +727,7 @@ class Calendars(Controller):
     def process_deleted_account(self, d_user, x_email, list_user_emails, current_user_email):
 
         for active_user in list_user_emails:
-            deferred.defer(self.get_all_events, active_user['primaryEmail'], d_user, '', '', False, current_user_email)
+            deferred.defer(self.get_all_events, active_user['primaryEmail'], d_user, '', '', False, current_user_email, _queue="processDeletedAccount")
 
     @route_with(template='/api/clear/datastore/deprovisioned_account')
     def api_clear_ndb(self):
