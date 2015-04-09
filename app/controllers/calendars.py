@@ -14,10 +14,11 @@ import json
 import time
 import datetime
 from plugins import calendar as calendar_api, google_directory, rfc3339
+from collections import OrderedDict
 import logging
 import urllib2
 
-pagination = []
+pagination = OrderedDict()
 
 TEAM_EMAILS = EmailRecipient.list_all()
 IT_ADMIN_EMAIL = [team_email.email for team_email in TEAM_EMAILS]
@@ -67,8 +68,8 @@ class Calendars(Controller):
     def api_list_resource(self, feed):
         data = {}
 
-        # client = CalendarResourceClient(domain=config['domain'])
-        # client.ClientLogin(email=config['email'], password=config['password'], source=APP_ID)
+        # client = CalendarResourceClient(domain=oauth_config['domain'])
+        # client.ClientLogin(email=oauth_config['default_user'], password=oauth_config['password'], source=APP_ID)
 
         creds = build_creds.build_credentials(
             scope=[
@@ -93,15 +94,18 @@ class Calendars(Controller):
         data['previous'] = None
 
         page = "start=%s" % res[0]['resourceId']
+
         if page not in pagination:
-            pagination.append(page)
+            pagination[page] = page
 
         if feed != 'feed':
-            current_page = pagination.index(page)-1
+            current_page = pagination.keys().index(page)-1
             logging.info("INDEX: %s" % current_page)
-            data['previous'] = pagination[current_page]
+            data['previous'] = pagination.items()[current_page][0]
+            logging.info("PREVIOUS: %s" % pagination.items()[current_page][0])
+            logging.info("LIST : %s" % pagination)
 
-            if pagination.index(page) is 0:
+            if pagination.keys().index(page) is 0:
                 data['previous'] = None
 
         self.context['data'] = data
