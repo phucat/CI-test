@@ -409,12 +409,16 @@ class Calendars(Controller):
                                         if len(event['attendees']) == 2:
                                             for attendee in event['attendees']:
                                                 if 'resource' in attendee:
-                                                    calendar_api.delete_event(event['id'], selectedEmail)
+
                                                     if 'recurringEventId' in event:
                                                         if event['recurringEventId'] not in event_id_pool:
                                                             event_id_pool.append(event['recurringEventId'])
+                                                            calendar_api.delete_event(event['id'], selectedEmail, True)
                                                             deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email)
+                                                        else:
+                                                            calendar_api.delete_event(event['id'], selectedEmail, False)
                                                     else:
+                                                        calendar_api.delete_event(event['id'], selectedEmail, True)
                                                         deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email)
                                                 else:
                                                     if 'recurringEventId' in event:
@@ -435,21 +439,28 @@ class Calendars(Controller):
                                         elif len(event['attendees']) == 1:
                                             for attendee in event['attendees']:
                                                 if attendee['email'] == selectedEmail and 'resource' not in attendee:
-                                                    calendar_api.delete_event(event['id'], selectedEmail)
                                                     if 'recurringEventId' in event:
                                                         if event['recurringEventId'] not in event_id_pool:
+                                                            calendar_api.delete_event(event['id'], selectedEmail, True)
                                                             event_id_pool.append(event['recurringEventId'])
                                                             deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email)
+                                                        else:
+                                                            calendar_api.delete_event(event['id'], selectedEmail, False)
                                                     else:
+                                                        calendar_api.delete_event(event['id'], selectedEmail, True)
                                                         deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email)
                                 else:
                                     if event['organizer']['email'] == selectedEmail:
-                                        calendar_api.delete_event(event['id'], selectedEmail)
+
                                         if 'recurringEventId' in event:
                                             if event['recurringEventId'] not in event_id_pool:
+                                                calendar_api.delete_event(event['id'], selectedEmail, True)
                                                 event_id_pool.append(event['recurringEventId'])
                                                 deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email)
+                                            else:
+                                                calendar_api.delete_event(event['id'], selectedEmail, False)
                                         else:
+                                            calendar_api.delete_event(event['id'], selectedEmail, True)
                                             deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email)
                             else:
                                 attendees_list = []

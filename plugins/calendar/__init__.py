@@ -156,11 +156,11 @@ def move_event(event_id, owner_email, new_owner_email):
     return response
 
 
-def delete_event(id, email):
+def delete_event(id, email, sendNotifications):
     logging.info('calendar: delete_event')
     logging.info('Deleting event: [' + id + '] of ' + email + '.')
     calendar = build_client(email)
-    response = calendar.events().delete(calendarId=email, eventId=id, sendNotifications=True).execute()
+    response = calendar.events().delete(calendarId=email, eventId=id, sendNotifications=sendNotifications).execute()
     return response
 
 
