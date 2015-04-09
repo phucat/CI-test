@@ -650,7 +650,7 @@ class Calendars(Controller):
 
                     modified_approver = self.get_approved_scheduled_user(d_user)
                     if modified_approver is None:
-                        modified_approver = config['email']
+                        modified_approver = oauth_config['default_user']
 
                     cal_params = {
                         'action': '%s has been removed from events.' % d_user,
