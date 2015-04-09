@@ -407,19 +407,25 @@ class Calendars(Controller):
                                             pass
                                     else:
                                         if len(event['attendees']) == 2:
-                                            for attendee in event['attendees']:
-                                                if 'resource' in attendee:
-
-                                                    if 'recurringEventId' in event:
-                                                        if event['recurringEventId'] not in event_id_pool:
-                                                            event_id_pool.append(event['recurringEventId'])
-                                                            calendar_api.delete_event(event['id'], selectedEmail, True)
-                                                            deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email)
-                                                        else:
-                                                            calendar_api.delete_event(event['id'], selectedEmail, False)
-                                                    else:
+                                            isResource = search_resource(event['attendees'])
+                                            if isResource:
+                                                if 'recurringEventId' in event:
+                                                    if event['recurringEventId'] not in event_id_pool:
+                                                        event_id_pool.append(event['recurringEventId'])
                                                         calendar_api.delete_event(event['id'], selectedEmail, True)
                                                         deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email)
+                                                    else:
+                                                        calendar_api.delete_event(event['id'], selectedEmail, False)
+                                                else:
+                                                    calendar_api.delete_event(event['id'], selectedEmail, True)
+                                                    deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email)
+                                            else:
+                                                if 'recurringEventId' in event:
+                                                    if event['recurringEventId'] not in event_id_pool:
+                                                        event_id_pool.append(event['recurringEventId'])
+                                                        remove_owner_failed(event, user_email, selectedEmail, current_user_email)
+                                                else:
+                                                    remove_owner_failed(event, user_email, selectedEmail, current_user_email)
 
                                         elif len(event['attendees']) == 1:
                                             for attendee in event['attendees']:
@@ -761,3 +767,7 @@ def generate_random_numbers(n):
     range_end = (10**n)-1
     gen_number = randint(range_start, range_end)
     return str("-%s" % gen_number)
+
+
+def search_resource(attendees):
+    return [element for element in attendees if 'resource' in element]
