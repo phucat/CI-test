@@ -161,24 +161,13 @@ class Calendars(Controller):
             client.ClientLogin(email=config['email'], password=config['password'], source=APP_ID)
             resource = json.loads(self.request.body)
 
-            if resource['resourceCommonName'] != resource['old_resourceCommonName']:
-                client.DeleteResource(resource_id=resource['resourceId'])
-                resource['resourceId'] = generate_random_numbers(12)
-                client.CreateResource(
-                    resource_id=resource['resourceId'],
-                    resource_common_name=resource['resourceCommonName'],
-                    resource_description=resource['resourceDescription'],
-                    resource_type=resource['resourceType'])
+            client.UpdateResource(
+                resource_id=resource['resourceId'],
+                resource_common_name=resource['resourceCommonName'],
+                resource_description=resource['resourceDescription'],
+                resource_type=resource['resourceType'])
 
-                calendar_resource_email = client.GetResource(resource_id=resource['resourceId'])
-            else:
-                client.UpdateResource(
-                    resource_id=resource['resourceId'],
-                    resource_common_name=resource['resourceCommonName'],
-                    resource_description=resource['resourceDescription'],
-                    resource_type=resource['resourceType'])
-
-                calendar_resource_email = client.GetResource(resource_id=resource['resourceId'])
+            calendar_resource_email = client.GetResource(resource_id=resource['resourceId'])
 
             res = self.components.calendars.find_resource(str(calendar_resource_email))
 
@@ -264,6 +253,8 @@ class Calendars(Controller):
             if params['status'] == 'Approve':
                 params['status'] += 'd'
 
+                approved_user = {'email': params['email'], 'status': True}
+                DeprovisionedAccount.create(approved_user)
                 deferred.defer(self.get_all_events, params['email'], params['email'], '', '', False, self.session['current_user'])
 
             elif params['status'] == 'Cancel':
@@ -338,12 +329,11 @@ class Calendars(Controller):
                                             }
 
                                             for attendee_email in update_event['attendeesEmail']:
-                                                calendar_api.update_event(event['id'], attendee_email, params_body, True)
-
                                                 if selectedEmail:
                                                     if 'recurringEventId' in event:
                                                         if event['recurringEventId'] not in event_id_pool:
                                                             event_id_pool.append(event['recurringEventId'])
+                                                            calendar_api.update_event(event['id'], attendee_email, params_body, True)
                                                             insert_audit_log(
                                                                 '%s has been removed from events.' % selectedEmail,
                                                                 'user manager',
@@ -352,7 +342,10 @@ class Calendars(Controller):
                                                                 '%s' % event['summary'], '')
 
                                                             AuditLogModel.attendees_update_notification(attendee_email, selectedEmail, event['summary'])
+                                                        else:
+                                                            calendar_api.update_event(event['id'], attendee_email, params_body, False)
                                                     else:
+                                                        calendar_api.update_event(event['id'], attendee_email, params_body, True)
                                                         insert_audit_log(
                                                             '%s has been removed from events.' % selectedEmail,
                                                             'user manager',
@@ -428,7 +421,7 @@ class Calendars(Controller):
                                         params_body = {
                                             'location': resource_params['resourceCommonName'],
                                             'old_resourceName': resource_params['old_resourceCommonName'],
-                                            'attendees': resource_list,
+                                            'attendees': attendees_list,
                                             'reminders': {'overrides': [{'minutes': 15, 'method': 'popup'}], 'useDefault': 'false' },
                                             'start': event['start'],
                                             'end': event['end'],
@@ -447,11 +440,17 @@ class Calendars(Controller):
                                         }
 
                                         if 'recurringEventId' in event:
-                                            calendar_api.update_event(event['id'], user_email, params_body, True)
+                                            calendar_api.update_event(event['id'], user_email, params_body, False)
+                                            params_body['attendees'] = resource_list
+                                            calendar_api.update_event(event['id'], user_email, params_body, False)
+
                                             if event['recurringEventId'] not in event_id_pool:
                                                 event_id_pool.append(event['recurringEventId'])
                                                 deferred.defer(self.update_recurring_events, update_event, current_user_email)
                                         else:
+                                            calendar_api.update_event(event['id'], user_email, params_body, False)
+                                            params_body['attendees'] = resource_list
+                                            calendar_api.update_event(event['id'], user_email, params_body, True)
                                             deferred.defer(self.update_calendar_events, update_event, True, current_user_email)
                                 else:
                                     if resourceName:
@@ -482,8 +481,6 @@ class Calendars(Controller):
     @classmethod
     def update_recurring_events(self, params, current_user_email=''):
         try:
-            logging.info('recurringEventId 41 %s ' % params['body']['summary'])
-
             insert_audit_log(
                 "Event %s resource has been updated. " % (params['body']['summary']),
                 'resource manager',
@@ -501,8 +498,6 @@ class Calendars(Controller):
     def update_calendar_events(self, params, cal_resource=False, current_user_email=''):
         try:
             if cal_resource:
-                calendar_api.update_event(params['event_id'], params['user_email'], params['body'], True)
-
                 insert_audit_log(
                     "Event %s resource has been updated. " % (params['body']['summary']),
                     'resource manager',
@@ -609,10 +604,10 @@ class Calendars(Controller):
                         modified_approver = config['email']
 
                     cal_params = {
-                        'action': '%s has been de-provisioned.' % d_user,
+                        'action': '%s has been removed from events.' % d_user,
                         'invoked': 'cron job',
                         'app_user': modified_approver,
-                        'target_resource': 'Domain',
+                        'target_resource': 'Calendar Events',
                         'target_event_altered': '-',
                         'comment': ''
                     }
