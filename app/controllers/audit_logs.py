@@ -35,14 +35,57 @@ class AuditLogs(Controller):
         writer.writeheader()
 
         for log in logs.iter():
+
+            if type(log.action) is not 'NoneType':
+                log.action = log.action.replace( u'\u2018', u"'")
+                log.action = log.action.replace( u'\u2019', u"'")
+                log.action = log.action.replace( u'\u201c', u'"')
+                log.action = log.action.replace( u'\u201d', u'"')
+                log.action.encode('utf-8')
+
+            if type(log.how_the_action_invoked) is not 'NoneType':
+                log.how_the_action_invoked = log.how_the_action_invoked.replace( u'\u2018', u"'")
+                log.how_the_action_invoked = log.how_the_action_invoked.replace( u'\u2019', u"'")
+                log.how_the_action_invoked = log.how_the_action_invoked.replace( u'\u201c', u'"')
+                log.how_the_action_invoked = log.how_the_action_invoked.replace( u'\u201d', u'"')
+                log.how_the_action_invoked.encode('utf-8')
+
+            if type(log.app_user_invoked_action) is not 'NoneType':
+                log.app_user_invoked_action = log.app_user_invoked_action.replace( u'\u2018', u"'")
+                log.app_user_invoked_action = log.app_user_invoked_action.replace( u'\u2019', u"'")
+                log.app_user_invoked_action = log.app_user_invoked_action.replace( u'\u201c', u'"')
+                log.app_user_invoked_action = log.app_user_invoked_action.replace( u'\u201d', u'"')
+                log.app_user_invoked_action.encode('utf-8')
+
+            if type(log.target_resource) is not 'NoneType':
+                log.target_resource = log.target_resource.replace( u'\u2018', u"'")
+                log.target_resource = log.target_resource.replace( u'\u2019', u"'")
+                log.target_resource = log.target_resource.replace( u'\u201c', u'"')
+                log.target_resource = log.target_resource.replace( u'\u201d', u'"')
+                log.target_resource.encode('utf-8')
+
+            if type(log.target_event_altered) is unicode:
+                log.target_event_altered = log.target_event_altered.replace( u'\u2018', u"'")
+                log.target_event_altered = log.target_event_altered.replace( u'\u2019', u"'")
+                log.target_event_altered = log.target_event_altered.replace( u'\u201c', u'"')
+                log.target_event_altered = log.target_event_altered.replace( u'\u201d', u'"')
+                log.target_event_altered.encode('utf-8')
+
+            if type(log.comment) is not 'NoneType':
+                log.comment = log.comment.replace( u'\u2018', u"'")
+                log.comment = log.comment.replace( u'\u2019', u"'")
+                log.comment = log.comment.replace( u'\u201c', u'"')
+                log.comment = log.comment.replace( u'\u201d', u'"')
+                log.comment.encode('utf-8')
+
             data = {
-                'Timestamp': datetime.strftime(log.created, '%m/%d/%Y %I:%M:%S %p'),
-                'The action performed': log.action,
-                'How the action was invoked': log.how_the_action_invoked,
-                'What App User invoked the action': log.app_user_invoked_action,
-                'Targetted user or resource': log.target_resource,
-                'Target event altered': log.target_event_altered,
-                'Comment': log.comment
+                "Timestamp": datetime.strftime(log.created, '%m/%d/%Y %I:%M:%S %p'),
+                "The action performed": log.action,
+                "How the action was invoked": log.how_the_action_invoked,
+                "What App User invoked the action": log.app_user_invoked_action,
+                "Targetted user or resource": log.target_resource,
+                "Target event altered": log.target_event_altered,
+                "Comment": log.comment
             }
 
             writer.writerow(data)
