@@ -213,9 +213,11 @@ class Calendars(Controller):
             resource['new_email'] = res[0]['resourceEmail']
 
             find = ProcessedUsers.query(ProcessedUsers.resource == resource['old_resourceCommonName']).count()
+            logging.info('FIND: %s' % find)
             if find:
+                logging.info('REMOVE FIND: %s' % find)
                 ProcessedUsers.remove({'resource': resource['old_resourceCommonName']})
-
+            logging.info('TOTAL : %s' % ProcessedUsers.query().count())
             current_user = users.get_current_user()
             deferred.defer(self.process_update_resource, resource, current_user.email(), _queue="uiUpdateResource")
         except urllib2.HTTPError as e:
@@ -323,6 +325,7 @@ class Calendars(Controller):
                     for event in events['items']:
                         find = ProcessedUsers.get_by_id(event['id'])
                         if not find:
+                            logging.info('NOT YET PROCESSED: %s | id: %s ' % (find, event['id']))
                             ProcessedUsers.create({'resource': resource_params['resourceCommonName'], 'eventId': event['id']})
                             logging.info('CALENDAR OWNER: %s' % user_email)
                             deferred.defer(self.get_events, event, user_email, selectedEmail, comment, resource_params, resource, current_user_email, event_id_pool, _queue="getResourceEvent")
@@ -603,6 +606,7 @@ class Calendars(Controller):
                 '%s resource name' % params['resource']['old_resourceCommonName'],
                 'Calendar of %s on event %s.' % (params['user_email'], params['summary']), '')
 
+            logging.info('UPDATE RESOURCE: %s' % params['user_email'])
             AuditLogModel.update_resource_notification(params['user_email'], 'Participants', params['event_link'], params['resource'])
 
         except Exception, e:
