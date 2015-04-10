@@ -42,7 +42,7 @@ settings['oauth2'] = {
     'developer_key': None  # Optional
 }
 
-# cs-arista-calendar-qa
+# arista-calendar-01
 settings['oauth2_service_account'] = {
     # OAuth2 service account configuration should be generated
     # from the google cloud console (Service Account Credentials)
@@ -67,31 +67,6 @@ D8/8xduc0qeZBw==
     'domain': 'sherpatest.com',
     'default_user': 'andrew.fleming@sherpatest.com'
 }
-# # arista-calendar-01
-# settings['oauth2_service_account'] = {
-#     # OAuth2 service account configuration should be generated
-#     # from the google cloud console (Service Account Credentials)
-#     'client_email': '61726108322-6jprbbvjrge9m5e6uqknskg534hgra8g@developer.gserviceaccount.com',  # XXX@developer.gserviceaccount.com
-#     'private_key': """-----BEGIN PRIVATE KEY-----
-# MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBALCUhVrvCi6e061i
-# yyuusNKuqUUPaia/NmN3W0/Je81Vo7wJSMIj4VGrioL3/6TZF8a12NxFyYSXoZwn
-# 4qTXXopDYOi7c7AuLSH001Hc+4y/WYruZKSCIsB/ZbUmKzOAMcYjG3AscAS/VTFc
-# RJE++odGW1nCV9TLRGBY39qYTd+DAgMBAAECgYA2hpYrPzcIsFiy6JfONFI7rF1u
-# itT/g/n6eufCWngVLsWxkbha4pN4EZ1i1cumDrdNz+dYFWClxeDMhHBy8GIrkjrR
-# T72LkAhkgkDUw3tRhesoo+FuIxH5ICUQ5Ut+4IRo3AbPAxazz3WHVGkoGVg/a/1o
-# 9+8s/o7mzonieUO7UQJBAN1fstcrssKw3jzdEUmfd8SW+1xX1+zXKeu6mBR++jVE
-# FN2Wq8gfDwy6mHPBc7IdXI/lXqbHumwjcoY2Yj06qqkCQQDMMy8nodO7ASWdqHdy
-# ogL5ts1DuD7lUYGGjD8uiQqtSsEkVDcxWkWBTVvFZulzaFVg5dInqs7qyXlpQK00
-# uuBLAkEAtJiy1LkQj6Ys16hdxxsyYQ3vKCl9vPjXeTjzgp0IUFYnU5Lst0knRPIh
-# FyY11ZQAhF/R9Oux2TCd6IILaPooaQJBAKIrxDdlfhH2Rzl+od6YbGSFmV8+5DSb
-# FpMUrtj2XVRjGiEQAQVg+/JEza1ond7Z7XSXEOAP92TfvVyp0OUfxSECQHfNs6yB
-# L7iWJhp8JLq1qbg7DbjKNyndB3xU8JDnvGMCkMwVB17V4mIdBYvim7jIxrzuFYPI
-# 1+/1D9yG+2L+PVA=
-# -----END PRIVATE KEY-----""",  # Must be in PEM format
-#     'developer_key': 'AIzaSyBkMhZAbepklUuV5ZXrzPDdu5zOSSRUhZA',  # Optional
-#     'domain': 'arista.com',
-#     'default_user': 'sherpa_bot@arista.com'
-# }
 
 settings['upload'] = {
     # Whether to use Cloud Storage (default) or the blobstore to store uploaded files.
@@ -108,15 +83,17 @@ settings['appstats'] = {
     'enabled_live': False
 }
 
-
 settings['google_directory'] = {
-    'domain': 'sherpatest.com'
+    'domain': 'arista.com'
 }
 
+<<<<<<< HEAD
 settings['admin_account'] = {
     'email': 'andrew.fleming@sherpatest.com',
     'domain': 'sherpatest.com',
 }
+=======
+>>>>>>> e7e3110a7bcb7750f46f94b6fe957edf64bc3e27
 
 # Optionally, you may use the settings plugin to dynamically
 # configure your settings via the admin interface. Be sure to

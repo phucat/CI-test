@@ -5,3 +5,88 @@ queue:
   max_concurrent_requests: 10
   retry_parameters:
     task_retry_limit: 1
+
+- name: uiUpdateResource
+  rate: 20/s
+  bucket_size: 40
+  max_concurrent_requests: 10
+  retry_parameters:
+    task_retry_limit: 1
+
+- name: processUpdateResource
+  rate: 20/s
+  bucket_size: 40
+  max_concurrent_requests: 10
+  retry_parameters:
+    task_retry_limit: 1
+
+- name: uiRemoveUsers
+  rate: 20/s
+  bucket_size: 40
+  max_concurrent_requests: 10
+  retry_parameters:
+    task_retry_limit: 1
+
+- name: updateUserStatus
+  rate: 20/s
+  bucket_size: 40
+  max_concurrent_requests: 10
+  retry_parameters:
+    task_retry_limit: 1
+
+- name: getAllEvents
+  rate: 20/s
+  bucket_size: 40
+  max_concurrent_requests: 10
+  retry_parameters:
+    task_retry_limit: 1
+
+
+- name: getEvents
+  rate: 20/s
+  bucket_size: 40
+  max_concurrent_requests: 10
+  retry_parameters:
+    task_retry_limit: 1
+
+- name: filterAttendees
+  rate: 20/s
+  bucket_size: 40
+  max_concurrent_requests: 10
+  retry_parameters:
+    task_retry_limit: 1
+
+- name: eventOwner
+  rate: 20/s
+  bucket_size: 40
+  max_concurrent_requests: 10
+  retry_parameters:
+    task_retry_limit: 1
+
+- name: filterLocation
+  rate: 20/s
+  bucket_size: 40
+  max_concurrent_requests: 10
+  retry_parameters:
+    task_retry_limit: 1
+
+- name: sendEventNotification
+  rate: 20/s
+  bucket_size: 40
+  max_concurrent_requests: 10
+  retry_parameters:
+    task_retry_limit: 1
+
+- name: taskDeletingUsers
+  rate: 20/s
+  bucket_size: 40
+  max_concurrent_requests: 10
+  retry_parameters:
+    task_retry_limit: 1
+
+- name: processDeletedAccount
+  rate: 20/s
+  bucket_size: 40
+  max_concurrent_requests: 10
+  retry_parameters:
+    task_retry_limit: 1

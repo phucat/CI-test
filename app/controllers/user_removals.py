@@ -45,28 +45,6 @@ class UserRemovals(Controller):
             return 404
         self.context['data'] = user
 
-    @route_with(template='/api/schedule/update/user', methods=['POST'])
-    def api_update_user_status(self):
-        user = users.get_current_user()
-        params = json.loads(self.request.body)
-        response = UserRemoval.update({'email': params['email'], 'status': params['status']})
-
-        if response == 403:
-            return 403
-        else:
-            if params['status'] == 'Approve':
-                params['status'] += 'd'
-
-                google_directory.revoke_user(params['email'])
-                deferred.defer(self.prime_caches)
-
-            elif params['status'] == 'Cancel':
-                params['status'] += 'led'
-
-            self.insert_audit_log('%s has been %s for removal.' % (params['email'], params['status']), 'api endpoint', user.email(), 'Schedule User Removal', '', '')
-
-            return params['status']
-
     @classmethod
     def prime_caches(self):
         google_directory.prime_caches()

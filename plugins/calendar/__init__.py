@@ -25,12 +25,12 @@ def build_client(user):
         return build_client(user)
 
 
-def get_all_events(email, selectedEmail, page_token=None, all_events=True):
+def get_all_events(email, selectedEmail, page_token=None):
     logging.info('calendar: get_all_events')
     response = None
     try:
         calendar = build_client(email)
-        param = {'calendarId': email, 'timeZone': 'GMT', 'singleEvents': all_events, 'q': selectedEmail, 'pageToken': page_token}
+        param = {'calendarId': email, 'timeZone': 'GMT', 'singleEvents': False, 'q': selectedEmail, 'pageToken': page_token}
 
         events = calendar.events().list(**param).execute()
 
@@ -156,11 +156,11 @@ def move_event(event_id, owner_email, new_owner_email):
     return response
 
 
-def delete_event(id, email):
+def delete_event(id, email, sendNotifications):
     logging.info('calendar: delete_event')
     logging.info('Deleting event: [' + id + '] of ' + email + '.')
     calendar = build_client(email)
-    response = calendar.events().delete(calendarId=email, eventId=id, sendNotifications=True).execute()
+    response = calendar.events().delete(calendarId=email, eventId=id, sendNotifications=sendNotifications).execute()
     return response
 
 

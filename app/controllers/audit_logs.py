@@ -1,14 +1,12 @@
-from ferris import Controller, route_with, messages, settings
+from ferris import Controller, route_with, messages
 from ferris.core import time_util
 from app.models.audit_log import AuditLog as AuditLogModel
 from app.models.email_recipient import EmailRecipient
 import StringIO
 import csv
 import logging
-from time import sleep
 from datetime import date, timedelta, datetime
 import dateutil.tz
-config = settings.get('admin_account')
 
 
 class AuditLogs(Controller):
@@ -21,8 +19,6 @@ class AuditLogs(Controller):
     @route_with(template='/api/audit_logs/downloads', methods=['GET'])
     def api_generate_report(self, tz_offset=None):
         tz_offset = float(tz_offset) if tz_offset else 0
-        # for x in xrange(1, 201):
-        #     AuditLogModel.email_fluff(config['email'])
 
         fields = ['Timestamp','The action performed', 'How the action was invoked',
         'What App User invoked the action', 'Targetted user or resource', 'Target event altered', 'Comment']
@@ -96,8 +92,8 @@ class AuditLogs(Controller):
             writer.writerow(data)
 
         filename = "arista-calendar-log-%s.csv" % datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
-        settings = EmailRecipient.list_all()
-        emails = [setting.email for setting in settings]
+        mailingList = EmailRecipient.list_all()
+        emails = [mailing.email for mailing in mailingList]
 
         if key == 'daily':
             AuditLogModel.daily_notification_on_major_actions(emails, filename, out.getvalue())

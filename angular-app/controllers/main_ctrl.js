@@ -42,7 +42,9 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
 
     $scope.cal_resources = function(feed){
         $scope.identity_loading = loading.new();
-        $scope.calendar_resources = []
+        $scope.calendar_resources = [];
+        $scope.previous_page = '';
+        $scope.next_page = '';
         aristaREST.get_all_resources(feed)
         .success(function(data, status, headers, config){
 
@@ -119,7 +121,7 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
                     $log.error('failed', d);
                     if(d.code == 500)
                     {
-                        $window.alert('You are not authorized to use this Calendar Resource API.');
+                        $window.alert("There was an error when attempting to connect to the Resource API. Please wait a few moments and try again.");
                     }
                     else{
                         $window.alert(d.error);
@@ -145,7 +147,7 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
                     $window.alert(d.message);
                 }).error(function(d){
                     $log.info(d);
-                    $window.alert('This User has already been de-provisioned, kindly wait to sync to the domain directory.');
+                    $window.alert('There was an error when attempting to connect to the server. Please wait a few moments and try again.');
                 });
             });
         }
