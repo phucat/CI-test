@@ -308,7 +308,8 @@ class Calendars(Controller):
         resultMessage['message'] = 'The app is in the process of removing %s in calendar events.' % selectedEmail
         self.context['data'] = resultMessage
 
-        deferred.defer(self.get_all_events, selectedEmail, selectedEmail, comment, '', False, self.session['current_user'], _queue="uiRemoveUsers")
+        current_user = users.get_current_user()
+        deferred.defer(self.get_all_events, selectedEmail, selectedEmail, comment, '', False, current_user.email(), _queue="uiRemoveUsers")
 
     @route_with(template='/api/schedule/update/user', methods=['POST'])
     def api_update_user_status(self):
