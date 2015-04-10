@@ -325,7 +325,7 @@ class Calendars(Controller):
                         if not find:
                             ProcessedUsers.create({'resource': resource_params['resourceCommonName'], 'eventId': event['id']})
                             logging.info('CALENDAR OWNER: %s' % user_email)
-                            deferred.defer(self.get_events, event, user_email, selectedEmail, comment, resource_params, resource, current_user_email, event_id_pool, _queue="getAllEvents")
+                            deferred.defer(self.get_events, event, user_email, selectedEmail, comment, resource_params, resource, current_user_email, event_id_pool, _queue="getResourceEvent")
 
                 if not pageToken:
                     break
