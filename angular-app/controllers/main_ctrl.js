@@ -40,6 +40,8 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
         }
     };
 
+    var previous_start = '';
+    var previous_list = []
     $scope.cal_resources = function(feed){
         $scope.identity_loading = loading.new();
         $scope.calendar_resources = [];
@@ -50,9 +52,29 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
 
             if (data.items) $scope.calendar_resources = data.items;
             else $scope.calendar_resources = [];
+            console.log(feed);
+            if(previous_list.indexOf(data.page)==-1) previous_list.push(data.page);
 
-            if (data.previous) $scope.previous_page = data.previous;
-            else $scope.previous_page = '';
+
+            if (feed != undefined){
+
+                current_page = previous_list.indexOf(data.page)-1;
+                console.log('current_page:',current_page);
+                console.log(typeof previous_list[current_page]);
+                if(previous_list.indexOf(data.page)==-1) previous_list.push(data.page);
+                else previous_start = previous_list[current_page];
+
+                console.log('previous_list:',previous_list);
+                console.log('previous_start:',previous_start);
+                if (previous_start)
+                {
+                    $scope.previous_page = previous_start;
+                }
+            }
+            else{
+                // if (data.previous) $scope.previous_page = data.previous;
+                $scope.previous_page = '';
+            }
 
             if (data.next) $scope.next_page = data.next;
             else $scope.next_page = '';

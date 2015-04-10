@@ -15,11 +15,9 @@ import json
 import time
 import datetime
 from plugins import calendar as calendar_api, google_directory, rfc3339
-from collections import OrderedDict
 import logging
 import urllib2
 
-pagination = OrderedDict()
 
 TEAM_EMAILS = EmailRecipient.list_all()
 IT_ADMIN_EMAIL = [team_email.email for team_email in TEAM_EMAILS]
@@ -93,21 +91,7 @@ class Calendars(Controller):
         data['items'] = res
         data['next'] = nextpage
         data['previous'] = None
-
-        page = "start=%s" % res[0]['resourceId']
-
-        if page not in pagination:
-            pagination[page] = page
-
-        if feed != 'feed':
-            current_page = pagination.keys().index(page)-1
-            logging.info("INDEX: %s" % current_page)
-            data['previous'] = pagination.items()[current_page][0]
-            logging.info("PREVIOUS: %s" % pagination.items()[current_page][0])
-            logging.info("LIST : %s" % pagination)
-
-            if pagination.keys().index(page) is 0:
-                data['previous'] = None
+        data['page'] = "start=%s" % res[0]['resourceId']
 
         self.context['data'] = data
 
@@ -228,15 +212,9 @@ class Calendars(Controller):
             # deferred.defer(self.update_resource_calendar, resource, updates_params, self.session['current_user'])
             resource['new_email'] = res[0]['resourceEmail']
 
-            pUserCount = ProcessedUsers.query().count()
-
-            if pUserCount == 0:
-                pass
-            else:
-                processedEvents = ProcessedUsers.list_all()
-                existing_events = [isEvent.resource for isEvent in processedEvents]
-                if resource['old_resourceCommonName'] in existing_events:
-                    ProcessedUsers.remove({'resource': resource['old_resourceCommonName']})
+            find = ProcessedUsers.query(ProcessedUsers.resource == resource['old_resourceCommonName']).count()
+            if find:
+                ProcessedUsers.remove({'resource': resource['old_resourceCommonName']})
 
             current_user = users.get_current_user()
             deferred.defer(self.process_update_resource, resource, current_user.email(), _queue="uiUpdateResource")
@@ -338,22 +316,14 @@ class Calendars(Controller):
     def get_resource_events(self, user_email, selectedEmail, comment, resource_params, resource=False, current_user_email=''):
         pageToken = None
         try:
-            pUserCount = ProcessedUsers.query().count()
-
-            if pUserCount == 0:
-                existing_events = []
-            else:
-                processedEvents = ProcessedUsers.list_all()
-                existing_events = [isEvent.eventId for isEvent in processedEvents]
             while True:
-
                 events, pageToken = calendar_api.get_all_events(user_email, selectedEmail, pageToken)
                 if events is not None:
                     event_id_pool = []
                     for event in events['items']:
-                        if event['id'] not in existing_events:
+                        find = ProcessedUsers.get_by_id(event['id'])
+                        if not find:
                             ProcessedUsers.create({'resource': resource_params['resourceCommonName'], 'eventId': event['id']})
-                            logging.info('EVENT ID: %s' % existing_events)
                             logging.info('CALENDAR OWNER: %s' % user_email)
                             deferred.defer(self.get_events, event, user_email, selectedEmail, comment, resource_params, resource, current_user_email, event_id_pool, _queue="getAllEvents")
 
@@ -395,7 +365,6 @@ class Calendars(Controller):
                     startDate = event['start']['date']
 
                 if startDate >= current_date:
-
                     if resource == False:
                         if 'recurringEventId' in event:
                             logging.info('RECURRING EVENT ID: %s' % event_id_pool)
@@ -448,7 +417,7 @@ class Calendars(Controller):
                 else:
                     pass
             else:
-                deferred.defer(self.event_owner, event, user_email, selectedEmail, comment, current_user_email, event_id_pool, _queue="filterAttendees")
+                deferred.defer(self.event_owner, event, user_email, selectedEmail, current_user_email, event_id_pool, _queue="filterAttendees")
         else:
             if event['organizer']['email'] == selectedEmail:
                 if 'recurringEventId' in event:
@@ -539,65 +508,66 @@ class Calendars(Controller):
     def filter_location(self, event, user_email, selectedEmail, comment, current_user_email, resource_params, event_id_pool):
         attendees_list = []
         resource_list = []
-        resourceName = None
         if 'attendees' in event:
             for attendee in event['attendees']:
                 if 'resource' in attendee:
                     if attendee['displayName'] == selectedEmail:
-                        resourceName = selectedEmail
                         resource_list.append({'email': resource_params['new_email']})
                 else:
                     attendees_list.append(attendee['email'])
                     resource_list.append({'email': attendee['email']})
 
+        logging.info('FILTER LOCATION 1: %s' % user_email)
+
         if resource_params['resourceCommonName'] != resource_params['old_resourceCommonName']:
-            if resourceName:
-                params_body = {
-                    'location': resource_params['resourceCommonName'],
-                    'old_resourceName': resource_params['old_resourceCommonName'],
-                    'attendees': attendees_list,
-                    'reminders': {'overrides': [{'minutes': 15, 'method': 'popup'}], 'useDefault': 'false' },
-                    'start': event['start'],
-                    'end': event['end'],
-                    'summary': event['summary']
-                }
 
-                update_event = {
-                    'event_id': event['id'],
-                    'user_email': user_email,
-                    'summary': event['summary'],
-                    'organizerEmail': event['organizer']['email'],
-                    'organizerName': event['organizer']['displayName'],
-                    'event_link': event['htmlLink'],
-                    'attendeesEmail': attendees_list,
-                    'body': params_body,
-                    'resource': resource_params
-                }
+            params_body = {
+                'location': resource_params['resourceCommonName'],
+                'old_resourceName': resource_params['old_resourceCommonName'],
+                'attendees': attendees_list,
+                'reminders': {'overrides': [{'minutes': 15, 'method': 'popup'}], 'useDefault': 'false' },
+                'start': event['start'],
+                'end': event['end'],
+                'summary': event['summary']
+            }
 
-                deferred.defer(self.send_event_notification, event, user_email, params_body, resource_list, update_event, current_user_email, event_id_pool, _queue="filterLocation")
+            update_event = {
+                'event_id': event['id'],
+                'user_email': user_email,
+                'summary': event['summary'],
+                'organizerEmail': event['organizer']['email'],
+                'organizerName': event['organizer']['displayName'],
+                'event_link': event['htmlLink'],
+                'attendeesEmail': attendees_list,
+                'body': params_body,
+                'resource': resource_params
+            }
+
+            deferred.defer(self.send_event_notification, event, user_email, params_body, resource_list, update_event, current_user_email, event_id_pool, _queue="filterLocation")
         else:
-            if resourceName:
-                update_event = {
-                    'event_id': event['id'],
-                    'user_email': user_email,
-                    'summary': event['summary'],
-                    'organizerEmail': event['organizer']['email'],
-                    'organizerName': event['organizer']['displayName'],
-                    'event_link': event['htmlLink'],
-                    'attendeesEmail': attendees_list,
-                    'resource': resource_params
-                }
+            update_event = {
+                'event_id': event['id'],
+                'user_email': user_email,
+                'summary': event['summary'],
+                'organizerEmail': event['organizer']['email'],
+                'organizerName': event['organizer']['displayName'],
+                'event_link': event['htmlLink'],
+                'attendeesEmail': attendees_list,
+                'resource': resource_params
+            }
 
-                if 'recurringEventId' in event:
-                    if event['recurringEventId'] not in event_id_pool:
-                        event_id_pool.append(event['recurringEventId'])
-                        deferred.defer(self.update_resource_events, update_event, current_user_email, _queue="filterLocation")
-                else:
+            if 'recurringEventId' in event:
+                if event['recurringEventId'] not in event_id_pool:
+                    event_id_pool.append(event['recurringEventId'])
                     deferred.defer(self.update_resource_events, update_event, current_user_email, _queue="filterLocation")
+            else:
+                deferred.defer(self.update_resource_events, update_event, current_user_email, _queue="filterLocation")
 
     @classmethod
     def send_event_notification(self, event, user_email, params_body, resource_list, update_event, current_user_email, event_id_pool):
+        logging.info('SEND NOTIF 1: %s' % user_email)
         if 'recurringEventId' in event:
+            logging.info('SEND NOTIF RECURR event_id_pool: %s' % event_id_pool)
             calendar_api.update_event(event['id'], user_email, params_body, False)
             params_body['attendees'] = resource_list
             calendar_api.update_event(event['id'], user_email, params_body, False)
@@ -606,6 +576,7 @@ class Calendars(Controller):
                 event_id_pool.append(event['recurringEventId'])
                 deferred.defer(self.update_resource_events, update_event, current_user_email, _queue="sendEventNotification")
         else:
+            logging.info('SEND NOTIF NOT RECURR: %s' % user_email)
             calendar_api.update_event(event['id'], user_email, params_body, False)
             params_body['attendees'] = resource_list
             calendar_api.update_event(event['id'], user_email, params_body, True)
@@ -614,6 +585,7 @@ class Calendars(Controller):
     @classmethod
     def update_resource_events(self, params, current_user_email=''):
         try:
+            logging.info('UPDATE RESOURCE NOTIF: %s' % params)
             insert_audit_log(
                 """
                     Event %s resource has been updated.

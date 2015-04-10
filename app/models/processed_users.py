@@ -11,7 +11,7 @@ class ProcessedUsers(Model):
 
     @classmethod
     def create(cls, params):
-        item = cls()
+        item = cls(id=params.get('eventId'))
         item.populate(**params)
         item.put()
         return item
