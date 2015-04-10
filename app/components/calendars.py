@@ -2,14 +2,8 @@ from ferris import settings
 from google.appengine.api import memcache, app_identity
 from gdata.calendar_resource.client import CalendarResourceClient
 from gdata.gauth import OAuth2TokenFromCredentials as CreateToken
-<<<<<<< HEAD
-import xml.etree.ElementTree as ET
-from app.etc import build_creds
-config = settings.get('admin_account')
-=======
 from app.etc import build_creds
 import xml.etree.ElementTree as ET
->>>>>>> e7e3110a7bcb7750f46f94b6fe957edf64bc3e27
 oauth_config = settings.get('oauth2_service_account')
 APP_ID = app_identity.get_application_id()
 
@@ -23,7 +17,7 @@ class Calendars(object):
         params = {}
         result = []
         nextpage = None
-<<<<<<< HEAD
+
         #client = CalendarResourceClient(domain=config['domain'])
         #client.ClientLogin(email=config['email'], password=config['password'], source=APP_ID)
 
@@ -33,27 +27,11 @@ class Calendars(object):
             ],
             service_account_name=oauth_config['client_email'],
             private_key=oauth_config['private_key'],
-            user=config['email']
+            user=oauth_config['default_user']
         )
         auth2token = CreateToken(creds)
-        client = CalendarResourceClient(domain=config['domain'])
-        auth2token.authorize(client)
-=======
         client = CalendarResourceClient(domain=oauth_config['domain'])
-        client.ClientLogin(email=oauth_config['default_user'], password=oauth_config['password'], source=APP_ID)
-
-        # creds = build_creds.build_credentials(
-        #     scope=[
-        #         "https://apps-apis.google.com/a/feeds/calendar/resource/"
-        #     ],
-        #     service_account_name=oauth_config['client_email'],
-        #     private_key=oauth_config['private_key'],
-        #     user=oauth_config['default_user']
-        # )
-        # auth2token = CreateToken(creds)
-        # client = CalendarResourceClient(domain=oauth_config['domain'])
-        # auth2token.authorize(client)
->>>>>>> e7e3110a7bcb7750f46f94b6fe957edf64bc3e27
+        auth2token.authorize(client)
 
         while True:
             if nextpage:

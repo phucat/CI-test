@@ -18,7 +18,6 @@ from plugins import calendar as calendar_api, google_directory, rfc3339
 from collections import OrderedDict
 import logging
 import urllib2
-from app.etc import build_creds
 
 pagination = OrderedDict()
 
@@ -26,7 +25,6 @@ TEAM_EMAILS = EmailRecipient.list_all()
 IT_ADMIN_EMAIL = [team_email.email for team_email in TEAM_EMAILS]
 APP_ID = app_identity.get_application_id()
 urlfetch.set_default_fetch_deadline(60)
-config = settings.get('admin_account')
 oauth_config = settings.get('oauth2_service_account')
 current_user = users.get_current_user()
 
@@ -80,10 +78,10 @@ class Calendars(Controller):
             ],
             service_account_name=oauth_config['client_email'],
             private_key=oauth_config['private_key'],
-            user=config['email']
+            user=oauth_config['default_user']
         )
         auth2token = CreateToken(creds)
-        client = CalendarResourceClient(domain=config['domain'])
+        client = CalendarResourceClient(domain=oauth_config['domain'])
         auth2token.authorize(client)
 
         if feed == 'feed':
@@ -132,10 +130,10 @@ class Calendars(Controller):
             ],
             service_account_name=oauth_config['client_email'],
             private_key=oauth_config['private_key'],
-            user=config['email']
+            user=oauth_config['default_user']
         )
         auth2token = CreateToken(creds)
-        client = CalendarResourceClient(domain=config['domain'])
+        client = CalendarResourceClient(domain=oauth_config['domain'])
         auth2token.authorize(client)
 
         try:
@@ -199,10 +197,10 @@ class Calendars(Controller):
                 ],
                 service_account_name=oauth_config['client_email'],
                 private_key=oauth_config['private_key'],
-                user=config['email']
+                user=oauth_config['default_user']
             )
             auth2token = CreateToken(creds)
-            client = CalendarResourceClient(domain=config['domain'])
+            client = CalendarResourceClient(domain=oauth_config['domain'])
             auth2token.authorize(client)
 
             resource = json.loads(self.request.body)
@@ -260,10 +258,10 @@ class Calendars(Controller):
             ],
             service_account_name=oauth_config['client_email'],
             private_key=oauth_config['private_key'],
-            user=config['email']
+            user=oauth_config['default_user']
         )
         auth2token = CreateToken(creds)
-        client = CalendarResourceClient(domain=config['domain'])
+        client = CalendarResourceClient(domain=oauth_config['domain'])
         auth2token.authorize(client)
 
         while True:
@@ -309,7 +307,8 @@ class Calendars(Controller):
         resultMessage['message'] = 'The app is in the process of removing %s in calendar events.' % selectedEmail
         self.context['data'] = resultMessage
 
-        deferred.defer(self.get_all_events, selectedEmail, selectedEmail, comment, '', False, self.session['current_user'], _queue="uiRemoveUsers")
+        current_user = users.get_current_user()
+        deferred.defer(self.get_all_events, selectedEmail, selectedEmail, comment, '', False, current_user.email(), _queue="uiRemoveUsers")
 
     @route_with(template='/api/schedule/update/user', methods=['POST'])
     def api_update_user_status(self):
