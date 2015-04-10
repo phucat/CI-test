@@ -238,6 +238,7 @@ class Calendars(Controller):
                 if resource['old_resourceCommonName'] in existing_events:
                     ProcessedUsers.remove({'resource': resource['old_resourceCommonName']})
 
+            current_user = users.get_current_user()
             deferred.defer(self.process_update_resource, resource, current_user.email(), _queue="uiUpdateResource")
         except urllib2.HTTPError as e:
             logging.info('get_all_events: HTTPerror')
