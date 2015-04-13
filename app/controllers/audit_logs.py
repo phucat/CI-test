@@ -41,14 +41,24 @@ class AuditLogs(Controller):
         writer.writeheader()
 
         for log in logs.iter():
-            log.action.encode('utf-8').strip()
-            log.how_the_action_invoked.encode('utf-8').strip()
-            log.app_user_invoked_action.encode('utf-8').strip()
-            log.target_resource.encode('utf-8').strip()
-            log.target_event_altered.encode('utf-8').strip()
+            if type(log.action) is not 'NoneType':
+                log.action.encode('utf-8').strip()
 
-            log.comment.encode('utf-8').strip()
-            logging.info('COMMENT: %s' % log.comment)
+            if type(log.how_the_action_invoked) is unicode:
+                log.how_the_action_invoked.encode('utf-8').strip()
+
+            if type(log.app_user_invoked_action) is unicode:
+                log.app_user_invoked_action.encode('utf-8').strip()
+
+            if type(log.target_resource) is unicode:
+                log.target_resource.encode('utf-8').strip()
+
+            if type(log.target_event_altered) is unicode:
+                log.target_event_altered.encode('utf-8').strip()
+
+            if type(log.comment) is not 'NoneType':
+                log.comment.encode('utf-8').strip()
+                logging.info('COMMENT: %s' % log.comment)
 
             data = {
                 "Timestamp": datetime.strftime(log.created, '%m/%d/%Y %I:%M:%S %p'),
@@ -94,14 +104,24 @@ class AuditLogs(Controller):
         writer.writeheader()
 
         for log in logs:
-            log.action.encode('utf-8').strip()
-            log.how_the_action_invoked.encode('utf-8').strip()
-            log.app_user_invoked_action.encode('utf-8').strip()
-            log.target_resource.encode('utf-8').strip()
-            log.target_event_altered.encode('utf-8').strip()
+            if type(log.action) is not 'NoneType':
+                log.action.encode('utf-8').strip()
 
-            log.comment.encode('utf-8').strip()
-            logging.info('CRON COMMENT: %s' % log.comment)
+            if type(log.how_the_action_invoked) is unicode:
+                log.how_the_action_invoked.encode('utf-8').strip()
+
+            if type(log.app_user_invoked_action) is unicode:
+                log.app_user_invoked_action.encode('utf-8').strip()
+
+            if type(log.target_resource) is unicode:
+                log.target_resource.encode('utf-8').strip()
+
+            if type(log.target_event_altered) is unicode:
+                log.target_event_altered.encode('utf-8').strip()
+
+            if type(log.comment) is not 'NoneType':
+                log.comment.encode('utf-8').strip()
+                logging.info('COMMENT: %s' % log.comment)
 
             data = {
                 'Timestamp': datetime.strftime(log.created, '%m/%d/%Y %I:%M:%S %p'),
