@@ -2,6 +2,7 @@ from ferris import Controller, route_with, messages
 from ferris.core import time_util
 from app.models.audit_log import AuditLog as AuditLogModel
 from app.models.email_recipient import EmailRecipient
+from plugins.unicode_writer import UnicodeDictWriter
 import StringIO
 import csv
 import logging
@@ -20,8 +21,13 @@ class AuditLogs(Controller):
     def api_generate_report(self, tz_offset=None):
         tz_offset = float(tz_offset) if tz_offset else 0
 
-        fields = ['Timestamp','The action performed', 'How the action was invoked',
-        'What App User invoked the action', 'Targetted user or resource', 'Target event altered', 'Comment']
+        fields = ['Timestamp',
+        'The action performed',
+        'How the action was invoked',
+        'What App User invoked the action',
+        'Targetted user or resource',
+        'Target event altered',
+        'Comment']
 
         now = datetime.now()
         local_now = time_util.localize(now, tz=dateutil.tz.tzoffset(None, tz_offset*60*60))
@@ -31,52 +37,18 @@ class AuditLogs(Controller):
         logging.info("RANGE: %s %s " % (fromdate, todate))
         out = StringIO.StringIO()
         logs = AuditLogModel.fetch_date_range(fromdate, todate)
-        writer = csv.DictWriter(out, fieldnames=fields)
+        writer = UnicodeDictWriter(out, fields)
         writer.writeheader()
 
         for log in logs.iter():
+            log.action.encode('utf-8').strip()
+            log.how_the_action_invoked.encode('utf-8').strip()
+            log.app_user_invoked_action.encode('utf-8').strip()
+            log.target_resource.encode('utf-8').strip()
+            log.target_event_altered.encode('utf-8').strip()
 
-            if type(log.action) is not 'NoneType':
-                log.action = log.action.replace( u'\u2018', u"'")
-                log.action = log.action.replace( u'\u2019', u"'")
-                log.action = log.action.replace( u'\u201c', u'"')
-                log.action = log.action.replace( u'\u201d', u'"')
-                log.action.encode('utf-8')
-
-            if type(log.how_the_action_invoked) is not 'NoneType':
-                log.how_the_action_invoked = log.how_the_action_invoked.replace( u'\u2018', u"'")
-                log.how_the_action_invoked = log.how_the_action_invoked.replace( u'\u2019', u"'")
-                log.how_the_action_invoked = log.how_the_action_invoked.replace( u'\u201c', u'"')
-                log.how_the_action_invoked = log.how_the_action_invoked.replace( u'\u201d', u'"')
-                log.how_the_action_invoked.encode('utf-8')
-
-            if type(log.app_user_invoked_action) is not 'NoneType':
-                log.app_user_invoked_action = log.app_user_invoked_action.replace( u'\u2018', u"'")
-                log.app_user_invoked_action = log.app_user_invoked_action.replace( u'\u2019', u"'")
-                log.app_user_invoked_action = log.app_user_invoked_action.replace( u'\u201c', u'"')
-                log.app_user_invoked_action = log.app_user_invoked_action.replace( u'\u201d', u'"')
-                log.app_user_invoked_action.encode('utf-8')
-
-            if type(log.target_resource) is not 'NoneType':
-                log.target_resource = log.target_resource.replace( u'\u2018', u"'")
-                log.target_resource = log.target_resource.replace( u'\u2019', u"'")
-                log.target_resource = log.target_resource.replace( u'\u201c', u'"')
-                log.target_resource = log.target_resource.replace( u'\u201d', u'"')
-                log.target_resource.encode('utf-8')
-
-            if type(log.target_event_altered) is unicode:
-                log.target_event_altered = log.target_event_altered.replace( u'\u2018', u"'")
-                log.target_event_altered = log.target_event_altered.replace( u'\u2019', u"'")
-                log.target_event_altered = log.target_event_altered.replace( u'\u201c', u'"')
-                log.target_event_altered = log.target_event_altered.replace( u'\u201d', u'"')
-                log.target_event_altered.encode('utf-8')
-
-            if type(log.comment) is not 'NoneType':
-                log.comment = log.comment.replace( u'\u2018', u"'")
-                log.comment = log.comment.replace( u'\u2019', u"'")
-                log.comment = log.comment.replace( u'\u201c', u'"')
-                log.comment = log.comment.replace( u'\u201d', u'"')
-                log.comment.encode('utf-8')
+            log.comment.encode('utf-8').strip()
+            logging.info('COMMENT: %s' % log.comment)
 
             data = {
                 "Timestamp": datetime.strftime(log.created, '%m/%d/%Y %I:%M:%S %p'),
@@ -118,10 +90,19 @@ class AuditLogs(Controller):
 
         out = StringIO.StringIO()
         logs = AuditLogModel.fetch_date_range(fromdate, todate)
-        writer = csv.DictWriter(out, fieldnames=fields)
+        writer = UnicodeDictWriter(out, fields)
         writer.writeheader()
 
         for log in logs:
+            log.action.encode('utf-8').strip()
+            log.how_the_action_invoked.encode('utf-8').strip()
+            log.app_user_invoked_action.encode('utf-8').strip()
+            log.target_resource.encode('utf-8').strip()
+            log.target_event_altered.encode('utf-8').strip()
+
+            log.comment.encode('utf-8').strip()
+            logging.info('CRON COMMENT: %s' % log.comment)
+
             data = {
                 'Timestamp': datetime.strftime(log.created, '%m/%d/%Y %I:%M:%S %p'),
                 'The action performed': log.action,
