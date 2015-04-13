@@ -67,20 +67,20 @@ class Calendars(Controller):
     def api_list_resource(self, feed):
         data = {}
 
-        client = CalendarResourceClient(domain=oauth_config['domain'])
-        client.ClientLogin(email=oauth_config['default_user'], password=oauth_config['password'], source=APP_ID)
-
-        # creds = build_creds.build_credentials(
-        #     scope=[
-        #         "https://apps-apis.google.com/a/feeds/calendar/resource/"
-        #     ],
-        #     service_account_name=oauth_config['client_email'],
-        #     private_key=oauth_config['private_key'],
-        #     user=oauth_config['default_user']
-        # )
-        # auth2token = CreateToken(creds)
         # client = CalendarResourceClient(domain=oauth_config['domain'])
-        # auth2token.authorize(client)
+        # client.ClientLogin(email=oauth_config['default_user'], password=oauth_config['password'], source=APP_ID)
+
+        creds = build_creds.build_credentials(
+            scope=[
+                "https://apps-apis.google.com/a/feeds/calendar/resource/"
+            ],
+            service_account_name=oauth_config['client_email'],
+            private_key=oauth_config['private_key'],
+            user=oauth_config['default_user']
+        )
+        auth2token = CreateToken(creds)
+        client = CalendarResourceClient(domain=oauth_config['domain'])
+        auth2token.authorize(client)
 
         if feed == 'feed':
             calendar_resources = str(client.GetResourceFeed())
@@ -104,20 +104,20 @@ class Calendars(Controller):
     def api_create_resource(self):
         resultMessage = {}
 
-        client = CalendarResourceClient(domain=oauth_config['domain'])
-        client.ClientLogin(email=oauth_config['default_user'], password=oauth_config['password'], source=APP_ID)
-
-        # creds = build_creds.build_credentials(
-        #     scope=[
-        #         "https://apps-apis.google.com/a/feeds/calendar/resource/"
-        #     ],
-        #     service_account_name=oauth_config['client_email'],
-        #     private_key=oauth_config['private_key'],
-        #     user=oauth_config['default_user']
-        # )
-        # auth2token = CreateToken(creds)
         # client = CalendarResourceClient(domain=oauth_config['domain'])
-        # auth2token.authorize(client)
+        # client.ClientLogin(email=oauth_config['default_user'], password=oauth_config['password'], source=APP_ID)
+
+        creds = build_creds.build_credentials(
+            scope=[
+                "https://apps-apis.google.com/a/feeds/calendar/resource/"
+            ],
+            service_account_name=oauth_config['client_email'],
+            private_key=oauth_config['private_key'],
+            user=oauth_config['default_user']
+        )
+        auth2token = CreateToken(creds)
+        client = CalendarResourceClient(domain=oauth_config['domain'])
+        auth2token.authorize(client)
 
         resource = json.loads(self.request.body)
 
@@ -173,20 +173,20 @@ class Calendars(Controller):
     def api_update_resource(self):
         resultMessage = {}
         try:
-            client = CalendarResourceClient(domain=oauth_config['domain'])
-            client.ClientLogin(email=oauth_config['default_user'], password=oauth_config['password'], source=APP_ID)
-
-            # creds = build_creds.build_credentials(
-            #     scope=[
-            #         "https://apps-apis.google.com/a/feeds/calendar/resource/"
-            #     ],
-            #     service_account_name=oauth_config['client_email'],
-            #     private_key=oauth_config['private_key'],
-            #     user=oauth_config['default_user']
-            # )
-            # auth2token = CreateToken(creds)
             # client = CalendarResourceClient(domain=oauth_config['domain'])
-            # auth2token.authorize(client)
+            # client.ClientLogin(email=oauth_config['default_user'], password=oauth_config['password'], source=APP_ID)
+
+            creds = build_creds.build_credentials(
+                scope=[
+                    "https://apps-apis.google.com/a/feeds/calendar/resource/"
+                ],
+                service_account_name=oauth_config['client_email'],
+                private_key=oauth_config['private_key'],
+                user=oauth_config['default_user']
+            )
+            auth2token = CreateToken(creds)
+            client = CalendarResourceClient(domain=oauth_config['domain'])
+            auth2token.authorize(client)
 
             resource = json.loads(self.request.body)
 
@@ -230,20 +230,20 @@ class Calendars(Controller):
     def update_resource_calendar(self, resource, updates_params, current_user):
         params = {}
         nextpage = None
-        client = CalendarResourceClient(domain=oauth_config['domain'])
-        client.ClientLogin(email=oauth_config['default_user'], password=oauth_config['password'], source=APP_ID)
-
-        # creds = build_creds.build_credentials(
-        #     scope=[
-        #         "https://apps-apis.google.com/a/feeds/calendar/resource/"
-        #     ],
-        #     service_account_name=oauth_config['client_email'],
-        #     private_key=oauth_config['private_key'],
-        #     user=oauth_config['default_user']
-        # )
-        # auth2token = CreateToken(creds)
         # client = CalendarResourceClient(domain=oauth_config['domain'])
-        # auth2token.authorize(client)
+        # client.ClientLogin(email=oauth_config['default_user'], password=oauth_config['password'], source=APP_ID)
+
+        creds = build_creds.build_credentials(
+            scope=[
+                "https://apps-apis.google.com/a/feeds/calendar/resource/"
+            ],
+            service_account_name=oauth_config['client_email'],
+            private_key=oauth_config['private_key'],
+            user=oauth_config['default_user']
+        )
+        auth2token = CreateToken(creds)
+        client = CalendarResourceClient(domain=oauth_config['domain'])
+        auth2token.authorize(client)
 
         while True:
             if nextpage:
