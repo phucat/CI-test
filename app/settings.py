@@ -46,27 +46,26 @@ settings['oauth2'] = {
 settings['oauth2_service_account'] = {
     # OAuth2 service account configuration should be generated
     # from the google cloud console (Service Account Credentials)
-    'client_email': '61726108322-6jprbbvjrge9m5e6uqknskg534hgra8g@developer.gserviceaccount.com',  # XXX@developer.gserviceaccount.com
+    'client_email': '61726108322-7gnl78qvf5b4iudpk6e7l9rb9totacjs@developer.gserviceaccount.com',  # XXX@developer.gserviceaccount.com
     'private_key': """-----BEGIN PRIVATE KEY-----
-MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBALCUhVrvCi6e061i
-yyuusNKuqUUPaia/NmN3W0/Je81Vo7wJSMIj4VGrioL3/6TZF8a12NxFyYSXoZwn
-4qTXXopDYOi7c7AuLSH001Hc+4y/WYruZKSCIsB/ZbUmKzOAMcYjG3AscAS/VTFc
-RJE++odGW1nCV9TLRGBY39qYTd+DAgMBAAECgYA2hpYrPzcIsFiy6JfONFI7rF1u
-itT/g/n6eufCWngVLsWxkbha4pN4EZ1i1cumDrdNz+dYFWClxeDMhHBy8GIrkjrR
-T72LkAhkgkDUw3tRhesoo+FuIxH5ICUQ5Ut+4IRo3AbPAxazz3WHVGkoGVg/a/1o
-9+8s/o7mzonieUO7UQJBAN1fstcrssKw3jzdEUmfd8SW+1xX1+zXKeu6mBR++jVE
-FN2Wq8gfDwy6mHPBc7IdXI/lXqbHumwjcoY2Yj06qqkCQQDMMy8nodO7ASWdqHdy
-ogL5ts1DuD7lUYGGjD8uiQqtSsEkVDcxWkWBTVvFZulzaFVg5dInqs7qyXlpQK00
-uuBLAkEAtJiy1LkQj6Ys16hdxxsyYQ3vKCl9vPjXeTjzgp0IUFYnU5Lst0knRPIh
-FyY11ZQAhF/R9Oux2TCd6IILaPooaQJBAKIrxDdlfhH2Rzl+od6YbGSFmV8+5DSb
-FpMUrtj2XVRjGiEQAQVg+/JEza1ond7Z7XSXEOAP92TfvVyp0OUfxSECQHfNs6yB
-L7iWJhp8JLq1qbg7DbjKNyndB3xU8JDnvGMCkMwVB17V4mIdBYvim7jIxrzuFYPI
-1+/1D9yG+2L+PVA=
+MIICdQIBADANBgkqhkiG9w0BAQEFAASCAl8wggJbAgEAAoGBAL3kfZbZC2maFrkc
+7BoOWc5nvETUItuPYPwc4qmSpexA6lrWgx1po00jjYe7ZZSaFJgBMn+iBherEGxZ
+ELwV8RV9tZkWpBuUkc3jHGZtUiYF9I8eMXnXTq32qLXA5+150isuNMfVgzMuE37X
+pUa8k9rOT5fylma1jYneiCgYfz+FAgMBAAECgYArN0wJv52kS+gt+tIU3/06R0uG
+kozYURouZliDZReT2/Y59CXk1LzQem3kXRayKhrTuToH6BTg4BKdxetUEt5Js/Tx
+CscCAqnZJvMZATf087ZW0kTtVyoB2Hkk9kJlv9OEY2k2DNWpNBdGD6Jlgv54xxgT
+Zv3oS4y6NVHoVUPcgQJBAPO3CZKEqveYMxUlwAsOW8S46v5ncEKvUdbUuxX0d7/Z
+cH+K5L/0Su8EeJ8wkUh940YDew1hX7+P6zkiQAq3k2ECQQDHduoCWHHn93Zedlmw
+os5//xhDFSLlUkJjKY0RtI3NuQNWov8T6lsg9k498MRlg5ABzaP5a8IOmnfE24lt
+FoKlAkB/qRw5hIbtxOrVI/4RjIbjaB2n/1TdiWpsBuis2m6zrtlv5bhnGDb8NrJc
+aJthhpe7P+2AF8aI2IFVXyx+sKRhAkAWBR+yYJc6l4wew4wFPwPzB3NjPHscu+cO
+UXD8amVZN7qRnu7wAOhMjER4/BKCbnLAcDZQ+79xo0XjmqTiQSDtAkBVJIIaoOd8
+cXTvclD9VA5QhJp3corbMmNpS5KJ38mTSSeXYRXl1T0oIx/0zfym27mgocEjU7RG
+FbBGI6dxBm4s
 -----END PRIVATE KEY-----""",  # Must be in PEM format
     'developer_key': 'AIzaSyBkMhZAbepklUuV5ZXrzPDdu5zOSSRUhZA',  # Optional
     'domain': 'arista.com',
-    'default_user': 'sherpa_bot@arista.com',
-    'password': 'ar1sc1oudca1'
+    'default_user': 'sherpa_bot@arista.com'
 }
 
 settings['upload'] = {
@@ -87,7 +86,6 @@ settings['appstats'] = {
 settings['google_directory'] = {
     'domain': 'arista.com'
 }
-
 
 # Optionally, you may use the settings plugin to dynamically
 # configure your settings via the admin interface. Be sure to
