@@ -104,9 +104,6 @@ class Calendars(Controller):
     def api_create_resource(self):
         resultMessage = {}
 
-        # client = CalendarResourceClient(domain=oauth_config['domain'])
-        # client.ClientLogin(email=oauth_config['default_user'], password=oauth_config['password'], source=APP_ID)
-
         creds = build_creds.build_credentials(
             scope=[
                 "https://apps-apis.google.com/a/feeds/calendar/resource/"
@@ -146,7 +143,21 @@ class Calendars(Controller):
             res = self.components.calendars.find_resource(str(calendar_resource))
 
             action = 'A new Calendar Resource has been created'
-            insert_audit_log(action, 'add new resource', self.session['current_user'], resource['resourceCommonName'], None, '')
+            insert_audit_log(
+                """
+                    A new Calendar Resource has been created.
+                    Resource ID: %s
+                    Resource Name: %s
+                    Resource Type: %s
+                    Resource Description: %s """
+                % (
+                    resource['resourceId'],
+                    resource['resourceCommonName'],
+                    resource['resourceType'],
+                    resource['resourceDescription']),
+                'add new resource',
+                self.session['current_user'],
+                resource['resourceCommonName'], None, '')
 
             # AuditLogModel.new_resource_notification(config['email'], current_user.nickname(), resource)
 
@@ -155,26 +166,13 @@ class Calendars(Controller):
             self.context['data'] = resultMessage
 
         except Exception as e:
-            logging.info(e)
-            # xml = str(e).split(',')
-            # xml = xml[1]
-            # sxml = xml.strip()
-
-            # root = ET.fromstring(str(sxml))
-
-            # for err in root.iter('error'):
-            #     return err.get('errorCode')
-
+            logging.info('create resource failed', e)
             return 406
-            # resultMessage['error'] = "There is an existing Resource with that ID"
-            # self.context['data'] = resultMessage
 
     @route_with(template='/api/calendar/resource/update', methods=['POST'])
     def api_update_resource(self):
         resultMessage = {}
         try:
-            # client = CalendarResourceClient(domain=oauth_config['domain'])
-            # client.ClientLogin(email=oauth_config['default_user'], password=oauth_config['password'], source=APP_ID)
             current_user = users.get_current_user()
             creds = build_creds.build_credentials(
                 scope=[
