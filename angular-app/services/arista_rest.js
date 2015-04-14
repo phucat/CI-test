@@ -25,7 +25,8 @@ factory('aristaREST', function($http) {
         else{
             feed = 'feed';
         }
-        return $http.get('/api/calendar/resource/' + feed);
+        //return $http.get('/api/calendar/resource/' + feed);
+        return $http.get('/api/calendar/resource_memcache');
     };
 
     service.get_all_events = function (){

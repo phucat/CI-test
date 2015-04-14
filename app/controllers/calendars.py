@@ -97,7 +97,14 @@ class Calendars(Controller):
 
     @route_with(template='/api/calendar/resource_memcache', methods=['GET'])
     def api_list_resource2(self):
-        data = self.components.calendars.list_resource_memcache()
+        data = {}
+        resource_list = memcache.get('resource_list')
+        if resource_list is None:
+            resource_list = self.components.calendars.list_resource_memcache()
+
+        data['items'] = resource_list
+        data['next'] = None
+        data['previous'] = None
         self.context['data'] = data
 
     @route_with(template='/api/calendar/resource/create', methods=['POST'])

@@ -47,10 +47,10 @@ class Calendars(object):
             if not nextpage:
                 break
 
-        sortedResource = sorted(result, key=lambda resource: resource['resourceCommonName'])
+        # sortedResource = sorted(result, key=lambda resource: resource['resourceCommonName'])
 
-        memcache.add('resource_list', sortedResource, 600)
-        return sortedResource
+        memcache.add('resource_list', result, 600)
+        return result
 
     def find_resource(self, resource):
         res = []

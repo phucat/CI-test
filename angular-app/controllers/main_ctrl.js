@@ -10,14 +10,14 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
     $scope.load_identity();
 
     $scope.users = [];
-    var users_search = []
+    var users_search = [];
 
     var users = function (){
         $scope.loader = true;
         aristaREST.get_all_users()
         .success(function(data, status, headers, config){
             users_search = data.slice(0);
-            $log.info('success users',data);
+            //$log.info('success users',data);
             $scope.loader = false;
         }).error(function(data, status, headers, config){
             $scope.users = {};
@@ -216,4 +216,87 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
     $scope.save = function(){
        $scope.callback($scope.model);
     };
+}).controller('ResourceTableCtrl', function($log, $window, $scope, $rootScope,aristaFactory, aristaREST, pubsub, loading){
+    "use_strict";
+
+    $scope.itemsPerPage = 50;
+    $scope.currentPage = 0;
+
+    $scope.range = function() {
+        var rangeSize = ($scope.pageCount() >= 10) ? 10 : $scope.pageCount();
+        var ret = [];
+        var start;
+
+        start = $scope.currentPage;
+        if ( start > $scope.pageCount()-rangeSize ) {
+          start = $scope.pageCount()-rangeSize;
+        }
+
+        for (var i=start; i<start+rangeSize; i++) {
+          ret.push(i);
+        }
+        return ret;
+    };
+
+
+    $scope.prevPage = function() {
+        $scope.identity_loading = loading.new();
+        if ($scope.currentPage > 0) {
+          $scope.currentPage--;
+        }
+    };
+
+    $scope.prevPageDisabled = function() {
+        return $scope.currentPage === 0 ? "disabled" : "";
+    };
+
+    $scope.nextPage = function() {
+        $scope.identity_loading = loading.new();
+        if ($scope.currentPage < $scope.pageCount() - 1) {
+          $scope.currentPage++;
+        }
+    };
+
+    $scope.nextPageDisabled = function() {
+        return $scope.currentPage === $scope.pageCount() - 1 ? "disabled" : "";
+    };
+
+    $scope.pageCount = function() {
+        return Math.ceil($scope.total/$scope.itemsPerPage);
+    };
+
+    $scope.setPage = function(n) {
+        if (n > 0 && n < $scope.pageCount()) {
+          $scope.currentPage = n;
+        }
+    };
+
+    var promise = aristaFactory.resource_list('feed');
+        promise.then(
+        function(payload) {
+            $scope.pagedItems = aristaFactory.get($scope.itemsPerPage, $scope.itemsPerPage);
+            $scope.total = aristaFactory.total();
+        },
+        function(errorPayload) {
+
+            $log.error(errorPayload.status);
+            $log.error('failed', errorPayload);
+
+        });
+
+    $scope.$watch("currentPage", function(newValue, oldValue) {
+        if ($scope.pagedItems){
+            $scope.pagedItems = aristaFactory.get(newValue*$scope.itemsPerPage, $scope.itemsPerPage);
+            $scope.total = aristaFactory.total();
+
+            console.log('page items',$scope.pagedItems);
+            console.log('page count',$scope.pageCount);
+            console.log('next_page',$scope.nextPage);
+            console.log('previous_page',$scope.previousPage);
+            console.log('current_page',$scope.currentPage);
+        }
+
+    });
+
+
 });

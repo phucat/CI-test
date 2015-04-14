@@ -29,7 +29,7 @@
                 </div>
             </div>
 
-            <div class="wrapper">
+            <div class="wrapper" ng-controller="ResourceTableCtrl">
                 <header class="header">
                     <h1 class="page-title">
                         <span>Resource Manager</span>
@@ -39,38 +39,53 @@
                     <button class="btn btn-default" tabindex="6" ng-click="show_resourceModal({},'Create new resource')">Add New Resource</button>
                     <br/><br/>
                     <div class="table-responsive">
-                        <ul class="pager pager-list">
+                        <nav>
+                            <ul class="pagination" style="padding-left: 32%;">
+                            <!-- <ul class="pager pager-list"> -->
 
-                            <li class="previous" ng-class="{disabled: !previous_page}"
-                                ng-if="previous_page == '' ">
-                                    <a href tabindex="7">
-                                        <i class="fa fa-angle-left">Previous</i>
+                                <!-- <li class="previous" ng-class="{disabled: !previous_page}"
+                                    ng-if="previous_page == '' ">
+                                        <a href tabindex="7">
+                                            <i class="fa fa-angle-left">Previous</i>
+                                        </a>
+                                </li>
+                                <li class="previous" ng-class="{disabled: !previous_page}"
+                                    ng-if="previous_page != '' ">
+                                        <a href tabindex="7" ng-click="cal_resources(previous_page)" role="button">
+                                            <i class="fa fa-angle-left">Previous</i>
+                                        </a>
+                                </li>
+                                <label for="search">Search</label>
+                                <input type="text"  ng-model="searchText" placeholder="Resource Name">
+
+                                <li class="next" ng-class="{disabled: !next_page}"  ng-if="next_page == '' ">
+                                    <a href tabindex="8">
+                                        <i class="fa fa-angle-right">Next</i>
                                     </a>
-                            </li>
-                            <li class="previous" ng-class="{disabled: !previous_page}"
-                                ng-if="previous_page != '' ">
-                                    <a href tabindex="7" ng-click="cal_resources(previous_page)" role="button">
-                                        <i class="fa fa-angle-left">Previous</i>
+                                </li>
+
+                                <li class="next" ng-class="{disabled: !next_page}" ng-if="next_page != '' ">
+                                    <a href ng-click="cal_resources(next_page)" tabindex="8">
+                                        <i class="fa fa-angle-right">Next</i>
                                     </a>
-                            </li>
-
-                            <li class="next" ng-class="{disabled: !next_page}"  ng-if="next_page == '' ">
-                                <a href tabindex="8">
-                                    <i class="fa fa-angle-right">Next</i>
-                                </a>
-                            </li>
-
-                            <li class="next" ng-class="{disabled: !next_page}" ng-if="next_page != '' ">
-                                <a href ng-click="cal_resources(next_page)" tabindex="8">
-                                    <i class="fa fa-angle-right">Next</i>
-                                </a>
-                            </li>
-                        </ul>
+                                </li> -->
+                                <li ng-class="prevPageDisabled()">
+                                    <a href ng-click="prevPage()">« Prev</a>
+                                </li>
+                                <li ng-repeat="n in range()" ng-class="{active: n == currentPage}" ng-click="setPage(n)">
+                                    <a href>{{n+1}}</a>
+                                </li>
+                                <li ng-class="nextPageDisabled()">
+                                    <a href ng-click="nextPage()">Next »</a>
+                                </li>
+                            </ul>
+                        </nav>
                         <table class="table table-striped table-hover">
                             <thead>
                                 <tr>
                                     <th>Resource ID</th>
                                     <th>Resource Name</th>
+                                    <th>Resource Type</th>
                                     <th>Resource Description</th>
                                 </tr>
                             </thead>
@@ -78,41 +93,57 @@
                                 <tr ng-if="calendar_resources.length < 1">
                                     <td colspan="3"><img src="/static/img/ajax-loader.gif" /></td>
                                 </tr>
-                                <tr style="cursor:pointer;" ng-repeat="model in calendar_resources" ng-click="show_resourceModal(model,'Update resource')">
+                                <tr style="cursor:pointer;" ng-repeat="model in pagedItems" ng-click="show_resourceModal(model,'Update resource')">
                                     <td>{{model.resourceId}}</td>
                                     <td>{{model.resourceCommonName}}</td>
+                                    <td>{{model.resourceType}}</td>
                                     <td>{{model.resourceDescription}}</td>
                                 </tr>
                             </tbody>
                         </table>
 
-                        <ul class="pager pager-list">
+                        <nav>
+                            <ul class="pagination" style="padding-left: 32%;">
+                            <!-- <ul class="pager pager-list"> -->
 
-                            <li class="previous" ng-class="{disabled: !previous_page}"
-                                ng-if="previous_page == '' ">
-                                    <a href tabindex="7">
-                                        <i class="fa fa-angle-left">Previous</i>
+                                <!-- <li class="previous" ng-class="{disabled: !previous_page}"
+                                    ng-if="previous_page == '' ">
+                                        <a href tabindex="7">
+                                            <i class="fa fa-angle-left">Previous</i>
+                                        </a>
+                                </li>
+                                <li class="previous" ng-class="{disabled: !previous_page}"
+                                    ng-if="previous_page != '' ">
+                                        <a href tabindex="7" ng-click="cal_resources(previous_page)" role="button">
+                                            <i class="fa fa-angle-left">Previous</i>
+                                        </a>
+                                </li>
+                                <label for="search">Search</label>
+                                <input type="text"  ng-model="searchText" placeholder="Resource Name">
+
+                                <li class="next" ng-class="{disabled: !next_page}"  ng-if="next_page == '' ">
+                                    <a href tabindex="8">
+                                        <i class="fa fa-angle-right">Next</i>
                                     </a>
-                            </li>
-                            <li class="previous" ng-class="{disabled: !previous_page}"
-                                ng-if="previous_page != '' ">
-                                    <a href tabindex="7" ng-click="cal_resources(previous_page)" role="button">
-                                        <i class="fa fa-angle-left">Previous</i>
+                                </li>
+
+                                <li class="next" ng-class="{disabled: !next_page}" ng-if="next_page != '' ">
+                                    <a href ng-click="cal_resources(next_page)" tabindex="8">
+                                        <i class="fa fa-angle-right">Next</i>
                                     </a>
-                            </li>
+                                </li> -->
 
-                            <li class="next" ng-class="{disabled: !next_page}"  ng-if="next_page == '' ">
-                                <a href tabindex="8">
-                                    <i class="fa fa-angle-right">Next</i>
-                                </a>
-                            </li>
-
-                            <li class="next" ng-class="{disabled: !next_page}" ng-if="next_page != '' ">
-                                <a href ng-click="cal_resources(next_page)" tabindex="8">
-                                    <i class="fa fa-angle-right">Next</i>
-                                </a>
-                            </li>
-                        </ul>
+                                <li ng-class="prevPageDisabled()">
+                                    <a href ng-click="prevPage()">« Prev</a>
+                                </li>
+                                <li ng-repeat="n in range()" ng-class="{active: n == currentPage}" ng-click="setPage(n)">
+                                    <a href>{{n+1}}</a>
+                                </li>
+                                <li ng-class="nextPageDisabled()">
+                                    <a href ng-click="nextPage()">Next »</a>
+                                </li>
+                            </ul>
+                        </nav>
                     </div>
                 </div>
             </div>

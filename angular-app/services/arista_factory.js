@@ -38,5 +38,25 @@ factory('aristaFactory', function($window, $log, $http, aristaREST){
         return count;
     };
 
+    service.resource_list = function(feed){
+        return aristaREST.get_all_resources(feed)
+        .success(function(d, status, headers, config){
+            count = (d.items !== undefined) ? d.items.length : 0;
+            if (count > 0) list = d.items;
+
+        }).error(function(d, status, headers, config){
+            list = [];
+        });
+    }
+
+    service.get = function(offset, limit){
+        console.log('get', list );
+        return list.slice(offset, offset+limit);
+    }
+
+    service.total= function() {
+        return count;
+    }
+
     return service;
 });
