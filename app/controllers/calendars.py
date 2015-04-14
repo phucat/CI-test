@@ -175,7 +175,7 @@ class Calendars(Controller):
         try:
             # client = CalendarResourceClient(domain=oauth_config['domain'])
             # client.ClientLogin(email=oauth_config['default_user'], password=oauth_config['password'], source=APP_ID)
-
+            current_user = users.get_current_user()
             creds = build_creds.build_credentials(
                 scope=[
                     "https://apps-apis.google.com/a/feeds/calendar/resource/"
@@ -200,16 +200,27 @@ class Calendars(Controller):
 
             res = self.components.calendars.find_resource(str(calendar_resource_email))
 
+            insert_audit_log(
+                """
+                    Resource has been updated.
+                    Resource ID: %s
+                    Resource Name: %s
+                    Resource Type: %s
+                    Resource Description: %s """
+                % (
+                    resource['resourceId'],
+                    resource['resourceCommonName'],
+                    resource['resourceType'],
+                    resource['resourceDescription']),
+                'resource manager',
+                current_user.email(),
+                '%s resource name' % resource['old_resourceCommonName'],
+                '-', '')
+
             resultMessage['message'] = 'The app is in the process of updating the calendar.'
             resultMessage['items'] = res
             self.context['data'] = resultMessage
 
-            # updates_params = {
-            #     'resourceDescription': resource['resourceDescription'],
-            #     'resourceType': resource['resourceType']
-            # }
-
-            # deferred.defer(self.update_resource_calendar, resource, updates_params, self.session['current_user'])
             resource['new_email'] = res[0]['resourceEmail']
 
             find = ProcessedUsers.query(ProcessedUsers.resource == resource['old_resourceCommonName']).count()
@@ -218,7 +229,7 @@ class Calendars(Controller):
                 logging.info('REMOVE FIND: %s' % find)
                 ProcessedUsers.remove({'resource': resource['old_resourceCommonName']})
             logging.info('TOTAL : %s' % ProcessedUsers.query().count())
-            current_user = users.get_current_user()
+
             deferred.defer(self.process_update_resource, resource, current_user.email(), _queue="uiUpdateResource")
         except urllib2.HTTPError as e:
             logging.info('get_all_events: HTTPerror')
