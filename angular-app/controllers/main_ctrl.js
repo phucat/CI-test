@@ -115,12 +115,12 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
                             $window.alert("There is an existing Resource with that Name");
                         }
                         else{
-                            $window.alert('Server Error.');
+                            $window.alert('There was an error when attempting to connect to the Resource API. Please wait a few moments and try again.');
                         }
 
                         $scope.show_resourceModal(r,'Create new resource');
                         $log.error(errorPayload.status);
-                        $log.error('failed', errorPayload);
+                        $log.error('create resource failed', errorPayload);
 
                     });
             }
@@ -140,15 +140,8 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
                     $log.info('success', d);
                     $window.alert(d.message);
                 }).error(function(d){
-                    $log.error('failed', d);
-                    if(d.code == 500)
-                    {
-                        $window.alert("There was an error when attempting to connect to the Resource API. Please wait a few moments and try again.");
-                    }
-                    else{
-                        $window.alert(d.error);
-                    }
-
+                    $log.error('Update resource failed', d);
+                    $window.alert("There was an error when attempting to connect to the Resource API. Please wait a few moments and try again.");
                 });
             }
         });
@@ -168,7 +161,7 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
                     $scope.loader = false;
                     $window.alert(d.message);
                 }).error(function(d){
-                    $log.info(d);
+                    $log.info('remove user failed',d);
                     $window.alert('There was an error when attempting to connect to the server. Please wait a few moments and try again.');
                 });
             });
