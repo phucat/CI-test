@@ -198,36 +198,10 @@ class Calendars(Controller):
 
             res = self.components.calendars.find_resource(str(calendar_resource_email))
 
-            insert_audit_log(
-                """
-                    Resource has been updated.
-                    Resource ID: %s
-                    Resource Name: %s
-                    Resource Type: %s
-                    Resource Description: %s """
-                % (
-                    resource['resourceId'],
-                    resource['resourceCommonName'],
-                    resource['resourceType'],
-                    resource['resourceDescription']),
-                'resource manager',
-                current_user.email(),
-                '%s resource name' % resource['old_resourceCommonName'],
-                '-', '')
-
             resultMessage['message'] = 'The app is in the process of updating the calendar.'
             resultMessage['items'] = res
             self.context['data'] = resultMessage
-
             resource['new_email'] = res[0]['resourceEmail']
-
-            find = ProcessedUsers.query(ProcessedUsers.resource == resource['old_resourceCommonName']).count()
-            logging.info('FIND: %s' % find)
-            if find:
-                logging.info('REMOVE FIND: %s' % find)
-                ProcessedUsers.remove({'resource': resource['old_resourceCommonName']})
-            logging.info('TOTAL : %s' % ProcessedUsers.query().count())
-
             deferred.defer(self.process_update_resource, resource, current_user.email(), _queue="uiUpdateResource")
         except urllib2.HTTPError as e:
             logging.info('get_all_events: HTTPerror')
@@ -282,6 +256,30 @@ class Calendars(Controller):
 
     @classmethod
     def process_update_resource(self, resource, current_user):
+        insert_audit_log(
+            """
+                Resource has been updated.
+                Resource ID: %s
+                Resource Name: %s
+                Resource Type: %s
+                Resource Description: %s """
+            % (
+                resource['resourceId'],
+                resource['resourceCommonName'],
+                resource['resourceType'],
+                resource['resourceDescription']),
+            'resource manager',
+            current_user,
+            '%s resource name' % resource['old_resourceCommonName'],
+            '-', '')
+
+        find = ProcessedUsers.query(ProcessedUsers.resource == resource['old_resourceCommonName']).count()
+        logging.info('FIND: %s' % find)
+        if find:
+            logging.info('REMOVE FIND: %s' % find)
+            ProcessedUsers.remove({'resource': resource['old_resourceCommonName']})
+        logging.info('TOTAL : %s' % ProcessedUsers.query().count())
+
         users_email = google_directory.get_all_users_cached()
         for user_email in users_email:
             deferred.defer(self.get_resource_events, user_email['primaryEmail'], resource['old_resourceCommonName'], '', resource, True, current_user, _countdown=1, _queue="processUpdateResource")
