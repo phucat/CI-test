@@ -166,7 +166,7 @@ class Calendars(Controller):
             self.context['data'] = resultMessage
 
         except Exception as e:
-            logging.info('create resource failed', e)
+            logging.info('create resource failed: %s' % e)
             return 406
 
     @route_with(template='/api/calendar/resource/update', methods=['POST'])
