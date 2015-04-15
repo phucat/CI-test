@@ -329,10 +329,12 @@ class Calendars(Controller):
                 events, pageToken = calendar_api.get_all_events(user_email, selectedEmail, pageToken)
                 if events is not None:
                     event_id_pool = []
+                    logging.info('RESOURCE ROOM 2: %s' % events)
                     for event in events['items']:
                         find = ProcessedUsers.get_by_id(event['id'])
                         if not find:
-                            logging.info('NOT YET PROCESSED: %s | id: %s ' % (find, event['id']))
+                            logging.info('RESOURCE ROOM 2: %s' % event['summary'])
+                            logging.info('NOT YET PROCESSED 2: %s | id: %s ' % (find, event['id']))
                             ProcessedUsers.create({'resource': resource_params['resourceCommonName'], 'eventId': event['id']})
                             logging.info('CALENDAR OWNER: %s' % user_email)
                             deferred.defer(self.get_events, event, user_email, selectedEmail, comment, resource_params, resource, current_user_email, event_id_pool, _queue="getResourceEvent")
@@ -527,7 +529,11 @@ class Calendars(Controller):
                     attendees_list.append(attendee['email'])
                     resource_list.append({'email': attendee['email']})
 
-        logging.info('FILTER LOCATION 1: %s' % user_email)
+        logging.info('FILTER LOCATION 2: %s' % user_email)
+        if 'displayName' in event['organizer']:
+            organizerName = event['organizer']['displayName']
+        else:
+            organizerName = event['organizer']['email']
 
         if resource_params['resourceCommonName'] != resource_params['old_resourceCommonName']:
 
@@ -546,7 +552,7 @@ class Calendars(Controller):
                 'user_email': user_email,
                 'summary': event['summary'],
                 'organizerEmail': event['organizer']['email'],
-                'organizerName': event['organizer']['displayName'],
+                'organizerName': organizerName,
                 'event_link': event['htmlLink'],
                 'attendeesEmail': attendees_list,
                 'body': params_body,
@@ -560,7 +566,7 @@ class Calendars(Controller):
                 'user_email': user_email,
                 'summary': event['summary'],
                 'organizerEmail': event['organizer']['email'],
-                'organizerName': event['organizer']['displayName'],
+                'organizerName': organizerName,
                 'event_link': event['htmlLink'],
                 'attendeesEmail': attendees_list,
                 'resource': resource_params

@@ -34,11 +34,12 @@ def get_all_events(email, selectedEmail, page_token=None):
 
         events = calendar.events().list(**param).execute()
 
-        if not page_token:
-            response = events
-        else:
-            response['items'].extend(events['items'])
+        # if not page_token:
+        #     response = events
+        # else:
+        #     response['items'].extend(events['items'])
 
+        response = events
         # logging.info("google event response ==> %s" % response)
 
         page_token = events.get('nextPageToken')
