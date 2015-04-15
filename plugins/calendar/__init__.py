@@ -33,7 +33,6 @@ def get_all_events(email, selectedEmail, page_token=None):
         param = {'calendarId': email, 'timeZone': 'GMT', 'singleEvents': False, 'q': selectedEmail, 'pageToken': page_token}
 
         events = calendar.events().list(**param).execute()
-
         # if not page_token:
         #     response = events
         # else:
