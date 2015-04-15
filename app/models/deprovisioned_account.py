@@ -31,7 +31,7 @@ class DeprovisionedAccount(BasicModel):
         body = """
          Hello,
 
-            This notice is to let you know that %s the owner of the %s has failed to be removed due to having participants on the Event.
+            This notice is to let you know that user "%s", the owner of the "%s" event, has failed to be removed due to having participants on the event.
             Please review this event and make different plans if necessary.
 
             %s

@@ -202,57 +202,13 @@ class Calendars(Controller):
             resultMessage['items'] = res
             self.context['data'] = resultMessage
             resource['new_email'] = res[0]['resourceEmail']
-            deferred.defer(self.process_update_resource, resource, current_user.email(), _queue="uiUpdateResource")
+            sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
+            deferred.defer(self.process_update_resource, resource, current_user.email(), _queue=sharded)
         except urllib2.HTTPError as e:
             logging.info('get_all_events: HTTPerror')
             logging.info(e.code)
             if e.code == 401:
                 pass
-
-    @classmethod
-    def update_resource_calendar(self, resource, updates_params, current_user):
-        params = {}
-        nextpage = None
-        # client = CalendarResourceClient(domain=oauth_config['domain'])
-        # client.ClientLogin(email=oauth_config['default_user'], password=oauth_config['password'], source=APP_ID)
-
-        creds = build_creds.build_credentials(
-            scope=[
-                "https://apps-apis.google.com/a/feeds/calendar/resource/"
-            ],
-            service_account_name=oauth_config['client_email'],
-            private_key=oauth_config['private_key'],
-            user=oauth_config['default_user']
-        )
-        auth2token = CreateToken(creds)
-        client = CalendarResourceClient(domain=oauth_config['domain'])
-        auth2token.authorize(client)
-
-        while True:
-            if nextpage:
-                params['uri'] = nextpage
-
-            calendar_resources = str(client.GetResourceFeed(**params))
-            nextpage, res = find_resource(calendar_resources)
-
-            for apiResource in res:
-                if apiResource['resourceId'] == resource['resourceId']:
-                    updates_params['resourceId'] = resource['resourceId']
-
-                    if 'resourceDescription' in apiResource and 'resourceDescription' in resource :
-                        if apiResource['resourceDescription'] != resource['resourceDescription']:
-                            updates_params['resourceDescription'] = resource['resourceDescription']
-
-                    if 'resourceType' in apiResource and 'resourceType' in resource :
-                        if apiResource['resourceType'] != resource['resourceType']:
-                            updates_params['resourceType'] = resource['resourceType']
-                    break
-
-            if not nextpage:
-                break
-
-        resource['updates'] = updates_params
-        self.process_update_resource(resource, current_user)
 
     @classmethod
     def process_update_resource(self, resource, current_user):
@@ -282,7 +238,8 @@ class Calendars(Controller):
 
         users_email = google_directory.get_all_users_cached()
         for user_email in users_email:
-            deferred.defer(self.get_resource_events, user_email['primaryEmail'], resource['old_resourceCommonName'], '', resource, True, current_user, _countdown=1, _queue="processUpdateResource")
+            sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
+            deferred.defer(self.get_resource_events, user_email['primaryEmail'], resource['old_resourceCommonName'], '', resource, True, current_user, _countdown=1, _queue=sharded)
 
     @route_with('/api/calendar/remove_user/events/<selectedEmail>', methods=['POST'])
     def api_remove_users_events(self, selectedEmail):
@@ -296,7 +253,8 @@ class Calendars(Controller):
         self.context['data'] = resultMessage
 
         current_user = users.get_current_user()
-        deferred.defer(self.get_all_events, selectedEmail, selectedEmail, comment, '', False, current_user.email(), _queue="uiRemoveUsers")
+        sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
+        deferred.defer(self.get_all_events, selectedEmail, selectedEmail, comment, '', False, current_user.email(), _queue=sharded)
 
     @route_with(template='/api/schedule/update/user', methods=['POST'])
     def api_update_user_status(self):
@@ -312,7 +270,8 @@ class Calendars(Controller):
 
                 approved_user = {'email': params['email'], 'status': True}
                 DeprovisionedAccount.create(approved_user)
-                deferred.defer(self.get_all_events, params['email'], params['email'], '', '', False, self.session['current_user'], _queue="updateUserStatus")
+                sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
+                deferred.defer(self.get_all_events, params['email'], params['email'], '', '', False, self.session['current_user'], _queue=sharded)
 
             elif params['status'] == 'Cancel':
                 params['status'] += 'led'
@@ -324,23 +283,44 @@ class Calendars(Controller):
     @classmethod
     def get_resource_events(self, user_email, selectedEmail, comment, resource_params, resource=False, current_user_email=''):
         pageToken = None
+        event_id_pool = []
         try:
             while True:
                 events, pageToken = calendar_api.get_all_events(user_email, selectedEmail, pageToken)
                 if events is not None:
-                    event_id_pool = []
                     logging.info('RESOURCE ROOM 2: %s' % events)
                     for event in events['items']:
                         if event['status'] == 'cancelled':
-                            pass
-                        else:
-                            find = ProcessedUsers.get_by_id(event['id'])
-                            if not find:
-                                logging.info('RESOURCE ROOM 2: %s' % event['summary'])
-                                logging.info('NOT YET PROCESSED 2: %s | id: %s ' % (find, event['id']))
-                                ProcessedUsers.create({'resource': resource_params['resourceCommonName'], 'eventId': event['id']})
-                                logging.info('CALENDAR OWNER: %s' % user_email)
-                                deferred.defer(self.get_events, event, user_email, selectedEmail, comment, resource_params, resource, current_user_email, event_id_pool, _queue="getResourceEvent")
+                            continue
+                        if 'recurringEventId' in event:
+                            event['id'] = event['recurringEventId']
+
+                        find = ProcessedUsers.get_by_id(event['id'])
+                        if not find:
+                            logging.info('NOT YET PROCESSED 2: %s | id: %s ' % (find, event['id']))
+                            ProcessedUsers.create({'resource': resource_params['resourceCommonName'], 'eventId': event['id']})
+                            logging.info('CALENDAR OWNER: %s' % user_email)
+                            if 'start' in event:
+                                if 'dateTime' in event['start']:
+                                    current_date = time.time()
+                                    startDate = rfc3339.strtotimestamp(event['start']['dateTime'])
+                                elif 'date' in event['start']:
+                                    current_date = str(datetime.date.today())
+                                    startDate = event['start']['date']
+
+                                sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
+
+                                if 'recurringEventId' in event:
+                                    logging.info('RECURRING EVENT ID: %s' % event_id_pool)
+                                    if event['recurringEventId'] not in event_id_pool:
+                                        event_id_pool.append(event['recurringEventId'])
+
+                                        deferred.defer(self.get_events, event, user_email, selectedEmail, comment, resource_params, resource, current_user_email, event_id_pool, _queue=sharded)
+                                else:
+                                    if startDate >= current_date:
+                                        deferred.defer(self.get_events, event, user_email, selectedEmail, comment, resource_params, resource, current_user_email, event_id_pool, _queue=sharded)
+                            else:
+                                pass
 
                 if not pageToken:
                     break
@@ -352,16 +332,35 @@ class Calendars(Controller):
     @classmethod
     def get_all_events(self, user_email, selectedEmail, comment, resource_params, resource=False, current_user_email=''):
         pageToken = None
+        event_id_pool = []
         while True:
             try:
                 events, pageToken = calendar_api.get_all_events(user_email, selectedEmail, pageToken)
                 if events is not None:
-                    event_id_pool = []
                     for event in events['items']:
                         if event['status'] == 'cancelled':
                             pass
                         else:
-                            deferred.defer(self.get_events, event, user_email, selectedEmail, comment, resource_params, resource, current_user_email, event_id_pool, _queue="getAllEvents")
+                            if 'start' in event:
+                                if 'dateTime' in event['start']:
+                                    current_date = time.time()
+                                    startDate = rfc3339.strtotimestamp(event['start']['dateTime'])
+                                elif 'date' in event['start']:
+                                    current_date = str(datetime.date.today())
+                                    startDate = event['start']['date']
+
+                                sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
+
+                                if 'recurringEventId' in event:
+                                    logging.info('RECURRING EVENT ID: %s' % event_id_pool)
+                                    if event['recurringEventId'] not in event_id_pool:
+                                        event_id_pool.append(event['recurringEventId'])
+                                        deferred.defer(self.get_events, event, user_email, selectedEmail, comment, resource_params, resource, current_user_email, event_id_pool, _queue=sharded)
+                                else:
+                                    if startDate >= current_date:
+                                        deferred.defer(self.get_events, event, user_email, selectedEmail, comment, resource_params, resource, current_user_email, event_id_pool, _queue=sharded)
+                            else:
+                                pass
 
                 if not pageToken:
                     break
@@ -374,32 +373,12 @@ class Calendars(Controller):
     def get_events(self, event, user_email, selectedEmail, comment, resource_params, resource=False, current_user_email='', event_id_pool=[]):
         try:
             logging.info('RECURRING EVENT ID 1: %s' % event_id_pool)
-            if 'start' in event:
-                if 'dateTime' in event['start']:
-                    current_date = time.time()
-                    startDate = rfc3339.strtotimestamp(event['start']['dateTime'])
-                elif 'date' in event['start']:
-                    current_date = str(datetime.date.today())
-                    startDate = event['start']['date']
-
-                if startDate >= current_date:
-                    if resource == False:
-                        if 'recurringEventId' in event:
-                            logging.info('RECURRING EVENT ID: %s' % event_id_pool)
-                            if event['recurringEventId'] not in event_id_pool:
-                                event_id_pool.append(event['recurringEventId'])
-                                deferred.defer(self.filter_attendees, event, user_email, selectedEmail, comment, current_user_email, event_id_pool, _queue="getEvents")
-                        else:
-                            deferred.defer(self.filter_attendees, event, user_email, selectedEmail, comment, current_user_email, event_id_pool, _queue="getEvents")
-                    else:
-                        if 'recurringEventId' in event:
-                            if event['recurringEventId'] not in event_id_pool:
-                                event_id_pool.append(event['recurringEventId'])
-                                deferred.defer(self.filter_location, event, user_email, selectedEmail, comment, current_user_email, resource_params, event_id_pool, _queue="getEvents")
-                        else:
-                            deferred.defer(self.filter_location, event, user_email, selectedEmail, comment, current_user_email, resource_params, event_id_pool, _queue="getEvents")
+            sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
+            if resource == False:
+                deferred.defer(self.filter_attendees, event, user_email, selectedEmail, comment, current_user_email, event_id_pool, _queue=sharded)
             else:
-                pass
+                deferred.defer(self.filter_location, event, user_email, selectedEmail, comment, current_user_email, resource_params, event_id_pool, _queue=sharded)
+
         except urllib2.HTTPError as e:
             logging.info('get_events: HTTPerror')
             logging.info(e.code)
@@ -431,96 +410,53 @@ class Calendars(Controller):
                     }
 
                     for guest in attendees_list:
-                        deferred.defer(self.attendees_2, event, user_email, selectedEmail, comment, current_user_email, guest, params_body, event_id_pool, _queue="filterAttendees")
+                        sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
+                        deferred.defer(self.attendees_2, event, user_email, selectedEmail, comment, current_user_email, guest, params_body, event_id_pool, _queue=sharded)
                 else:
                     pass
             else:
-                deferred.defer(self.event_owner, event, user_email, selectedEmail, current_user_email, event_id_pool, _queue="filterAttendees")
+                sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
+                deferred.defer(self.event_owner, event, user_email, selectedEmail, current_user_email, event_id_pool, _queue=sharded)
         else:
             if event['organizer']['email'] == selectedEmail:
-                if 'recurringEventId' in event:
-                    if event['recurringEventId'] not in event_id_pool:
-                        calendar_api.delete_event(event['id'], selectedEmail, True)
-                        event_id_pool.append(event['recurringEventId'])
-                        deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email, _queue="filterAttendees")
-                    else:
-                        calendar_api.delete_event(event['id'], selectedEmail, False)
-                else:
-                    calendar_api.delete_event(event['id'], selectedEmail, True)
-                    deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email, _queue="filterAttendees")
+                sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
+                calendar_api.delete_event(event['id'], selectedEmail, True)
+                deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email, _queue=sharded)
 
     @classmethod
     def attendees_2(self, event, user_email, selectedEmail, comment, current_user_email, guest, params_body, event_id_pool):
         if selectedEmail:
-            if 'recurringEventId' in event:
-                if event['recurringEventId'] not in event_id_pool:
-                    event_id_pool.append(event['recurringEventId'])
-                    calendar_api.update_event(event['id'], guest['email'], params_body, True)
-                    insert_audit_log(
-                        '%s has been removed from events.' % selectedEmail,
-                        'user manager',
-                        current_user_email,
-                        '%s calendar' % user_email,
-                        '%s' % event['summary'], '')
+            calendar_api.update_event(event['id'], guest['email'], params_body, True)
+            insert_audit_log(
+                '%s has been removed from events.' % selectedEmail,
+                'user manager',
+                current_user_email,
+                '%s calendar' % user_email,
+                '%s' % event['summary'], '')
 
-                    AuditLogModel.attendees_update_notification(guest['email'], selectedEmail, event['summary'])
-                else:
-                    calendar_api.update_event(event['id'], guest['email'], params_body, False)
-            else:
-                calendar_api.update_event(event['id'], guest['email'], params_body, True)
-                insert_audit_log(
-                    '%s has been removed from events.' % selectedEmail,
-                    'user manager',
-                    current_user_email,
-                    '%s calendar' % user_email,
-                    '%s' % event['summary'], '')
-
-                AuditLogModel.attendees_update_notification(guest['email'], selectedEmail, event['summary'])
+            AuditLogModel.attendees_update_notification(guest['email'], selectedEmail, event['summary'])
 
     @classmethod
     def event_owner(self, event, user_email, selectedEmail, current_user_email, event_id_pool):
         if len(event['attendees']) == 2:
             isResource = search_resource(event['attendees'])
             if isResource:
-                if 'recurringEventId' in event:
-                    if event['recurringEventId'] not in event_id_pool:
-                        event_id_pool.append(event['recurringEventId'])
-                        calendar_api.delete_event(event['id'], selectedEmail, True)
-                        deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email, _queue="eventOwner")
-                    else:
-                        calendar_api.delete_event(event['id'], selectedEmail, False)
-                else:
-                    calendar_api.delete_event(event['id'], selectedEmail, True)
-                    deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email, _queue="eventOwner")
+
+                calendar_api.delete_event(event['id'], selectedEmail, True)
+                sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
+                deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email, _queue=sharded)
             else:
-                if 'recurringEventId' in event:
-                    if event['recurringEventId'] not in event_id_pool:
-                        event_id_pool.append(event['recurringEventId'])
-                        remove_owner_failed(event, user_email, selectedEmail, current_user_email)
-                else:
-                    remove_owner_failed(event, user_email, selectedEmail, current_user_email)
+                remove_owner_failed(event, user_email, selectedEmail, current_user_email)
 
         elif len(event['attendees']) == 1:
             for attendee in event['attendees']:
                 if attendee['email'] == selectedEmail and 'resource' not in attendee:
-                    if 'recurringEventId' in event:
-                        if event['recurringEventId'] not in event_id_pool:
-                            calendar_api.delete_event(event['id'], selectedEmail, True)
-                            event_id_pool.append(event['recurringEventId'])
-                            deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email, _queue="eventOwner")
-                        else:
-                            calendar_api.delete_event(event['id'], selectedEmail, False)
-                    else:
-                        calendar_api.delete_event(event['id'], selectedEmail, True)
-                        deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email, _queue="eventOwner")
+                    calendar_api.delete_event(event['id'], selectedEmail, True)
+                    sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
+                    deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email, _queue=sharded)
 
         elif len(event['attendees']) > 1:
-            if 'recurringEventId' in event:
-                if event['recurringEventId'] not in event_id_pool:
-                    event_id_pool.append(event['recurringEventId'])
-                    remove_owner_failed(event, user_email, selectedEmail, current_user_email)
-            else:
-                remove_owner_failed(event, user_email, selectedEmail, current_user_email)
+            remove_owner_failed(event, user_email, selectedEmail, current_user_email)
 
     @classmethod
     def filter_location(self, event, user_email, selectedEmail, comment, current_user_email, resource_params, event_id_pool):
@@ -540,6 +476,8 @@ class Calendars(Controller):
             organizerName = event['organizer']['displayName']
         else:
             organizerName = event['organizer']['email']
+
+        sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
 
         if resource_params['resourceCommonName'] != resource_params['old_resourceCommonName']:
 
@@ -565,7 +503,7 @@ class Calendars(Controller):
                 'resource': resource_params
             }
 
-            deferred.defer(self.send_event_notification, event, user_email, params_body, resource_list, update_event, current_user_email, event_id_pool, _queue="filterLocation")
+            deferred.defer(self.send_event_notification, event, user_email, params_body, resource_list, update_event, current_user_email, event_id_pool, _queue=sharded)
         else:
             update_event = {
                 'event_id': event['id'],
@@ -578,31 +516,18 @@ class Calendars(Controller):
                 'resource': resource_params
             }
 
-            if 'recurringEventId' in event:
-                if event['recurringEventId'] not in event_id_pool:
-                    event_id_pool.append(event['recurringEventId'])
-                    deferred.defer(self.update_resource_events, update_event, current_user_email, _queue="filterLocation")
-            else:
-                deferred.defer(self.update_resource_events, update_event, current_user_email, _queue="filterLocation")
+            deferred.defer(self.update_resource_events, update_event, current_user_email, _queue=sharded)
 
     @classmethod
     def send_event_notification(self, event, user_email, params_body, resource_list, update_event, current_user_email, event_id_pool):
         logging.info('SEND NOTIF 1: %s' % user_email)
-        if 'recurringEventId' in event:
-            logging.info('SEND NOTIF RECURR event_id_pool: %s' % event_id_pool)
-            calendar_api.update_event(event['id'], user_email, params_body, False)
-            params_body['attendees'] = resource_list
-            calendar_api.update_event(event['id'], user_email, params_body, False)
 
-            if event['recurringEventId'] not in event_id_pool:
-                event_id_pool.append(event['recurringEventId'])
-                deferred.defer(self.update_resource_events, update_event, current_user_email, _queue="sendEventNotification")
-        else:
-            logging.info('SEND NOTIF NOT RECURR: %s' % user_email)
-            calendar_api.update_event(event['id'], user_email, params_body, False)
-            params_body['attendees'] = resource_list
-            calendar_api.update_event(event['id'], user_email, params_body, True)
-            deferred.defer(self.update_resource_events, update_event, current_user_email, _queue="sendEventNotification")
+        logging.info('SEND NOTIF NOT RECURR: %s' % user_email)
+        calendar_api.update_event(event['id'], user_email, params_body, False)
+        params_body['attendees'] = resource_list
+        calendar_api.update_event(event['id'], user_email, params_body, True)
+        sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
+        deferred.defer(self.update_resource_events, update_event, current_user_email, _queue=sharded)
 
     @classmethod
     def update_resource_events(self, params, current_user_email=''):
@@ -702,8 +627,9 @@ class Calendars(Controller):
 
                     DeprovisionedAccount.deprovision_success_notification(str(modified_approver), d_user)
 
+                    sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
                     DeprovisionedAccount.create(params)
-                    deferred.defer(self.process_deleted_account, d_user, x_email, list_user_emails, str(modified_approver), _queue="taskDeletingUsers")
+                    deferred.defer(self.process_deleted_account, d_user, x_email, list_user_emails, str(modified_approver), _queue=sharded)
 
             return 'started...'
         else:
@@ -724,7 +650,8 @@ class Calendars(Controller):
     def process_deleted_account(self, d_user, x_email, list_user_emails, current_user_email):
 
         for active_user in list_user_emails:
-            deferred.defer(self.get_all_events, active_user['primaryEmail'], d_user, '', '', False, current_user_email, _queue="processDeletedAccount")
+            sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
+            deferred.defer(self.get_all_events, active_user['primaryEmail'], d_user, '', '', False, current_user_email, _queue=sharded)
 
     @route_with(template='/api/clear/datastore/deprovisioned_account')
     def api_clear_ndb(self):

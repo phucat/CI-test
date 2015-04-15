@@ -30,7 +30,7 @@ def get_all_events(email, selectedEmail, page_token=None):
     response = None
     try:
         calendar = build_client(email)
-        param = {'calendarId': email, 'timeZone': 'GMT', 'singleEvents': False, 'q': selectedEmail, 'pageToken': page_token}
+        param = {'calendarId': email, 'timeZone': 'GMT', 'singleEvents': True, 'q': selectedEmail, 'pageToken': page_token}
 
         events = calendar.events().list(**param).execute()
         # if not page_token:
