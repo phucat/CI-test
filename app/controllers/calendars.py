@@ -331,13 +331,16 @@ class Calendars(Controller):
                     event_id_pool = []
                     logging.info('RESOURCE ROOM 2: %s' % events)
                     for event in events['items']:
-                        find = ProcessedUsers.get_by_id(event['id'])
-                        if not find:
-                            logging.info('RESOURCE ROOM 2: %s' % event['summary'])
-                            logging.info('NOT YET PROCESSED 2: %s | id: %s ' % (find, event['id']))
-                            ProcessedUsers.create({'resource': resource_params['resourceCommonName'], 'eventId': event['id']})
-                            logging.info('CALENDAR OWNER: %s' % user_email)
-                            deferred.defer(self.get_events, event, user_email, selectedEmail, comment, resource_params, resource, current_user_email, event_id_pool, _queue="getResourceEvent")
+                        if event['status'] == 'cancelled':
+                            pass
+                        else:
+                            find = ProcessedUsers.get_by_id(event['id'])
+                            if not find:
+                                logging.info('RESOURCE ROOM 2: %s' % event['summary'])
+                                logging.info('NOT YET PROCESSED 2: %s | id: %s ' % (find, event['id']))
+                                ProcessedUsers.create({'resource': resource_params['resourceCommonName'], 'eventId': event['id']})
+                                logging.info('CALENDAR OWNER: %s' % user_email)
+                                deferred.defer(self.get_events, event, user_email, selectedEmail, comment, resource_params, resource, current_user_email, event_id_pool, _queue="getResourceEvent")
 
                 if not pageToken:
                     break
@@ -355,7 +358,10 @@ class Calendars(Controller):
                 if events is not None:
                     event_id_pool = []
                     for event in events['items']:
-                        deferred.defer(self.get_events, event, user_email, selectedEmail, comment, resource_params, resource, current_user_email, event_id_pool, _queue="getAllEvents")
+                        if event['status'] == 'cancelled':
+                            pass
+                        else:
+                            deferred.defer(self.get_events, event, user_email, selectedEmail, comment, resource_params, resource, current_user_email, event_id_pool, _queue="getAllEvents")
 
                 if not pageToken:
                     break
