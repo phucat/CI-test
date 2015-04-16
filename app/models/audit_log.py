@@ -1,6 +1,7 @@
-from ferris import BasicModel, ndb
+from ferris import BasicModel, ndb, settings
 from google.appengine.api import mail, app_identity
 APP_ID = app_identity.get_application_id()
+oauth_config = settings.get('oauth2_service_account')
 
 
 class AuditLog(BasicModel):
@@ -43,7 +44,7 @@ class AuditLog(BasicModel):
         """
 
         mail.send_mail(
-            "no-reply@" + APP_ID + ".appspotmail.com",
+            oauth_config['default_user'],
             email,
             subject,
             body
@@ -60,7 +61,7 @@ class AuditLog(BasicModel):
         """
 
         mail.send_mail(
-            "no-reply@" + APP_ID + ".appspotmail.com",
+            oauth_config['default_user'],
             email,
             subject,
             body,
@@ -78,7 +79,7 @@ class AuditLog(BasicModel):
         """
 
         mail.send_mail(
-            "no-reply@" + APP_ID + ".appspotmail.com",
+            oauth_config['default_user'],
             email,
             subject,
             body,
@@ -97,7 +98,7 @@ class AuditLog(BasicModel):
             Thank You.
         """ % (selectedEmail, event_summary)
 
-        mail.send_mail("no-reply@" + APP_ID + ".appspotmail.com", email, subject, body)
+        mail.send_mail(oauth_config['default_user'], email, subject, body)
 
     @staticmethod
     def new_resource_notification(email, name, resource):
@@ -116,7 +117,7 @@ class AuditLog(BasicModel):
             Thank You.
         """ % (name, resource['resourceId'], resource['resourceCommonName'], resource['resourceType'], resource['resourceDescription'])
 
-        mail.send_mail("no-reply@" + APP_ID + ".appspotmail.com", email, subject, body)
+        mail.send_mail(oauth_config['default_user'], email, subject, body)
 
     @staticmethod
     def update_resource_notification(email, name, event_link, resource):
@@ -137,4 +138,4 @@ class AuditLog(BasicModel):
         Thank You.
         """ % (name, resource['resourceId'], resource['resourceCommonName'], resource['resourceType'], resource['resourceDescription'], event_link)
 
-        mail.send_mail("no-reply@" + APP_ID + ".appspotmail.com", email, subject, body)
+        mail.send_mail(oauth_config['default_user'], email, subject, body)

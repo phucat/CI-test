@@ -1,6 +1,7 @@
-from ferris import BasicModel, ndb
+from ferris import BasicModel, ndb, settings
 from google.appengine.api import mail, app_identity
 APP_ID = app_identity.get_application_id()
+oauth_config = settings.get('oauth2_service_account')
 
 
 class DeprovisionedAccount(BasicModel):
@@ -40,7 +41,7 @@ class DeprovisionedAccount(BasicModel):
         Arista IT
         """ % (selectedEmail, event_summary, event_link)
 
-        mail.send_mail(sender="no-reply@" + APP_ID + ".appspotmail.com", to=email, subject=subject, body=body)
+        mail.send_mail(sender=oauth_config['default_user'], to=email, subject=subject, body=body)
 
 
     @staticmethod
@@ -59,7 +60,7 @@ class DeprovisionedAccount(BasicModel):
         Arista IT
         """ % (selectedEmail, event_summary, event_link)
 
-        mail.send_mail("no-reply@" + APP_ID + ".appspotmail.com", email, subject, body)
+        mail.send_mail(oauth_config['default_user'], email, subject, body)
 
 
     @staticmethod
@@ -75,4 +76,4 @@ class DeprovisionedAccount(BasicModel):
         Arista IT
         """ % selectedEmail
 
-        mail.send_mail("no-reply@" + APP_ID + ".appspotmail.com", email, subject, body)
+        mail.send_mail(oauth_config['default_user'], email, subject, body)
