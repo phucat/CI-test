@@ -144,12 +144,7 @@ class Calendars(Controller):
 
             action = 'A new Calendar Resource has been created'
             insert_audit_log(
-                """
-                    A new Calendar Resource has been created.
-                    Resource ID: %s
-                    Resource Name: %s
-                    Resource Type: %s
-                    Resource Description: %s """
+                """A new Calendar Resource has been created. Resource ID: %s | Resource Name: %s | Resource Type: %s | Resource Description: %s """
                 % (
                     resource['resourceId'],
                     resource['resourceCommonName'],
@@ -213,12 +208,7 @@ class Calendars(Controller):
     @classmethod
     def process_update_resource(self, resource, current_user):
         insert_audit_log(
-            """
-                Old Resource Name %s has been updated to:
-                Resource ID: %s
-                Resource Name: %s
-                Resource Type: %s
-                Resource Description: %s """
+            """Old Resource Name %s has been updated to: Resource ID: %s | Resource Name: %s | Resource Type: %s | Resource Description: %s """
             % (
                 resource['old_resourceCommonName'],
                 resource['resourceId'],
@@ -540,13 +530,8 @@ class Calendars(Controller):
         try:
             logging.info('UPDATE RESOURCE NOTIF: %s' % params)
             insert_audit_log(
-                """
-                    Old Resource Name %s in event %s has been updated to:
-                    Resource ID: %s
-                    Resource Name: %s
-                    Resource Type: %s
-                    Resource Description: %s """
-                % ( params['resource']['old_resourceCommonName'],
+                """Old Resource Name %s in event %s has been updated to: Resource ID: %s | Resource Name: %s | Resource Type: %s | Resource Description: %s """
+                % (params['resource']['old_resourceCommonName'],
                     params['summary'],
                     params['resource']['resourceId'],
                     params['resource']['resourceCommonName'],
