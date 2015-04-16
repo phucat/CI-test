@@ -214,12 +214,13 @@ class Calendars(Controller):
     def process_update_resource(self, resource, current_user):
         insert_audit_log(
             """
-                Resource has been updated.
+                Old Resource Name %s has been updated to:
                 Resource ID: %s
                 Resource Name: %s
                 Resource Type: %s
                 Resource Description: %s """
             % (
+                resource['old_resourceCommonName'],
                 resource['resourceId'],
                 resource['resourceCommonName'],
                 resource['resourceType'],
@@ -247,7 +248,8 @@ class Calendars(Controller):
         comment = request['comment']
         resultMessage = {}
 
-        insert_audit_log('User comment: %s' % comment, 'user manager', self.session['current_user'], '-', '-', comment)
+        insert_audit_log("User to be removed: %s | User comment: %s" % (selectedEmail, comment),
+            'user manager', self.session['current_user'], '-', '-', comment)
 
         resultMessage['message'] = 'The app is in the process of removing %s in calendar events.' % selectedEmail
         self.context['data'] = resultMessage
@@ -535,12 +537,13 @@ class Calendars(Controller):
             logging.info('UPDATE RESOURCE NOTIF: %s' % params)
             insert_audit_log(
                 """
-                    Event %s resource has been updated.
+                    Old Resource Name %s in event %s has been updated to:
                     Resource ID: %s
                     Resource Name: %s
                     Resource Type: %s
                     Resource Description: %s """
-                % (params['summary'],
+                % ( params['resource']['old_resourceCommonName'],
+                    params['summary'],
                     params['resource']['resourceId'],
                     params['resource']['resourceCommonName'],
                     params['resource']['resourceType'],
@@ -679,7 +682,7 @@ def insert_audit_log(action, invoked, app_user, target_resource, target_event_al
 
 def remove_owner_failed(event, user_email, selectedEmail, current_user_email):
     logging.info('REMOVE_OWNER: %s' % event['summary'])
-    action = 'Oops, %s is the owner in %s event with %s attendees.' % (selectedEmail, event['summary'], len(event['attendees']))
+    action = "Oops %s is the owner in %s event with %s attendees." % (selectedEmail, event['summary'], len(event['attendees']))
     insert_audit_log(action, 'Remove user in calendar events', current_user_email, selectedEmail, '%s %s' % (user_email, event['summary']), '')
 
     DeprovisionedAccount.remove_owner_failed_notification(IT_ADMIN_EMAIL, selectedEmail, event['summary'], event['htmlLink'])
