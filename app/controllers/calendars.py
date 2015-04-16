@@ -211,7 +211,7 @@ class Calendars(Controller):
     @classmethod
     def process_update_resource(self, resource, current_user):
         insert_audit_log(
-            """Old Resource Name %s has been updated to:
+            """Old Resource Name '%s' has been updated to:
                 Resource ID: %s
                 Resource Name: %s
                 Resource Type: %s
@@ -526,7 +526,7 @@ class Calendars(Controller):
         try:
             logging.info('UPDATE RESOURCE NOTIF: %s' % params)
             insert_audit_log(
-                """Old Resource Name %s in event %s has been updated to:
+                """Old Resource Name '%s' in event '%s' has been updated to:
                     Resource ID: %s
                     Resource Name: %s
                     Resource Type: %s
