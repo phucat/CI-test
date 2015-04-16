@@ -2,7 +2,6 @@ from ferris import Controller, route_with, settings
 from app.models.audit_log import AuditLog as AuditLogModel
 from app.models.deprovisioned_account import DeprovisionedAccount
 from app.models.user_removal import UserRemoval
-from app.models.processed_users import ProcessedUsers
 from app.components.calendars import Calendars
 from google.appengine.ext import deferred
 from google.appengine.api import users, app_identity, urlfetch, memcache
@@ -144,7 +143,11 @@ class Calendars(Controller):
 
             action = 'A new Calendar Resource has been created'
             insert_audit_log(
-                """A new Calendar Resource has been created. Resource ID: %s | Resource Name: %s | Resource Type: %s | Resource Description: %s """
+                """A new Calendar Resource has been created.
+                    Resource ID: %s
+                    Resource Name: %s
+                    Resource Type: %s
+                    Resource Description: %s """
                 % (
                     resource['resourceId'],
                     resource['resourceCommonName'],
@@ -208,7 +211,11 @@ class Calendars(Controller):
     @classmethod
     def process_update_resource(self, resource, current_user):
         insert_audit_log(
-            """Old Resource Name %s has been updated to: Resource ID: %s | Resource Name: %s | Resource Type: %s | Resource Description: %s """
+            """Old Resource Name %s has been updated to:
+                Resource ID: %s
+                Resource Name: %s
+                Resource Type: %s
+                Resource Description: %s """
             % (
                 resource['old_resourceCommonName'],
                 resource['resourceId'],
@@ -219,13 +226,6 @@ class Calendars(Controller):
             current_user,
             '%s resource name' % resource['old_resourceCommonName'],
             '-', '')
-
-        find = ProcessedUsers.query(ProcessedUsers.resource == resource['old_resourceCommonName']).count()
-        logging.info('FIND: %s' % find)
-        if find:
-            logging.info('REMOVE FIND: %s' % find)
-            ProcessedUsers.remove({'resource': resource['old_resourceCommonName']})
-        logging.info('TOTAL : %s' % ProcessedUsers.query().count())
 
         users_email = google_directory.get_all_users_cached()
         for user_email in users_email:
@@ -279,7 +279,7 @@ class Calendars(Controller):
         try:
             while True:
                 events, pageToken = calendar_api.get_all_events(user_email, selectedEmail, pageToken)
-                if events is not None:
+                if events['items']:
                     logging.info('RESOURCE ROOM 2: %s' % events)
                     for event in events['items']:
                         if event['status'] == 'cancelled':
@@ -287,32 +287,28 @@ class Calendars(Controller):
                         if 'recurringEventId' in event:
                             event['id'] = event['recurringEventId']
 
-                        find = ProcessedUsers.get_by_id(event['id'])
-                        if not find:
-                            logging.info('NOT YET PROCESSED 2: %s | id: %s ' % (find, event['id']))
-                            ProcessedUsers.create({'resource': resource_params['resourceCommonName'], 'eventId': event['id']})
-                            logging.info('CALENDAR OWNER: %s' % user_email)
-                            if 'start' in event:
-                                if 'dateTime' in event['start']:
-                                    current_date = time.time()
-                                    startDate = rfc3339.strtotimestamp(event['start']['dateTime'])
-                                elif 'date' in event['start']:
-                                    current_date = str(datetime.date.today())
-                                    startDate = event['start']['date']
+                        logging.info('CALENDAR OWNER: %s' % user_email)
+                        if 'start' in event:
+                            if 'dateTime' in event['start']:
+                                current_date = time.time()
+                                startDate = rfc3339.strtotimestamp(event['start']['dateTime'])
+                            elif 'date' in event['start']:
+                                current_date = str(datetime.date.today())
+                                startDate = event['start']['date']
 
-                                sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
+                            sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
 
-                                if 'recurringEventId' in event:
-                                    logging.info('RECURRING EVENT ID: %s' % event_id_pool)
-                                    if event['recurringEventId'] not in event_id_pool:
-                                        event_id_pool.append(event['recurringEventId'])
+                            if 'recurringEventId' in event:
+                                logging.info('RECURRING EVENT ID: %s' % event_id_pool)
+                                if event['recurringEventId'] not in event_id_pool:
+                                    event_id_pool.append(event['recurringEventId'])
 
-                                        deferred.defer(self.get_events, event, user_email, selectedEmail, comment, resource_params, resource, current_user_email, event_id_pool, _queue=sharded)
-                                else:
-                                    if startDate >= current_date:
-                                        deferred.defer(self.get_events, event, user_email, selectedEmail, comment, resource_params, resource, current_user_email, event_id_pool, _queue=sharded)
+                                    deferred.defer(self.get_events, event, user_email, selectedEmail, comment, resource_params, resource, current_user_email, event_id_pool, _queue=sharded)
                             else:
-                                pass
+                                if startDate >= current_date:
+                                    deferred.defer(self.get_events, event, user_email, selectedEmail, comment, resource_params, resource, current_user_email, event_id_pool, _queue=sharded)
+                        else:
+                            pass
 
                 if not pageToken:
                     break
@@ -328,7 +324,7 @@ class Calendars(Controller):
         while True:
             try:
                 events, pageToken = calendar_api.get_all_events(user_email, selectedEmail, pageToken)
-                if events is not None:
+                if events['items']:
                     for event in events['items']:
                         if event['status'] == 'cancelled':
                             continue
@@ -530,8 +526,12 @@ class Calendars(Controller):
         try:
             logging.info('UPDATE RESOURCE NOTIF: %s' % params)
             insert_audit_log(
-                """Old Resource Name %s in event %s has been updated to: Resource ID: %s | Resource Name: %s | Resource Type: %s | Resource Description: %s """
-                % (params['resource']['old_resourceCommonName'],
+                """Old Resource Name %s in event %s has been updated to:
+                    Resource ID: %s
+                    Resource Name: %s
+                    Resource Type: %s
+                    Resource Description: %s """
+                % ( params['resource']['old_resourceCommonName'],
                     params['summary'],
                     params['resource']['resourceId'],
                     params['resource']['resourceCommonName'],
