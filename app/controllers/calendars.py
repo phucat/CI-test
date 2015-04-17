@@ -18,8 +18,7 @@ import logging
 import urllib2
 
 urlfetch.set_default_fetch_deadline(60)
-TEAM_EMAILS = EmailRecipient.list_all()
-IT_ADMIN_EMAIL = [team_email.email for team_email in TEAM_EMAILS]
+
 APP_ID = app_identity.get_application_id()
 oauth_config = settings.get('oauth2_service_account')
 current_user = users.get_current_user()
@@ -243,7 +242,7 @@ class Calendars(Controller):
         resultMessage = {}
 
         insert_audit_log("User to be removed: %s | User comment: %s" % (selectedEmail, comment),
-            'user manager', self.session['current_user'], '-', '-', comment)
+            'user manager', self.session['current_user'], selectedEmail, '-', comment)
 
         resultMessage['message'] = 'The app is in the process of removing %s in calendar events.' % selectedEmail
         self.context['data'] = resultMessage
@@ -582,7 +581,9 @@ class Calendars(Controller):
                 cal_params['target_resource'],
                 cal_params['target_event_altered'], cal_params['comment']
             )
-
+            TEAM_EMAILS = EmailRecipient.list_all()
+            IT_ADMIN_EMAIL = [team_email.email for team_email in TEAM_EMAILS]
+            logging.info('owner_success: %s' % IT_ADMIN_EMAIL)
             DeprovisionedAccount.remove_owner_success_notification(IT_ADMIN_EMAIL, selectedEmail, event['summary'], event['htmlLink'])
 
         except Exception, e:
@@ -610,6 +611,9 @@ class Calendars(Controller):
         ndbDeletedUserlist = DeprovisionedAccount.list_all()
         x_email = [x_email.email for x_email in ndbDeletedUserlist]
 
+        TEAM_EMAILS = EmailRecipient.list_all()
+        IT_ADMIN_EMAIL = [team_email.email for team_email in TEAM_EMAILS]
+        logging.info('CRON: %s' % IT_ADMIN_EMAIL)
         if deleted_users:
             for d_user in deleted_users:
                 if d_user not in x_email and x_email != 'dummy@dummy.com':
@@ -689,7 +693,9 @@ def remove_owner_failed(event, user_email, selectedEmail, current_user_email):
     logging.info('REMOVE_OWNER: %s' % event['summary'])
     action = "Oops %s is the owner in %s event with %s attendees." % (selectedEmail, event['summary'], len(event['attendees']))
     insert_audit_log(action, 'Remove user in calendar events', current_user_email, selectedEmail, '%s %s' % (user_email, event['summary']), '')
-
+    TEAM_EMAILS = EmailRecipient.list_all()
+    IT_ADMIN_EMAIL = [team_email.email for team_email in TEAM_EMAILS]
+    logging.info('owner_failed: %s' % IT_ADMIN_EMAIL)
     DeprovisionedAccount.remove_owner_failed_notification(IT_ADMIN_EMAIL, selectedEmail, event['summary'], event['htmlLink'])
 
 
