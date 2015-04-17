@@ -617,7 +617,7 @@ class Calendars(Controller):
 
                     modified_approver = self.get_approved_scheduled_user(d_user)
                     if modified_approver is None:
-                        modified_approver = oauth_config['default_user']
+                        modified_approver = IT_ADMIN_EMAIL
 
                     cal_params = {
                         'action': '%s has been removed from events.' % d_user,
@@ -633,7 +633,7 @@ class Calendars(Controller):
                         cal_params['target_resource'],
                         cal_params['target_event_altered'], cal_params['comment'])
 
-                    DeprovisionedAccount.deprovision_success_notification(str(modified_approver), d_user)
+                    DeprovisionedAccount.deprovision_success_notification(IT_ADMIN_EMAIL, d_user)
 
                     sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
                     DeprovisionedAccount.create(params)
