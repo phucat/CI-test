@@ -126,22 +126,26 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
             }
             else if (action == 'Update resource')
             {
-                aristaREST.update_resource(r)
-                .success(function(d){
+                var promise = aristaREST.update_resource(r);
+                promise.then(
+                function(d){
                     for (var i = old_resource.length - 1; i >= 0; i--) {
-                        if (old_resource[i].resourceId == d.items[0].resourceId){
-                            old_resource[i].resourceCommonName = d.items[0].resourceCommonName;
-                            old_resource[i].resourceDescription = d.items[0].resourceDescription;
-                            old_resource[i].resourceType = d.items[0].resourceType;
+                        if (old_resource[i].resourceId == d.data.items[0].resourceId){
+                            old_resource[i].resourceCommonName = d.data.items[0].resourceCommonName;
+                            old_resource[i].resourceDescription = d.data.items[0].resourceDescription;
+                            old_resource[i].resourceType = d.data.items[0].resourceType;
                         }
                     }
                     $scope.calendar_resources = old_resource;
                     $scope.cal_resources();
-                    $log.info('success', d);
-                    $window.alert(d.message);
-                }).error(function(d){
-                    $log.error('Update resource failed', d);
-                    $window.alert("There was an error when attempting to connect to the Resource API. Please wait a few moments and try again.");
+                    $log.info('success', d.data);
+                    $window.alert(d.data.message);
+                },
+                function(errorPayload){
+                    $log.error('Update resource failed', errorPayload);
+                    if (errorPayload.status == 402) $window.alert("The Resource that you are about to change is already been updated by other admins. Please try again.");
+                    else $window.alert("There was an error when attempting to connect to the Resource API. Please wait a few moments and try again.");
+                    $scope.cal_resources();
                 });
             }
         });

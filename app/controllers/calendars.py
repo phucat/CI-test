@@ -17,11 +17,10 @@ from plugins import calendar as calendar_api, google_directory, rfc3339
 import logging
 import urllib2
 
-
+urlfetch.set_default_fetch_deadline(60)
 TEAM_EMAILS = EmailRecipient.list_all()
 IT_ADMIN_EMAIL = [team_email.email for team_email in TEAM_EMAILS]
 APP_ID = app_identity.get_application_id()
-urlfetch.set_default_fetch_deadline(60)
 oauth_config = settings.get('oauth2_service_account')
 current_user = users.get_current_user()
 
@@ -185,6 +184,11 @@ class Calendars(Controller):
             auth2token.authorize(client)
 
             resource = json.loads(self.request.body)
+            check_resource = client.GetResource(resource_id=resource['resourceId'])
+            check_result = self.components.calendars.find_resource(str(check_resource))
+            logging.info('OLD: %s | CHECK: %s ' % (resource['old_resourceCommonName'], check_result[0]['resourceCommonName']) )
+            if resource['old_resourceCommonName'] != check_result[0]['resourceCommonName']:
+                return 402
 
             client.UpdateResource(
                 resource_id=resource['resourceId'],
@@ -529,8 +533,9 @@ class Calendars(Controller):
         calendar_api.update_event(event['id'], user_email, params_body, False)
         params_body['attendees'] = resource_list
         calendar_api.update_event(event['id'], user_email, params_body, True)
-        sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
-        deferred.defer(self.update_resource_events, update_event, current_user_email, _queue=sharded)
+        if user_email == update_event['organizerEmail']:
+            sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
+            deferred.defer(self.update_resource_events, update_event, current_user_email, _queue=sharded)
 
     @classmethod
     def update_resource_events(self, params, current_user_email=''):
