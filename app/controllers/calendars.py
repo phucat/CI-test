@@ -458,7 +458,18 @@ class Calendars(Controller):
             for attendee in event['attendees']:
                 if 'resource' in attendee:
                     if attendee['displayName'] == selectedEmail:
+                        locations = event['location'].split(', ')
+                        logging.info('RESOURCE_LOC: %s' % locations)
+                        if len(locations) > 1:
+                            pos = locations.index(str(selectedEmail))
+                            locations[pos] = resource_params['resourceCommonName']
+                            new_location = ', '.join(locations)
+                        else:
+                            new_location = resource_params['resourceCommonName']
+
                         resource_list.append({'email': resource_params['new_email']})
+                    else:
+                        resource_list.append({'email': attendee['email']})
                 else:
                     attendees_list.append(attendee['email'])
                     resource_list.append({'email': attendee['email']})
@@ -472,9 +483,9 @@ class Calendars(Controller):
         sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
 
         if resource_params['resourceCommonName'] != resource_params['old_resourceCommonName']:
-
+            logging.info('LOCATION: %s' % new_location)
             params_body = {
-                'location': resource_params['resourceCommonName'],
+                'location': new_location,
                 'old_resourceName': resource_params['old_resourceCommonName'],
                 'attendees': attendees_list,
                 'reminders': {'overrides': [{'minutes': 15, 'method': 'popup'}], 'useDefault': 'false' },
