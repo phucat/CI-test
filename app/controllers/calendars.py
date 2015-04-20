@@ -282,8 +282,6 @@ class Calendars(Controller):
                     for event in events['items']:
                         if event['status'] == 'cancelled':
                             continue
-                        if 'recurringEventId' in event:
-                            event['id'] = event['recurringEventId']
 
                         logging.info('CALENDAR OWNER: %s' % user_email)
                         if 'start' in event:
@@ -297,6 +295,7 @@ class Calendars(Controller):
                             sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
 
                             if 'recurringEventId' in event:
+                                event['id'] = event['recurringEventId']
                                 logging.info('RECURRING EVENT ID: %s' % event_id_pool)
                                 if event['recurringEventId'] not in event_id_pool:
                                     event_id_pool.append(event['recurringEventId'])
@@ -321,14 +320,12 @@ class Calendars(Controller):
         event_id_pool = []
         while True:
             try:
-                events, pageToken = calendar_api.get_all_events(user_email, selectedEmail, pageToken)
+                events, pageToken = calendar_api.get_all_events(user_email, None, pageToken)
                 if events['items']:
                     for event in events['items']:
                         if event['status'] == 'cancelled':
                             continue
-                        if 'recurringEventId' in event:
-                            event['id'] = event['recurringEventId']
-
+                        logging.info('CALENDAR EVENT: %s' % user_email)
                         if 'start' in event:
                             if 'dateTime' in event['start']:
                                 current_date = time.time()
@@ -340,6 +337,7 @@ class Calendars(Controller):
                             sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
 
                             if 'recurringEventId' in event:
+                                event['id'] = event['recurringEventId']
                                 logging.info('RECURRING EVENT ID: %s' % event_id_pool)
                                 if event['recurringEventId'] not in event_id_pool:
                                     event_id_pool.append(event['recurringEventId'])
@@ -407,7 +405,7 @@ class Calendars(Controller):
                 deferred.defer(self.event_owner, event, user_email, selectedEmail, current_user_email, event_id_pool, _queue=sharded)
         else:
             if event['organizer']['email'] == selectedEmail:
-                logging.info('EVENT ID: %s' % event['id'])
+                logging.info('EVENT ID OWNER_1: %s' % event['id'])
                 calendar_api.delete_event(event['id'], selectedEmail, True)
                 sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
                 deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email, _queue=sharded)
