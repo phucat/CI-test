@@ -26,7 +26,7 @@ class DeprovisionedAccount(BasicModel):
         )
 
     @staticmethod
-    def remove_owner_failed_notification(email, selectedEmail, event_summary, event_link):
+    def remove_owner_failed_notification(selectedEmail, event_summary, event_link):
 
         subject = "Arista Inc. - An attempt to remove an Owner of a Calendar Event has failed. "
         body = """
@@ -41,11 +41,11 @@ class DeprovisionedAccount(BasicModel):
         Arista IT
         """ % (selectedEmail, event_summary, event_link)
 
-        mail.send_mail(sender=oauth_config['default_user'], to=email, subject=subject, body=body)
+        mail.send_mail_to_admins(sender=oauth_config['default_user'], subject=subject, body=body)
 
 
     @staticmethod
-    def remove_owner_success_notification(email, selectedEmail, event_summary, event_link):
+    def remove_owner_success_notification(selectedEmail, event_summary, event_link):
 
         subject = "Arista Inc. - Owner of a calendar event has been successfully removed."
         body = """
@@ -60,11 +60,11 @@ class DeprovisionedAccount(BasicModel):
         Arista IT
         """ % (selectedEmail, event_summary, event_link)
 
-        mail.send_mail(oauth_config['default_user'], email, subject, body)
+        mail.send_mail_to_admins(sender=oauth_config['default_user'], subject=subject, body=body)
 
 
     @staticmethod
-    def deprovision_success_notification(email, selectedEmail):
+    def deprovision_success_notification(selectedEmail):
 
         subject = "Arista Inc. - %s has been successfully removed." % selectedEmail
         body = """
@@ -76,4 +76,4 @@ class DeprovisionedAccount(BasicModel):
         Arista IT
         """ % selectedEmail
 
-        mail.send_mail(oauth_config['default_user'], email, subject, body)
+        mail.send_mail_to_admins(sender=oauth_config['default_user'], subject=subject, body=body)

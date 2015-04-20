@@ -1,12 +1,10 @@
 from ferris import Controller, route_with, messages
 from ferris.core import time_util
 from app.models.audit_log import AuditLog as AuditLogModel
-from app.models.email_recipient import EmailRecipient
 from plugins.unicode_writer import UnicodeDictWriter
 import StringIO
-import csv
 import logging
-from datetime import date, timedelta, datetime
+from datetime import timedelta, datetime
 import dateutil.tz
 
 
@@ -89,9 +87,9 @@ class AuditLogs(Controller):
         # localize
 
         if key == 'daily':
-            tomorrow = now + timedelta(days=1)
-            fromdate = datetime(now.year, now.month, now.day, 0, 0, 0)
-            todate = datetime(tomorrow.year, tomorrow.month, tomorrow.day, 0, 0, 0)
+            yesterday = now - timedelta(days=1)
+            fromdate = datetime(yesterday.year, yesterday.month, yesterday.day, 0, 0, 0)
+            todate = datetime(now.year, now.month, now.day, 0, 0, 0)
         elif key == 'weekly':
             one_week = timedelta(weeks=1)
             fromdate1 = now - one_week
@@ -136,13 +134,11 @@ class AuditLogs(Controller):
             writer.writerow(data)
 
         filename = "arista-calendar-log-%s.csv" % datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
-        mailingList = EmailRecipient.list_all()
-        emails = [mailing.email for mailing in mailingList]
 
         if key == 'daily':
-            AuditLogModel.daily_notification_on_major_actions(emails, filename, out.getvalue())
+            AuditLogModel.daily_notification_on_major_actions(filename, out.getvalue())
         elif key == 'weekly':
-            AuditLogModel.weekly_notification_on_major_actions(emails, filename, out.getvalue())
+            AuditLogModel.weekly_notification_on_major_actions(filename, out.getvalue())
 
         out.close()
 

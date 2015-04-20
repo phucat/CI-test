@@ -8,7 +8,6 @@ from google.appengine.api import users, app_identity, urlfetch, memcache
 from gdata.calendar_resource.client import CalendarResourceClient
 from gdata.gauth import OAuth2TokenFromCredentials as CreateToken
 from app.etc import build_creds
-from app.models.email_recipient import EmailRecipient
 import xml.etree.ElementTree as ET
 import json
 import time
@@ -18,7 +17,6 @@ import logging
 import urllib2
 
 urlfetch.set_default_fetch_deadline(60)
-
 APP_ID = app_identity.get_application_id()
 oauth_config = settings.get('oauth2_service_account')
 current_user = users.get_current_user()
@@ -63,9 +61,6 @@ class Calendars(Controller):
     @route_with(template='/api/calendar/resource/<feed>', methods=['GET'])
     def api_list_resource(self, feed):
         data = {}
-
-        # client = CalendarResourceClient(domain=oauth_config['domain'])
-        # client.ClientLogin(email=oauth_config['default_user'], password=oauth_config['password'], source=APP_ID)
 
         creds = build_creds.build_credentials(
             scope=[
@@ -546,7 +541,7 @@ class Calendars(Controller):
                     Resource Name: %s
                     Resource Type: %s
                     Resource Description: %s """
-                % ( params['resource']['old_resourceCommonName'],
+                % (params['resource']['old_resourceCommonName'],
                     params['summary'],
                     params['resource']['resourceId'],
                     params['resource']['resourceCommonName'],
@@ -581,10 +576,8 @@ class Calendars(Controller):
                 cal_params['target_resource'],
                 cal_params['target_event_altered'], cal_params['comment']
             )
-            TEAM_EMAILS = EmailRecipient.list_all()
-            IT_ADMIN_EMAIL = [team_email.email for team_email in TEAM_EMAILS]
-            logging.info('owner_success: %s' % IT_ADMIN_EMAIL)
-            DeprovisionedAccount.remove_owner_success_notification(IT_ADMIN_EMAIL, selectedEmail, event['summary'], event['htmlLink'])
+
+            DeprovisionedAccount.remove_owner_success_notification(selectedEmail, event['summary'], event['htmlLink'])
 
         except Exception, e:
             logging.error('== API DELETE EVENT ERROR ==')
@@ -611,9 +604,6 @@ class Calendars(Controller):
         ndbDeletedUserlist = DeprovisionedAccount.list_all()
         x_email = [x_email.email for x_email in ndbDeletedUserlist]
 
-        TEAM_EMAILS = EmailRecipient.list_all()
-        IT_ADMIN_EMAIL = [team_email.email for team_email in TEAM_EMAILS]
-        logging.info('CRON: %s' % IT_ADMIN_EMAIL)
         if deleted_users:
             for d_user in deleted_users:
                 if d_user not in x_email and x_email != 'dummy@dummy.com':
@@ -637,7 +627,7 @@ class Calendars(Controller):
                         cal_params['target_resource'],
                         cal_params['target_event_altered'], cal_params['comment'])
 
-                    DeprovisionedAccount.deprovision_success_notification(IT_ADMIN_EMAIL, d_user)
+                    DeprovisionedAccount.deprovision_success_notification(d_user)
 
                     sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
                     DeprovisionedAccount.create(params)
@@ -693,10 +683,8 @@ def remove_owner_failed(event, user_email, selectedEmail, current_user_email):
     logging.info('REMOVE_OWNER: %s' % event['summary'])
     action = "Oops %s is the owner in %s event with %s attendees." % (selectedEmail, event['summary'], len(event['attendees']))
     insert_audit_log(action, 'Remove user in calendar events', current_user_email, selectedEmail, '%s %s' % (user_email, event['summary']), '')
-    TEAM_EMAILS = EmailRecipient.list_all()
-    IT_ADMIN_EMAIL = [team_email.email for team_email in TEAM_EMAILS]
-    logging.info('owner_failed: %s' % IT_ADMIN_EMAIL)
-    DeprovisionedAccount.remove_owner_failed_notification(IT_ADMIN_EMAIL, selectedEmail, event['summary'], event['htmlLink'])
+
+    DeprovisionedAccount.remove_owner_failed_notification(selectedEmail, event['summary'], event['htmlLink'])
 
 
 def find_resource(resource):

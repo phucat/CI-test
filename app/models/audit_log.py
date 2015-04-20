@@ -51,7 +51,7 @@ class AuditLog(BasicModel):
         )
 
     @staticmethod
-    def daily_notification_on_major_actions(email, filename, out):
+    def daily_notification_on_major_actions(filename, out):
 
         subject = "Arista Inc. - Daily Notification"
         body = """
@@ -60,16 +60,15 @@ class AuditLog(BasicModel):
             This is to notify you on major actions performed today.
         """
 
-        mail.send_mail(
-            oauth_config['default_user'],
-            email,
-            subject,
-            body,
+        mail.send_mail_to_admins(
+            sender=oauth_config['default_user'],
+            subject=subject,
+            body=body,
             attachments=[(filename, out)]
         )
 
     @staticmethod
-    def weekly_notification_on_major_actions(email, filename, out):
+    def weekly_notification_on_major_actions(filename, out):
 
         subject = "Arista Inc. - Weekly Notification"
         body = """
@@ -78,11 +77,10 @@ class AuditLog(BasicModel):
             This is to notify you on major actions performed this week.
         """
 
-        mail.send_mail(
-            oauth_config['default_user'],
-            email,
-            subject,
-            body,
+        mail.send_mail_to_admins(
+            sender=oauth_config['default_user'],
+            subject=subject,
+            body=body,
             attachments=[(filename, out)]
         )
 
