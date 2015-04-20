@@ -109,7 +109,7 @@ class Calendars(Controller):
         auth2token.authorize(client)
 
         resource = json.loads(self.request.body)
-
+        logging.info('create_resource: %s' % resource)
         try:
             resource['resourceId'] = generate_random_numbers(12)
 
@@ -117,6 +117,7 @@ class Calendars(Controller):
             if resource_list is None:
                 resource_list = self.components.calendars.list_resource_memcache()
 
+            logging.info('resource_list: %s' % resource_list)
             for apiResource in resource_list:
                 if apiResource['resourceCommonName'] == resource['resourceCommonName']:
                     return 402
@@ -133,6 +134,7 @@ class Calendars(Controller):
                 resource_type=resource['resourceType'])
 
             res = self.components.calendars.find_resource(str(calendar_resource))
+            logging.info('create_resource_result: %s' % res)
 
             action = 'A new Calendar Resource has been created'
             insert_audit_log(
@@ -178,6 +180,8 @@ class Calendars(Controller):
             auth2token.authorize(client)
 
             resource = json.loads(self.request.body)
+            logging.info('json_resource_update_result: %s' % resource)
+
             check_resource = client.GetResource(resource_id=resource['resourceId'])
             check_result = self.components.calendars.find_resource(str(check_resource))
             logging.info('OLD: %s | CHECK: %s ' % (resource['old_resourceCommonName'], check_result[0]['resourceCommonName']) )
@@ -188,15 +192,20 @@ class Calendars(Controller):
                 resource['resourceDescription'] = ''
             else:
                 resource['resourceDescription']
+
             client.UpdateResource(
                 resource_id=resource['resourceId'],
                 resource_common_name=resource['resourceCommonName'],
                 resource_description=resource['resourceDescription'],
                 resource_type=resource['resourceType'])
 
+            logging.info('calendar_resource_name: %s' % resource['resourceCommonName'])
+
             calendar_resource_email = client.GetResource(resource_id=resource['resourceId'])
+            logging.info('calendar_resource_email: %s' % calendar_resource_email)
 
             res = self.components.calendars.find_resource(str(calendar_resource_email))
+            logging.info('resource_update_result: %s' % res)
 
             resultMessage['message'] = 'The app is in the process of updating the calendar.'
             resultMessage['items'] = res
@@ -206,7 +215,7 @@ class Calendars(Controller):
             deferred.defer(self.process_update_resource, resource, current_user.email(), _queue=sharded)
         except urllib2.HTTPError as e:
             logging.info('get_all_events: HTTPerror')
-            logging.info(e.code)
+            logging.info(e)
             if e.code == 401:
                 pass
 
@@ -230,6 +239,7 @@ class Calendars(Controller):
             '-', '')
 
         users_email = google_directory.get_all_users_cached()
+        logging.info('updated_resource_users_cached: %s' % users_email)
         for user_email in users_email:
             sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
             deferred.defer(self.get_resource_events, user_email['primaryEmail'], resource['old_resourceCommonName'], '', resource, True, current_user, _countdown=1, _queue=sharded)
@@ -238,6 +248,7 @@ class Calendars(Controller):
     def api_remove_users_events(self, selectedEmail):
         current_user = users.get_current_user()
         request = json.loads(self.request.body)
+        logging.info('remove_user: %s' % request)
         comment = request['comment']
         resultMessage = {}
 
@@ -254,6 +265,7 @@ class Calendars(Controller):
     def api_update_user_status(self):
         current_user = users.get_current_user()
         params = json.loads(self.request.body)
+        logging.info('user_status: %s' % params)
         response = UserRemoval.update({'email': params['email'], 'status': params['status']})
 
         if response == 403:
@@ -280,14 +292,16 @@ class Calendars(Controller):
         event_id_pool = []
         try:
             while True:
+                logging.info('USER_RESOURCE_ROOM: %s' % selectedEmail)
+                logging.info('CALENDAR OWNER: %s' % user_email)
                 events, pageToken = calendar_api.get_all_events(user_email, selectedEmail, pageToken)
+                logging.info('LIST_RESOURCE_ROOM: %s' % events)
                 if events['items']:
-                    logging.info('RESOURCE ROOM 2: %s' % events)
+                    logging.info('RESOURCE ROOM 2: %s' % events['items'])
                     for event in events['items']:
                         if event['status'] == 'cancelled':
                             continue
 
-                        logging.info('CALENDAR OWNER: %s' % user_email)
                         if 'start' in event:
                             if 'dateTime' in event['start']:
                                 current_date = time.time()
@@ -324,12 +338,14 @@ class Calendars(Controller):
         event_id_pool = []
         while True:
             try:
+                logging.info('USER_TO_BE_REMOVED: %s' % selectedEmail)
+                logging.info('CALENDAR EVENT: %s' % user_email)
                 events, pageToken = calendar_api.get_all_events(user_email, None, pageToken)
                 if events['items']:
                     for event in events['items']:
                         if event['status'] == 'cancelled':
                             continue
-                        logging.info('CALENDAR EVENT: %s' % user_email)
+
                         if 'start' in event:
                             if 'dateTime' in event['start']:
                                 current_date = time.time()
@@ -398,17 +414,21 @@ class Calendars(Controller):
                         'end': event['end'],
                         'summary': event['summary']
                     }
-
+                    logging.info('event_name: %s' % event['summary'])
+                    logging.info('attendees_list: %s' % attendees_list)
+                    logging.info('resource_list: %s' % resource_list)
                     for guest in attendees_list:
                         sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
                         deferred.defer(self.attendees_2, event, user_email, selectedEmail, comment, current_user_email, guest, params_body, event_id_pool, _queue=sharded)
                 else:
                     pass
             else:
+                logging.info('event_name: %s' % event['summary'])
                 sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
                 deferred.defer(self.event_owner, event, user_email, selectedEmail, current_user_email, event_id_pool, _queue=sharded)
         else:
             if event['organizer']['email'] == selectedEmail:
+                logging.info('event_name: %s' % event['summary'])
                 logging.info('EVENT ID OWNER_1: %s' % event['id'])
                 calendar_api.delete_event(event['id'], selectedEmail, True)
                 sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
@@ -417,6 +437,7 @@ class Calendars(Controller):
     @classmethod
     def attendees_2(self, event, user_email, selectedEmail, comment, current_user_email, guest, params_body, event_id_pool):
         if selectedEmail:
+            logging.info('attendees_2: %s' % event['summary'])
             calendar_api.update_event(event['id'], guest['email'], params_body, True)
             insert_audit_log(
                 '%s has been removed from events.' % selectedEmail,
