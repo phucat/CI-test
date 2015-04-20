@@ -36,7 +36,7 @@ class Calendars(Controller):
 
         self.context['data'] = feed
 
-    @route_with(template='/api/calendar/recurring/events/<email>/<selectedemail>', methods=['GET'])
+    @route_with(template='/api/calendar/events/q/<email>/<selectedemail>', methods=['GET'])
     def api_list_recurring_events(self, email, selectedemail):
         feed = []
 
@@ -95,7 +95,7 @@ class Calendars(Controller):
     @route_with(template='/api/calendar/resource/create', methods=['POST'])
     def api_create_resource(self):
         resultMessage = {}
-
+        current_user = users.get_current_user()
         creds = build_creds.build_credentials(
             scope=[
                 "https://apps-apis.google.com/a/feeds/calendar/resource/"
@@ -145,9 +145,9 @@ class Calendars(Controller):
                     resource['resourceId'],
                     resource['resourceCommonName'],
                     resource['resourceType'],
-                    resource['resourceDescription']),
+                    resourceDescription),
                 'add new resource',
-                self.session['current_user'],
+                current_user.email(),
                 resource['resourceCommonName'], None, '')
 
             # AuditLogModel.new_resource_notification(config['email'], current_user.nickname(), resource)
@@ -184,6 +184,10 @@ class Calendars(Controller):
             if resource['old_resourceCommonName'] != check_result[0]['resourceCommonName']:
                 return 402
 
+            if 'resourceDescription' not in resource:
+                resource['resourceDescription'] = ''
+            else:
+                resource['resourceDescription']
             client.UpdateResource(
                 resource_id=resource['resourceId'],
                 resource_common_name=resource['resourceCommonName'],
@@ -232,23 +236,23 @@ class Calendars(Controller):
 
     @route_with('/api/calendar/remove_user/events/<selectedEmail>', methods=['POST'])
     def api_remove_users_events(self, selectedEmail):
+        current_user = users.get_current_user()
         request = json.loads(self.request.body)
         comment = request['comment']
         resultMessage = {}
 
         insert_audit_log("User to be removed: %s | User comment: %s" % (selectedEmail, comment),
-            'user manager', self.session['current_user'], selectedEmail, '-', comment)
+            'user manager', current_user.email(), selectedEmail, '-', comment)
 
         resultMessage['message'] = 'The app is in the process of removing %s in calendar events.' % selectedEmail
         self.context['data'] = resultMessage
 
-        current_user = users.get_current_user()
         sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
         deferred.defer(self.get_all_events, selectedEmail, selectedEmail, comment, '', False, current_user.email(), _queue=sharded)
 
     @route_with(template='/api/schedule/update/user', methods=['POST'])
     def api_update_user_status(self):
-        user = users.get_current_user()
+        current_user = users.get_current_user()
         params = json.loads(self.request.body)
         response = UserRemoval.update({'email': params['email'], 'status': params['status']})
 
@@ -261,12 +265,12 @@ class Calendars(Controller):
                 approved_user = {'email': params['email'], 'status': True}
                 DeprovisionedAccount.create(approved_user)
                 sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
-                deferred.defer(self.get_all_events, params['email'], params['email'], '', '', False, self.session['current_user'], _queue=sharded)
+                deferred.defer(self.get_all_events, params['email'], params['email'], '', '', False, current_user.email(), _queue=sharded)
 
             elif params['status'] == 'Cancel':
                 params['status'] += 'led'
 
-            insert_audit_log('%s has been %s for removal.' % (params['email'], params['status']), 'api endpoint', user.email(), 'Schedule User Removal', '', '')
+            insert_audit_log('%s has been %s for removal.' % (params['email'], params['status']), 'api endpoint', current_user.email(), 'Schedule User Removal', '', '')
 
             return params['status']
 
@@ -519,9 +523,7 @@ class Calendars(Controller):
 
     @classmethod
     def send_event_notification(self, event, user_email, params_body, resource_list, update_event, current_user_email, event_id_pool):
-        logging.info('SEND NOTIF 1: %s' % user_email)
-
-        logging.info('SEND NOTIF NOT RECURR: %s' % user_email)
+        logging.info('SEND NOTIF_1: %s' % user_email)
         calendar_api.update_event(event['id'], user_email, params_body, False)
         params_body['attendees'] = resource_list
         calendar_api.update_event(event['id'], user_email, params_body, True)

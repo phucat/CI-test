@@ -167,6 +167,7 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
                 }).error(function(d){
                     $log.info('remove user failed',d);
                     $window.alert('There was an error when attempting to connect to the server. Please wait a few moments and try again.');
+                    users();
                 });
             });
         }
