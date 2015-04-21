@@ -416,6 +416,14 @@ class Calendars(Controller):
                     logging.info('event_name: %s' % event['summary'])
                     logging.info('attendees_list: %s' % attendees_list)
                     logging.info('resource_list: %s' % resource_list)
+
+                    insert_audit_log(
+                        '%s has been removed from events.' % selectedEmail,
+                        'user manager',
+                        current_user_email,
+                        '%s calendar' % user_email,
+                        '%s' % event['summary'], '')
+
                     for guest in attendees_list:
                         sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
                         deferred.defer(self.attendees_2, event, user_email, selectedEmail, comment, current_user_email, guest, params_body, event_id_pool, _queue=sharded)
@@ -438,12 +446,6 @@ class Calendars(Controller):
         if selectedEmail:
             logging.info('attendees_2: %s' % event['summary'])
             calendar_api.update_event(event['id'], guest['email'], params_body, True)
-            insert_audit_log(
-                '%s has been removed from events.' % selectedEmail,
-                'user manager',
-                current_user_email,
-                '%s calendar' % user_email,
-                '%s' % event['summary'], '')
 
             logging.info('DATE: %s ' % str(datetime.date.today()) )
             logging.info('attendees_2')
