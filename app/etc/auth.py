@@ -20,6 +20,7 @@ def require_domain(controller):
         if app_identity.get_application_id() in ('arista-calendar-01', 'cs-arista-calendar-qa') and domain not in (
             'cloudsherpas.com',
             'sherpademo.com',
+            'sherpatest.com',
             'arista.com'
             ):
             return False, "Your domain does not have access to this application"
