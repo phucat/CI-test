@@ -51,7 +51,7 @@ class DeprovisionedAccount(BasicModel):
         body = """
          Hello,
 
-            This notice is to let you know that %s the owner of the %s has been removed from our systems.
+            This notice is to let you know that "%s" the owner of the "%s" has been removed from our systems.
             Please review this event and make different plans if necessary.
 
             %s
@@ -70,7 +70,7 @@ class DeprovisionedAccount(BasicModel):
         body = """
          Hello,
 
-            This notice is to let you know that %s has been removed from our systems.
+            This notice is to let you know that "%s" has been removed from our systems.
 
         Thanks,
         Arista IT

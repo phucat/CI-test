@@ -91,7 +91,7 @@ class AuditLog(BasicModel):
         body = """
         Hello,
 
-            %s has been removed in %s.
+            "%s" has been removed in "%s" event.
 
             Thank You.
         """ % (selectedEmail, event_summary)
