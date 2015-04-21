@@ -445,6 +445,10 @@ class Calendars(Controller):
                 '%s calendar' % user_email,
                 '%s' % event['summary'], '')
 
+            logging.info('DATE: %s ' % time.time())
+            logging.info('attendees_2')
+            logging.info('User to be notified: %s' % guest['email'])
+            logging.info('User to be removed: %s' % (selectedEmail))
             AuditLogModel.attendees_update_notification(guest['email'], selectedEmail, event['summary'])
 
     @classmethod
@@ -572,7 +576,10 @@ class Calendars(Controller):
                 '%s resource name' % params['resource']['old_resourceCommonName'],
                 'Calendar of %s on event %s.' % (params['user_email'], params['summary']), '')
 
-            logging.info('UPDATE RESOURCE: %s' % params['user_email'])
+            logging.info('DATE: %s ' % time.time())
+            logging.info('update_resource_events')
+            logging.info('User to be notified: %s' % params['user_email'])
+            logging.info('Event Altered: %s' % params['summary'])
             AuditLogModel.update_resource_notification(params['user_email'], 'Participants', params['event_link'], params['resource'])
 
         except Exception, e:
@@ -596,6 +603,10 @@ class Calendars(Controller):
                 cal_params['target_resource'],
                 cal_params['target_event_altered'], cal_params['comment']
             )
+
+            logging.info('DATE: %s ' % time.time())
+            logging.info('delete_owner_event | send mail to admins')
+            logging.info('User to be removed: %s | APP_USER: %s ' % (selectedEmail, current_user_email))
 
             DeprovisionedAccount.remove_owner_success_notification(selectedEmail, event['summary'], event['htmlLink'])
 
@@ -646,6 +657,10 @@ class Calendars(Controller):
                         cal_params['app_user'],
                         cal_params['target_resource'],
                         cal_params['target_event_altered'], cal_params['comment'])
+
+                    logging.info('DATE: %s ' % time.time())
+                    logging.info('api_deleting_users | Mail to admins')
+                    logging.info('User to be removed: %s' % (d_user))
 
                     DeprovisionedAccount.deprovision_success_notification(d_user)
 
@@ -703,6 +718,10 @@ def remove_owner_failed(event, user_email, selectedEmail, current_user_email):
     logging.info('REMOVE_OWNER: %s' % event['summary'])
     action = "Oops %s is the owner in %s event with %s attendees." % (selectedEmail, event['summary'], len(event['attendees']))
     insert_audit_log(action, 'Remove user in calendar events', current_user_email, selectedEmail, '%s %s' % (user_email, event['summary']), '')
+
+    logging.info('DATE: %s ' % time.time())
+    logging.info('remove_owner_failed | Mail to admins')
+    logging.info('User to be removed: %s' % (selectedEmail))
 
     DeprovisionedAccount.remove_owner_failed_notification(selectedEmail, event['summary'], event['htmlLink'])
 
