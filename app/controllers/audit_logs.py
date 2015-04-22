@@ -1,3 +1,4 @@
+import csv
 from ferris import Controller, route_with, messages
 from ferris.core import time_util
 from app.models.audit_log import AuditLog as AuditLogModel
@@ -35,7 +36,9 @@ class AuditLogs(Controller):
         logging.info("RANGE: %s %s " % (fromdate, todate))
         out = StringIO.StringIO()
         logs = AuditLogModel.fetch_date_range(fromdate, todate)
-        writer = UnicodeDictWriter(out, fields)
+        # writer = UnicodeDictWriter(out, fields)
+        writer = csv.DictWriter(out, fieldnames=fields)
+
         writer.writeheader()
 
         for log in logs.iter():
