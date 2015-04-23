@@ -545,12 +545,16 @@ class Calendars(Controller):
 
     @classmethod
     def send_event_notification(self, event, user_email, params_body, resource_list, update_event, current_user_email, event_id_pool):
-        logging.info('SEND NOTIF_1: %s' % user_email)
-        logging.info('SEND NOTIF_body: %s' % params_body)
+        logging.info('DATE: %s ' % str(datetime.date.today()))
+        logging.info('SEND UPDATE_NOTIF: %s' % user_email)
+        logging.info('SEND UPDATE_NOTIF_BODY: %s' % params_body)
         calendar_api.update_event(event['id'], user_email, params_body, False)
         params_body['attendees'] = resource_list
         calendar_api.update_event(event['id'], user_email, params_body, True)
         if user_email == update_event['organizerEmail']:
+            logging.info('DATE: %s ' % str(datetime.date.today()))
+            logging.info('SEND_NOTIF_TO_OWNER %s' % user_email)
+            logging.info('SEND_NOTIF_TO_OWNER_BODY %s' % params_body)
             sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
             deferred.defer(self.update_resource_events, update_event, current_user_email, _queue=sharded)
 
@@ -579,6 +583,7 @@ class Calendars(Controller):
             logging.info('update_resource_events')
             logging.info('User to be notified: %s' % params['user_email'])
             logging.info('Event Altered: %s' % params['summary'])
+            logging.info('Resource: %s' % params['resource'])
             AuditLogModel.update_resource_notification(params['user_email'], 'Participants', params['event_link'], params['resource'])
 
         except Exception, e:
