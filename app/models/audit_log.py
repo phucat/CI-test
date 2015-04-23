@@ -122,9 +122,9 @@ class AuditLog(BasicModel):
 
         subject = "Arista Inc. - Update on Calendar Resource. "
         body = """
-        Hello %s,
+        Hello,
 
-            A Calendar Event you are a participant on has a Resource that has been changed. Please use the link below to review this Event.
+            A Calendar Event you are an Owner of has had a Resource change. Please use the link below to review this Event.
 
             Resource ID: %s
             Resource Name: %s
@@ -134,6 +134,6 @@ class AuditLog(BasicModel):
             %s
 
         Thank You.
-        """ % (name, resource['resourceId'], resource['resourceCommonName'], resource['resourceType'], resource['resourceDescription'], event_link)
+        """ % (resource['resourceId'], resource['resourceCommonName'], resource['resourceType'], resource['resourceDescription'], event_link)
 
         mail.send_mail(oauth_config['default_user'], email, subject, body)

@@ -240,9 +240,10 @@ class Calendars(Controller):
 
         users_email = google_directory.get_all_users_cached()
         logging.info('updated_resource_users_cached: %s' % users_email)
+        logging.info('resource_email: %s' % resource['new_email'])
         for user_email in users_email:
             sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
-            deferred.defer(self.get_resource_events, user_email['primaryEmail'], resource['old_resourceCommonName'], '', resource, True, current_user, _countdown=1, _queue=sharded)
+            deferred.defer(self.get_resource_events, user_email['primaryEmail'], resource['new_email'], '', resource, True, current_user, _countdown=1, _queue=sharded)
 
     @route_with('/api/calendar/remove_user/events/<selectedEmail>', methods=['POST'])
     def api_remove_users_events(self, selectedEmail):
@@ -474,28 +475,26 @@ class Calendars(Controller):
         attendees_list = []
         resource_list = []
         if 'attendees' in event:
+            resource_location_name = []
             for attendee in event['attendees']:
                 if 'resource' in attendee:
-                    if attendee['displayName'] == selectedEmail:
-                        locations = event['location'].split(', ')
+                    if attendee['email'] == selectedEmail:
+                        resource_location_name.append(resource_params['resourceCommonName'])
                         logging.info('RESOURCE_DISPLAY_NAME: %s' % selectedEmail)
-                        logging.info('RESOURCE_LOCATION: %s' % locations)
-                        if len(locations) > 1:
-                            if selectedEmail in locations:
-                                pos = locations.index(str(selectedEmail))
-                                locations[pos] = resource_params['resourceCommonName']
-                                new_location = ', '.join(locations)
-                            else:
-                                new_location = event['location']
-                        else:
-                            new_location = resource_params['resourceCommonName']
-
+                        logging.info('NEW_RESOURCE_LOCATION: %s' % resource_params['resourceCommonName'])
+                        logging.info('OLD_RESOURCE_LOCATION: %s' % resource_params['old_resourceCommonName'])
                         resource_list.append({'email': resource_params['new_email']})
                     else:
+                        resource_location_name.append(attendee['displayName'])
                         resource_list.append({'email': attendee['email']})
                 else:
                     attendees_list.append(attendee['email'])
                     resource_list.append({'email': attendee['email']})
+
+            if len(resource_location_name) > 1:
+                new_location = ', '.join(resource_location_name)
+            else:
+                new_location = ''.join(resource_location_name[0])
 
         logging.info('FILTER LOCATION 2: %s' % user_email)
         if 'displayName' in event['organizer']:
@@ -546,12 +545,16 @@ class Calendars(Controller):
 
     @classmethod
     def send_event_notification(self, event, user_email, params_body, resource_list, update_event, current_user_email, event_id_pool):
-        logging.info('SEND NOTIF_1: %s' % user_email)
-        logging.info('SEND NOTIF_body: %s' % params_body)
+        logging.info('DATE: %s ' % str(datetime.date.today()))
+        logging.info('SEND UPDATE_NOTIF: %s' % user_email)
+        logging.info('SEND UPDATE_NOTIF_BODY: %s' % params_body)
         calendar_api.update_event(event['id'], user_email, params_body, False)
         params_body['attendees'] = resource_list
         calendar_api.update_event(event['id'], user_email, params_body, True)
         if user_email == update_event['organizerEmail']:
+            logging.info('DATE: %s ' % str(datetime.date.today()))
+            logging.info('SEND_NOTIF_TO_OWNER %s' % user_email)
+            logging.info('SEND_NOTIF_TO_OWNER_BODY %s' % params_body)
             sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
             deferred.defer(self.update_resource_events, update_event, current_user_email, _queue=sharded)
 
@@ -580,6 +583,7 @@ class Calendars(Controller):
             logging.info('update_resource_events')
             logging.info('User to be notified: %s' % params['user_email'])
             logging.info('Event Altered: %s' % params['summary'])
+            logging.info('Resource: %s' % params['resource'])
             AuditLogModel.update_resource_notification(params['user_email'], 'Participants', params['event_link'], params['resource'])
 
         except Exception, e:
