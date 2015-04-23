@@ -313,11 +313,7 @@ class Calendars(Controller):
                             sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
 
                             if 'recurrence' in event:
-                                # event['id'] = event['recurrence']
-                                # logging.info('RECURRING EVENT ID: %s' % event_id_pool)
-                                # if event['recurrence'] not in event_id_pool:
-                                #     event_id_pool.append(event['recurrence'])
-                                    deferred.defer(self.get_events, event, user_email, selectedEmail, comment, resource_params, resource, current_user_email, event_id_pool, _queue=sharded)
+                                deferred.defer(self.get_events, event, user_email, selectedEmail, comment, resource_params, resource, current_user_email, event_id_pool, _queue=sharded)
                             else:
                                 if startDate >= current_date:
                                     deferred.defer(self.get_events, event, user_email, selectedEmail, comment, resource_params, resource, current_user_email, event_id_pool, _queue=sharded)
@@ -356,10 +352,6 @@ class Calendars(Controller):
                             sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
 
                             if 'recurrence' in event:
-                                # event['id'] = event['recurrence']
-                                # logging.info('RECURRING EVENT ID: %s' % event_id_pool)
-                                # if event['recurrence'] not in event_id_pool:
-                                #     event_id_pool.append(event['recurrence'])
                                 deferred.defer(self.get_events, event, user_email, selectedEmail, comment, resource_params, resource, current_user_email, event_id_pool, _queue=sharded)
                             else:
                                 if startDate >= current_date:
@@ -486,11 +478,15 @@ class Calendars(Controller):
                 if 'resource' in attendee:
                     if attendee['displayName'] == selectedEmail:
                         locations = event['location'].split(', ')
-                        logging.info('RESOURCE_LOC: %s' % locations)
+                        logging.info('RESOURCE_DISPLAY_NAME: %s' % selectedEmail)
+                        logging.info('RESOURCE_LOCATION: %s' % locations)
                         if len(locations) > 1:
-                            pos = locations.index(str(selectedEmail))
-                            locations[pos] = resource_params['resourceCommonName']
-                            new_location = ', '.join(locations)
+                            if selectedEmail in locations:
+                                pos = locations.index(str(selectedEmail))
+                                locations[pos] = resource_params['resourceCommonName']
+                                new_location = ', '.join(locations)
+                            else:
+                                new_location = event['location']
                         else:
                             new_location = resource_params['resourceCommonName']
 
@@ -510,7 +506,7 @@ class Calendars(Controller):
         sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
 
         if resource_params['resourceCommonName'] != resource_params['old_resourceCommonName']:
-            logging.info('LOCATION: %s' % new_location)
+            logging.info('NEW_LOCATION: %s' % new_location)
             params_body = {
                 'location': new_location,
                 'old_resourceName': resource_params['old_resourceCommonName'],
@@ -551,6 +547,7 @@ class Calendars(Controller):
     @classmethod
     def send_event_notification(self, event, user_email, params_body, resource_list, update_event, current_user_email, event_id_pool):
         logging.info('SEND NOTIF_1: %s' % user_email)
+        logging.info('SEND NOTIF_body: %s' % params_body)
         calendar_api.update_event(event['id'], user_email, params_body, False)
         params_body['attendees'] = resource_list
         calendar_api.update_event(event['id'], user_email, params_body, True)
