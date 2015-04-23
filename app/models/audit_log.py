@@ -124,7 +124,7 @@ class AuditLog(BasicModel):
         body = """
         Hello %s,
 
-            A Calendar Event you are a participant on has a Resource that has been changed. Please use the link below to review this Event.
+            A Calendar Event you are an Owner of has had a Resource change. Please use the link below to review this Event.
 
             Resource ID: %s
             Resource Name: %s
