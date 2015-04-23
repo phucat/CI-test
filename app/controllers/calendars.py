@@ -240,6 +240,7 @@ class Calendars(Controller):
 
         users_email = google_directory.get_all_users_cached()
         logging.info('updated_resource_users_cached: %s' % users_email)
+        logging.info('resource_email: %s' % resource['new_email'])
         for user_email in users_email:
             sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
             deferred.defer(self.get_resource_events, user_email['primaryEmail'], resource['new_email'], '', resource, True, current_user, _countdown=1, _queue=sharded)
