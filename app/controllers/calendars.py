@@ -474,28 +474,26 @@ class Calendars(Controller):
         attendees_list = []
         resource_list = []
         if 'attendees' in event:
+            resource_location_name = []
             for attendee in event['attendees']:
                 if 'resource' in attendee:
-                    if attendee['displayName'] == selectedEmail:
-                        locations = event['location'].split(', ')
+                    if attendee['email'] == selectedEmail:
+                        resource_location_name.append(resource_params['resourceCommonName'])
                         logging.info('RESOURCE_DISPLAY_NAME: %s' % selectedEmail)
-                        logging.info('RESOURCE_LOCATION: %s' % locations)
-                        if len(locations) > 1:
-                            if selectedEmail in locations:
-                                pos = locations.index(str(selectedEmail))
-                                locations[pos] = resource_params['resourceCommonName']
-                                new_location = ', '.join(locations)
-                            else:
-                                new_location = event['location']
-                        else:
-                            new_location = resource_params['resourceCommonName']
-
+                        logging.info('NEW_RESOURCE_LOCATION: %s' % resource_params['resourceCommonName'])
+                        logging.info('OLD_RESOURCE_LOCATION: %s' % resource_params['old_resourceCommonName'])
                         resource_list.append({'email': resource_params['new_email']})
                     else:
+                        resource_location_name.append(attendee['displayName'])
                         resource_list.append({'email': attendee['email']})
                 else:
                     attendees_list.append(attendee['email'])
                     resource_list.append({'email': attendee['email']})
+
+            if len(resource_location_name) > 1:
+                new_location = ', '.join(resource_location_name)
+            else:
+                new_location = ''.join(resource_location_name[0])
 
         logging.info('FILTER LOCATION 2: %s' % user_email)
         if 'displayName' in event['organizer']:
