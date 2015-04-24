@@ -438,13 +438,14 @@ class Calendars(Controller):
     def attendees_2(self, event, user_email, selectedEmail, comment, current_user_email, guest, params_body, event_id_pool):
         if selectedEmail:
             logging.info('attendees_2: %s' % event['summary'])
-            calendar_api.update_event(event['id'], guest['email'], params_body, True)
+            calendar_api.update_event(event['id'], guest['email'], params_body, False)
 
-            logging.info('DATE: %s ' % str(datetime.date.today()) )
+            logging.info('DATE: %s ' % str(datetime.date.today()))
             logging.info('attendees_2')
-            logging.info('User to be notified: %s' % guest['email'])
+            #logging.info('User to be notified: %s' % guest['email'])
+            logging.info('This is event is NOT emailing users any longer.')
             logging.info('User to be removed: %s' % (selectedEmail))
-            AuditLogModel.attendees_update_notification(guest['email'], selectedEmail, event['summary'])
+            # AuditLogModel.attendees_update_notification(guest['email'], selectedEmail, event['summary'])
 
     @classmethod
     def event_owner(self, event, user_email, selectedEmail, current_user_email, event_id_pool):
