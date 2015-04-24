@@ -1,4 +1,5 @@
 from ferris import BasicModel, ndb, settings
+from app.models.mailing_list import MailingList
 from google.appengine.api import mail, app_identity
 APP_ID = app_identity.get_application_id()
 oauth_config = settings.get('oauth2_service_account')
@@ -53,6 +54,9 @@ class AuditLog(BasicModel):
     @staticmethod
     def daily_notification_on_major_actions(filename, out):
 
+        mailingList = MailingList.list_all()
+        emails = [mailing.email for mailing in mailingList]
+
         subject = "Arista Inc. - Daily Notification"
         body = """
         Dear app user,
@@ -60,8 +64,9 @@ class AuditLog(BasicModel):
             This is to notify you on major actions performed today.
         """
 
-        mail.send_mail_to_admins(
+        mail.send_mail(
             sender=oauth_config['default_user'],
+            to=emails,
             subject=subject,
             body=body,
             attachments=[(filename, out)]
@@ -70,6 +75,9 @@ class AuditLog(BasicModel):
     @staticmethod
     def weekly_notification_on_major_actions(filename, out):
 
+        mailingList = MailingList.list_all()
+        emails = [mailing.email for mailing in mailingList]
+
         subject = "Arista Inc. - Weekly Notification"
         body = """
         Dear app user,
@@ -77,8 +85,9 @@ class AuditLog(BasicModel):
             This is to notify you on major actions performed this week.
         """
 
-        mail.send_mail_to_admins(
+        mail.send_mail(
             sender=oauth_config['default_user'],
+            to=emails,
             subject=subject,
             body=body,
             attachments=[(filename, out)]

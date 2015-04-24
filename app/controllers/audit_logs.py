@@ -122,7 +122,6 @@ class AuditLogs(Controller):
 
             if type(log.comment) is not 'NoneType':
                 log.comment.encode('utf-8').strip()
-                logging.info('COMMENT: %s' % log.comment)
 
             data = {
                 'Timestamp': datetime.strftime(log.created, '%m/%d/%Y %I:%M:%S %p'),
