@@ -336,7 +336,7 @@ class Calendars(Controller):
             try:
                 logging.info('USER_TO_BE_REMOVED: %s' % selectedEmail)
                 logging.info('CALENDAR EVENT: %s' % user_email)
-                events, pageToken = calendar_api.get_all_events(user_email, None, pageToken)
+                events, pageToken = calendar_api.get_all_events(user_email, selectedEmail, pageToken)
                 if events['items']:
                     for event in events['items']:
                         if event['status'] == 'cancelled':
