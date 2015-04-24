@@ -584,7 +584,7 @@ class Calendars(Controller):
             logging.info('User to be notified: %s' % params['user_email'])
             logging.info('Event Altered: %s' % params['summary'])
             logging.info('Resource: %s' % params['resource'])
-            AuditLogModel.update_resource_notification(params['user_email'], 'Participants', params['event_link'], params['resource'])
+            AuditLogModel.update_resource_notification(params['user_email'], params['summary'], params['event_link'], params['resource'])
 
         except Exception, e:
             logging.error('== API UPDATE RESOURCE ERROR ==')
