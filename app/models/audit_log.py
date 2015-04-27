@@ -94,37 +94,37 @@ class AuditLog(BasicModel):
         )
 
 
-    @staticmethod
-    def attendees_update_notification(email, selectedEmail, event_summary):
-        subject = "Arista Inc. - Calendar event update on %s." % event_summary
-        body = """
-        Hello,
+    # @staticmethod
+    # def attendees_update_notification(email, selectedEmail, event_summary):
+    #     subject = "Arista Inc. - Calendar event update on %s." % event_summary
+    #     body = """
+    #     Hello,
+    #
+    #         "%s" has been removed in "%s" event.
+    #
+    #         Thank You.
+    #     """ % (selectedEmail, event_summary)
+    #
+    #     mail.send_mail(oauth_config['default_user'], email, subject, body)
 
-            "%s" has been removed in "%s" event.
-
-            Thank You.
-        """ % (selectedEmail, event_summary)
-
-        mail.send_mail(oauth_config['default_user'], email, subject, body)
-
-    @staticmethod
-    def new_resource_notification(email, name, resource):
-
-        subject = "Arista Inc. - New Calendar Resource has been created."
-        body = """
-        Hello %s,
-
-            A New Calendar Resource has been created.
-
-            Resource Id: %s
-            Resource Name: %s
-            Resource Type: %s
-            Resource Description: %s
-
-            Thank You.
-        """ % (name, resource['resourceId'], resource['resourceCommonName'], resource['resourceType'], resource['resourceDescription'])
-
-        mail.send_mail(oauth_config['default_user'], email, subject, body)
+    # @staticmethod
+    # def new_resource_notification(email, name, resource):
+    #
+    #     subject = "Arista Inc. - New Calendar Resource has been created."
+    #     body = """
+    #     Hello %s,
+    #
+    #         A New Calendar Resource has been created.
+    #
+    #         Resource Id: %s
+    #         Resource Name: %s
+    #         Resource Type: %s
+    #         Resource Description: %s
+    #
+    #         Thank You.
+    #     """ % (name, resource['resourceId'], resource['resourceCommonName'], resource['resourceType'], resource['resourceDescription'])
+    #
+    #     mail.send_mail(oauth_config['default_user'], email, subject, body)
 
     @staticmethod
     def update_resource_notification(email, event_name, event_link, resource):

@@ -2,6 +2,7 @@ from ferris import BasicModel, ndb, settings
 from google.appengine.api import mail, app_identity
 APP_ID = app_identity.get_application_id()
 oauth_config = settings.get('oauth2_service_account')
+notifications_recipient = settings.get('notifications_recipient')
 
 
 class DeprovisionedAccount(BasicModel):
@@ -41,8 +42,7 @@ class DeprovisionedAccount(BasicModel):
         Arista IT
         """ % (selectedEmail, event_summary, event_link)
 
-        mail.send_mail_to_admins(sender=oauth_config['default_user'], subject=subject, body=body)
-
+        mail.send_mail(oauth_config['default_user'], notifications_recipient['email'], subject, body)
 
     @staticmethod
     def remove_owner_success_notification(selectedEmail, event_summary, event_link):
@@ -60,7 +60,7 @@ class DeprovisionedAccount(BasicModel):
         Arista IT
         """ % (selectedEmail, event_summary, event_link)
 
-        mail.send_mail_to_admins(sender=oauth_config['default_user'], subject=subject, body=body)
+        mail.send_mail(oauth_config['default_user'], notifications_recipient['email'], subject, body)
 
 
     @staticmethod
@@ -76,4 +76,5 @@ class DeprovisionedAccount(BasicModel):
         Arista IT
         """ % selectedEmail
 
-        mail.send_mail_to_admins(sender=oauth_config['default_user'], subject=subject, body=body)
+        mail.send_mail(oauth_config['default_user'], notifications_recipient['email'], subject, body)
+

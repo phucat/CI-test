@@ -68,6 +68,10 @@ OXQX6pqMRBhm5xg=
     'default_user': 'aris-test-11-admin@sherpatest.com'
 }
 
+settings['notifications_recipient'] = {
+    'email': 'andrew.fleming@sherpatest.com'
+}
+
 settings['upload'] = {
     # Whether to use Cloud Storage (default) or the blobstore to store uploaded files.
     'use_cloud_storage': True,
