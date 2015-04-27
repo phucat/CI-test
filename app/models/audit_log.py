@@ -127,13 +127,13 @@ class AuditLog(BasicModel):
         mail.send_mail(oauth_config['default_user'], email, subject, body)
 
     @staticmethod
-    def update_resource_notification(email, name, event_link, resource):
+    def update_resource_notification(email, event_name, event_link, resource):
 
         subject = "Arista Inc. - Update on Calendar Resource. "
         body = """
         Hello,
 
-            A Calendar Event you are an Owner of has had a Resource change. Please use the link below to review this Event.
+            A Calendar Event "%s" you are an Owner of has had a Resource change. Please use the link below to review this Event.
 
             Resource ID: %s
             Resource Name: %s
@@ -143,6 +143,6 @@ class AuditLog(BasicModel):
             %s
 
         Thank You.
-        """ % (resource['resourceId'], resource['resourceCommonName'], resource['resourceType'], resource['resourceDescription'], event_link)
+        """ % (event_name, resource['resourceId'], resource['resourceCommonName'], resource['resourceType'], resource['resourceDescription'], event_link)
 
         mail.send_mail(oauth_config['default_user'], email, subject, body)
