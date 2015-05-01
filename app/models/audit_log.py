@@ -148,9 +148,9 @@ class AuditLog(BasicModel):
         Hello,
 
             The resource "%s" has been changed on the following event:
-            %s
-            %s
-            %s
+            Date/Time: %s
+            Event Name: %s
+            Participants: %s
             Link: %s
 
         Thank You.
