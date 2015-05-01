@@ -1,3 +1,4 @@
+import logging
 from ferris import BasicModel, ndb, settings
 from app.models.mailing_list import MailingList
 from google.appengine.api import mail, app_identity
@@ -127,22 +128,34 @@ class AuditLog(BasicModel):
     #     mail.send_mail(oauth_config['default_user'], email, subject, body)
 
     @staticmethod
-    def update_resource_notification(email, event_name, event_link, resource):
+    def update_resource_notification(email, event_name, event_link, resource, datetime, attendees_list_display_names):
+        # Example of datetime: 2015-05-01T19:30:00Z
+        logging.debug('test01')
+        date = datetime[8:-10] + "-" + datetime[5:-13] + "-" + datetime[:-16]
+        time = datetime[11:-1]
+        datetime_f = date + " " + time
+        logging.debug(datetime_f)
 
-        subject = "Arista Inc. - Update on Calendar Resource. "
+
+        # attendees_list_display_names = ["Ender Wiggin", "Mazer Rackham", "Bean", "Valentine Wiggin", "Petra Arkanian",
+        #     "Peter Wiggin", "Hive Queen", "Jane", "Theresa Wiggin"]
+        attendee_list = ', '.join(map(str, attendees_list_display_names))
+        logging.debug(attendee_list)
+
+        subject = "Arista Inc. - A Resource has been updated on one of your Events. "
+
         body = """
         Hello,
 
-            A Calendar Event "%s" you are an Owner of has had a Resource change. Please use the link below to review this Event.
-
-            Resource ID: %s
-            Resource Name: %s
-            Resource Type: %s
-            Resource Description: %s
-
+            The resource "%s" has been changed on the following event:
             %s
+            %s
+            %s
+            Link: %s
 
         Thank You.
-        """ % (event_name, resource['resourceId'], resource['resourceCommonName'], resource['resourceType'], resource['resourceDescription'], event_link)
+        """ % (resource['resourceCommonName'], datetime_f, event_name, attendee_list, event_link)
 
+        logging.debug('test01')
         mail.send_mail(oauth_config['default_user'], email, subject, body)
+

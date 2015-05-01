@@ -473,6 +473,7 @@ class Calendars(Controller):
     @classmethod
     def filter_location(self, event, user_email, selectedEmail, comment, current_user_email, resource_params, event_id_pool):
         attendees_list = []
+        attendees_list_display_names = []
         resource_list = []
         if 'attendees' in event:
             resource_location_name = []
@@ -489,6 +490,9 @@ class Calendars(Controller):
                         resource_list.append({'email': attendee['email']})
                 else:
                     attendees_list.append(attendee['email'])
+                    logging.debug("Test-00001")
+                    attendees_list_display_names.append(attendee['displayName'])
+                    logging.debug(attendees_list_display_names)
                     resource_list.append({'email': attendee['email']})
 
             if len(resource_location_name) > 1:
@@ -528,7 +532,7 @@ class Calendars(Controller):
                 'resource': resource_params
             }
 
-            deferred.defer(self.send_event_notification, event, user_email, params_body, resource_list, update_event, current_user_email, event_id_pool, _queue=sharded)
+            deferred.defer(self.send_event_notification, event, user_email, params_body, resource_list, update_event, current_user_email, attendees_list_display_names, _queue=sharded)
         else:
             update_event = {
                 'event_id': event['id'],
@@ -541,10 +545,10 @@ class Calendars(Controller):
                 'resource': resource_params
             }
 
-            deferred.defer(self.update_resource_events, update_event, current_user_email, _queue=sharded)
+            deferred.defer(self.update_resource_events, update_event, event, current_user_email, attendees_list_display_names, _queue=sharded)
 
     @classmethod
-    def send_event_notification(self, event, user_email, params_body, resource_list, update_event, current_user_email, event_id_pool):
+    def send_event_notification(self, event, user_email, params_body, resource_list, update_event, current_user_email, attendees_list_display_names):
         logging.info('DATE: %s ' % str(datetime.date.today()))
         logging.info('SEND UPDATE_NOTIF: %s' % user_email)
         logging.info('SEND UPDATE_NOTIF_BODY: %s' % params_body)
@@ -556,10 +560,10 @@ class Calendars(Controller):
             logging.info('SEND_NOTIF_TO_OWNER %s' % user_email)
             logging.info('SEND_NOTIF_TO_OWNER_BODY %s' % params_body)
             sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
-            deferred.defer(self.update_resource_events, update_event, current_user_email, _queue=sharded)
+            deferred.defer(self.update_resource_events, update_event, event, current_user_email, attendees_list_display_names, _queue=sharded)
 
     @classmethod
-    def update_resource_events(self, params, current_user_email=''):
+    def update_resource_events(self, params, event, current_user_email='', attendees_list_display_names=''):
         try:
             logging.info('UPDATE RESOURCE NOTIF: %s' % params)
             insert_audit_log(
@@ -584,7 +588,7 @@ class Calendars(Controller):
             logging.info('User to be notified: %s' % params['user_email'])
             logging.info('Event Altered: %s' % params['summary'])
             logging.info('Resource: %s' % params['resource'])
-            AuditLogModel.update_resource_notification(params['user_email'], params['summary'], params['event_link'], params['resource'])
+            AuditLogModel.update_resource_notification(params['user_email'], params['summary'], params['event_link'], params['resource'], event['start']['dateTime'], attendees_list_display_names)
 
         except Exception, e:
             logging.error('== API UPDATE RESOURCE ERROR ==')
