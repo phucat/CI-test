@@ -153,7 +153,7 @@ class AuditLog(BasicModel):
             Participants: %s
             Link: %s
 
-        Thank You.
+         - Arista IT
         """ % (resource['resourceCommonName'], datetime_f, event_name, attendee_list, event_link)
 
         logging.debug('test01')
