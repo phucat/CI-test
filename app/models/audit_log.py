@@ -133,7 +133,7 @@ class AuditLog(BasicModel):
         # take the date time, remove 6 hours
         hour = datetime[11:-7]
         hour = int(hour)
-        hour -= 6
+        hour -= 7
         if hour < 0:
             hour += 24
 
