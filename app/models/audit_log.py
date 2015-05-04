@@ -130,16 +130,26 @@ class AuditLog(BasicModel):
     @staticmethod
     def update_resource_notification(email, event_name, event_link, resource, datetime, attendees_list_display_names):
         # Example of datetime: 2015-05-01T19:30:00Z
-        logging.debug('test01')
-        date = datetime[8:-10] + "-" + datetime[5:-13] + "-" + datetime[:-16]
-        time = datetime[11:-1]
-        datetime_f = date + " " + time
-        logging.debug(datetime_f)
+        # take the date time, remove 6 hours
+        hour = datetime[11:-7]
+        hour = int(hour)
+        hour -= 6
+        if hour < 0:
+            hour += 24
 
+        hour = str(hour)
+        if len(hour) < 2:
+            hour += '0'
+
+        date = datetime[5:-13] + "-" + datetime[8:-10] + "-" + datetime[:-16]
+        time = hour + datetime[13:-1]
+        datetime_f = date + " " + time + " PST"
+        logging.debug(datetime_f)
 
         # attendees_list_display_names = ["Ender Wiggin", "Mazer Rackham", "Bean", "Valentine Wiggin", "Petra Arkanian",
         #     "Peter Wiggin", "Hive Queen", "Jane", "Theresa Wiggin"]
         attendee_list = ', '.join(map(str, attendees_list_display_names))
+
         logging.debug(attendee_list)
 
         subject = "Arista Inc. - A Resource has been updated on one of your Events. "
