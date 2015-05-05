@@ -313,11 +313,8 @@ class Calendars(Controller):
 
                             sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
 
-                            if 'recurrence' in event:
+                            if startDate >= current_date:
                                 deferred.defer(self.get_events, event, user_email, selectedEmail, comment, resource_params, resource, current_user_email, event_id_pool, _queue=sharded)
-                            else:
-                                if startDate >= current_date:
-                                    deferred.defer(self.get_events, event, user_email, selectedEmail, comment, resource_params, resource, current_user_email, event_id_pool, _queue=sharded)
                         else:
                             pass
 
@@ -352,11 +349,8 @@ class Calendars(Controller):
 
                             sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
 
-                            if 'recurrence' in event:
+                            if startDate >= current_date:
                                 deferred.defer(self.get_events, event, user_email, selectedEmail, comment, resource_params, resource, current_user_email, event_id_pool, _queue=sharded)
-                            else:
-                                if startDate >= current_date:
-                                    deferred.defer(self.get_events, event, user_email, selectedEmail, comment, resource_params, resource, current_user_email, event_id_pool, _queue=sharded)
                         else:
                             pass
 

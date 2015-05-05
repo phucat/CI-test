@@ -30,7 +30,7 @@ def get_all_events(email, selectedEmail, page_token=None):
     response = None
     try:
         calendar = build_client(email)
-        param = {'calendarId': email, 'timeZone': 'GMT', 'singleEvents': False, 'pageToken': page_token}
+        param = {'calendarId': email, 'timeZone': 'GMT', 'singleEvents': True, 'pageToken': page_token}
         if selectedEmail:
             param['q'] = '"%s"' % selectedEmail
 
