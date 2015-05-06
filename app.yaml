@@ -1,4 +1,4 @@
-application: arista-calendar-01     #.appspot.com
+application: cs-arista-calendar-qa      #.appspot.com
 version: baseline
 
 runtime: python27

@@ -42,34 +42,34 @@ settings['oauth2'] = {
     'developer_key': None  # Optional
 }
 
-# arista-calendar-01
+# arista-qa
 settings['oauth2_service_account'] = {
     # OAuth2 service account configuration should be generated
     # from the google cloud console (Service Account Credentials)
-    'client_email': '61726108322-7gnl78qvf5b4iudpk6e7l9rb9totacjs@developer.gserviceaccount.com',  # XXX@developer.gserviceaccount.com
+    'client_email': '566305864248-jqrmu5pup0t108pt97nqq9mt1ijv7mto@developer.gserviceaccount.com',  # XXX@developer.gserviceaccount.com
     'private_key': """-----BEGIN PRIVATE KEY-----
-MIICdQIBADANBgkqhkiG9w0BAQEFAASCAl8wggJbAgEAAoGBAL3kfZbZC2maFrkc
-7BoOWc5nvETUItuPYPwc4qmSpexA6lrWgx1po00jjYe7ZZSaFJgBMn+iBherEGxZ
-ELwV8RV9tZkWpBuUkc3jHGZtUiYF9I8eMXnXTq32qLXA5+150isuNMfVgzMuE37X
-pUa8k9rOT5fylma1jYneiCgYfz+FAgMBAAECgYArN0wJv52kS+gt+tIU3/06R0uG
-kozYURouZliDZReT2/Y59CXk1LzQem3kXRayKhrTuToH6BTg4BKdxetUEt5Js/Tx
-CscCAqnZJvMZATf087ZW0kTtVyoB2Hkk9kJlv9OEY2k2DNWpNBdGD6Jlgv54xxgT
-Zv3oS4y6NVHoVUPcgQJBAPO3CZKEqveYMxUlwAsOW8S46v5ncEKvUdbUuxX0d7/Z
-cH+K5L/0Su8EeJ8wkUh940YDew1hX7+P6zkiQAq3k2ECQQDHduoCWHHn93Zedlmw
-os5//xhDFSLlUkJjKY0RtI3NuQNWov8T6lsg9k498MRlg5ABzaP5a8IOmnfE24lt
-FoKlAkB/qRw5hIbtxOrVI/4RjIbjaB2n/1TdiWpsBuis2m6zrtlv5bhnGDb8NrJc
-aJthhpe7P+2AF8aI2IFVXyx+sKRhAkAWBR+yYJc6l4wew4wFPwPzB3NjPHscu+cO
-UXD8amVZN7qRnu7wAOhMjER4/BKCbnLAcDZQ+79xo0XjmqTiQSDtAkBVJIIaoOd8
-cXTvclD9VA5QhJp3corbMmNpS5KJ38mTSSeXYRXl1T0oIx/0zfym27mgocEjU7RG
-FbBGI6dxBm4s
+MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAJqTms3P+p9OTyOL
+Pv+Xpxb7loL/tEWcCvmVbq+y938O4z6KQhNSlh135cpkYdUmak0vy7PJeaGYd9hD
+UNbfRN0JLudbMCUWvV8QkIBJgbeDa+hJV3KK3ZTJxDL07WwE8VfXnpPtaZ605ISk
+2K4rkYwlQI0hxebSXyuiFZAcmfdtAgMBAAECgYEAkxEWevSCvajS0L197c3Ksqoh
+tHc2e/gP1RBgpBfBNAjlGi6O2TV9D4JwhdRl5FdNUizEQUTSTXXzqDW7pwP7zlqT
+0axRDOvlCjOWNzzWKm8kJqFJTKtSyNsMabdOvkBD2nvS3YYTNRTJQQbAzytoYLvw
+1Hk29kRAW21kDHS8O4ECQQDHOG7VVPU6IvrDm0x62ZsFcAXjUX4Q8xjqk3FN9zET
+gM1RAjon+8diOcuVm+Yc+vF6b09T5YyzmliHnwtQdOxNAkEAxqHbNcGHnLYFwMOt
+MvCWW+vGU4xQEiTEXKun+PMtbWF4ZHiE6NqRA3nBaAK3Klk3P1qENkCwdQjKfaEI
+j6hHoQJBALIBbJbVaKBfrOymkLmcQfWj2L76i8gdToAa6jydyI4ConHlqY0cXVUZ
+Cx1MxVnTp3ychKcUDppUKRJVO8jSEGkCQCCHr2vdVwVONiD8qufVyPoi4eca6p4e
+EV6P6kF2KfFo7hueNT4hVXB5RzhugWrZE5g3jcGI1J1GJEtwzQMh7yECQEEBDkh+
+mFCQw6Ca1YME8dXcxzIRCOpMa9ZSSGw6ib7Uwi2LPNQYUg1zWNCIbJZTXWjxhfmQ
+OXQX6pqMRBhm5xg=
 -----END PRIVATE KEY-----""",  # Must be in PEM format
-    'developer_key': 'AIzaSyBkMhZAbepklUuV5ZXrzPDdu5zOSSRUhZA',  # Optional
-    'domain': 'arista.com',
-    'default_user': 'sherpa_bot@arista.com'
+    'developer_key': 'AIzaSyCY2AHYltYng1JbyHJk8EH80JbMqaiy9NU',  # Optional
+    'domain': 'sherpatest.com',
+    'default_user': 'aris-test-11-admin@sherpatest.com'
 }
 
 settings['notifications_recipient'] = {
-    'email': 'arista-calendar-appspot-log@arista.com'
+    'email': 'andrew.fleming@sherpatest.com'
 }
 
 settings['upload'] = {
@@ -88,7 +88,7 @@ settings['appstats'] = {
 }
 
 settings['google_directory'] = {
-    'domain': 'arista.com'
+    'domain': 'sherpatest.com'
 }
 
 # Optionally, you may use the settings plugin to dynamically
