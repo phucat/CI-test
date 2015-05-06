@@ -77,7 +77,9 @@ class Calendars(Controller):
         if feed == 'feed':
             calendar_resources = str(client.GetResourceFeed())
         else:
-            calendar_resources = str(client.GetResourceFeed(uri="https://apps-apis.google.com/a/feeds/calendar/resource/2.0/%s/?%s" % (oauth_config['domain'], feed)))
+            calendar_resources = str(client.GetResourceFeed(
+                uri="https://apps-apis.google.com/a/feeds/calendar/resource/2.0/%s/?%s" % (
+                    oauth_config['domain'], feed)))
 
         nextpage, res = self.components.calendars.find_resource(calendar_resources)
         data['items'] = res
@@ -184,7 +186,8 @@ class Calendars(Controller):
 
             check_resource = client.GetResource(resource_id=resource['resourceId'])
             check_result = self.components.calendars.find_resource(str(check_resource))
-            logging.info('OLD: %s | CHECK: %s ' % (resource['old_resourceCommonName'], check_result[0]['resourceCommonName']) )
+            logging.info(
+                'OLD: %s | CHECK: %s ' % (resource['old_resourceCommonName'], check_result[0]['resourceCommonName']))
             if resource['old_resourceCommonName'] != check_result[0]['resourceCommonName']:
                 return 402
 
@@ -243,7 +246,8 @@ class Calendars(Controller):
         logging.info('resource_email: %s' % resource['new_email'])
         for user_email in users_email:
             sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
-            deferred.defer(self.get_resource_events, user_email['primaryEmail'], resource['new_email'], '', resource, True, current_user, _countdown=1, _queue=sharded)
+            deferred.defer(self.get_resource_events, user_email['primaryEmail'], resource['new_email'], '', resource,
+                           True, current_user, _countdown=1, _queue=sharded)
 
     @route_with('/api/calendar/remove_user/events/<selectedEmail>', methods=['POST'])
     def api_remove_users_events(self, selectedEmail):
@@ -254,13 +258,14 @@ class Calendars(Controller):
         resultMessage = {}
 
         insert_audit_log("User to be removed: %s | User comment: %s" % (selectedEmail, comment),
-            'user manager', current_user.email(), selectedEmail, '-', comment)
+                         'user manager', current_user.email(), selectedEmail, '-', comment)
 
         resultMessage['message'] = 'The app is in the process of removing %s in calendar events.' % selectedEmail
         self.context['data'] = resultMessage
 
         sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
-        deferred.defer(self.get_all_events, selectedEmail, selectedEmail, comment, '', False, current_user.email(), _queue=sharded)
+        deferred.defer(self.get_all_events, selectedEmail, selectedEmail, comment, '', False, current_user.email(),
+                       _queue=sharded)
 
     @route_with(template='/api/schedule/update/user', methods=['POST'])
     def api_update_user_status(self):
@@ -278,17 +283,20 @@ class Calendars(Controller):
                 approved_user = {'email': params['email'], 'status': True}
                 DeprovisionedAccount.create(approved_user)
                 sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
-                deferred.defer(self.get_all_events, params['email'], params['email'], '', '', False, current_user.email(), _queue=sharded)
+                deferred.defer(self.get_all_events, params['email'], params['email'], '', '', False,
+                               current_user.email(), _queue=sharded)
 
             elif params['status'] == 'Cancel':
                 params['status'] += 'led'
 
-            insert_audit_log('%s has been %s for removal.' % (params['email'], params['status']), 'api endpoint', current_user.email(), 'Schedule User Removal', '', '')
+            insert_audit_log('%s has been %s for removal.' % (params['email'], params['status']), 'api endpoint',
+                             current_user.email(), 'Schedule User Removal', '', '')
 
             return params['status']
 
     @classmethod
-    def get_resource_events(self, user_email, selectedEmail, comment, resource_params, resource=False, current_user_email=''):
+    def get_resource_events(self, user_email, selectedEmail, comment, resource_params, resource=False,
+                            current_user_email=''):
         pageToken = None
         event_id_pool = []
         try:
@@ -313,8 +321,30 @@ class Calendars(Controller):
 
                             sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
 
-                            if startDate >= current_date:
-                                deferred.defer(self.get_events, event, user_email, selectedEmail, comment, resource_params, resource, current_user_email, event_id_pool, _queue=sharded)
+                            if 'recurrence' in event:
+                                recur = event['recurrence'][0]
+                                logging.debug(recur)
+                                # check if event series has an end date. If so, test if its future or not.
+                                if 'UNTIL' in recur:
+                                    end_date = recur[recur.find('UNTIL') + 6:recur.find('UNTIL=') + 14]
+                                    now = str(datetime.date.today())
+                                    compare_curr_date = str(now)[:4] + str(now)[5:7] + str(now)[8:10]
+                                    logging.debug(compare_curr_date + " <= " + end_date)
+                                    if compare_curr_date <= end_date:
+                                        logging.debug("CHANGE_EVENT")
+                                        logging.debug(event['summary'])
+                                        deferred.defer(self.get_events, event, user_email, selectedEmail, comment,
+                                                       resource_params, resource, current_user_email, event_id_pool,
+                                                       _queue=sharded)
+                                else:
+                                    deferred.defer(self.get_events, event, user_email, selectedEmail, comment,
+                                                   resource_params, resource, current_user_email, event_id_pool,
+                                                   _queue=sharded)
+                            else:
+                                if startDate >= current_date:
+                                    deferred.defer(self.get_events, event, user_email, selectedEmail, comment,
+                                                   resource_params, resource, current_user_email, event_id_pool,
+                                                   _queue=sharded)
                         else:
                             pass
 
@@ -326,7 +356,8 @@ class Calendars(Controller):
             pass
 
     @classmethod
-    def get_all_events(self, user_email, selectedEmail, comment, resource_params, resource=False, current_user_email=''):
+    def get_all_events(self, user_email, selectedEmail, comment, resource_params, resource=False,
+                       current_user_email=''):
         pageToken = None
         event_id_pool = []
         while True:
@@ -349,8 +380,15 @@ class Calendars(Controller):
 
                             sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
 
-                            if startDate >= current_date:
-                                deferred.defer(self.get_events, event, user_email, selectedEmail, comment, resource_params, resource, current_user_email, event_id_pool, _queue=sharded)
+                            if 'recurrence' in event:
+                                deferred.defer(self.get_events, event, user_email, selectedEmail, comment,
+                                               resource_params, resource, current_user_email, event_id_pool,
+                                               _queue=sharded)
+                            else:
+                                if startDate >= current_date:
+                                    deferred.defer(self.get_events, event, user_email, selectedEmail, comment,
+                                                   resource_params, resource, current_user_email, event_id_pool,
+                                                   _queue=sharded)
                         else:
                             pass
 
@@ -362,14 +400,17 @@ class Calendars(Controller):
                 pass
 
     @classmethod
-    def get_events(self, event, user_email, selectedEmail, comment, resource_params, resource=False, current_user_email='', event_id_pool=[]):
+    def get_events(self, event, user_email, selectedEmail, comment, resource_params, resource=False,
+                   current_user_email='', event_id_pool=[]):
         try:
             logging.info('RECURRING EVENT ID 1: %s' % event_id_pool)
             sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
             if resource == False:
-                deferred.defer(self.filter_attendees, event, user_email, selectedEmail, comment, current_user_email, event_id_pool, _queue=sharded)
+                deferred.defer(self.filter_attendees, event, user_email, selectedEmail, comment, current_user_email,
+                               event_id_pool, _queue=sharded)
             else:
-                deferred.defer(self.filter_location, event, user_email, selectedEmail, comment, current_user_email, resource_params, event_id_pool, _queue=sharded)
+                deferred.defer(self.filter_location, event, user_email, selectedEmail, comment, current_user_email,
+                               resource_params, event_id_pool, _queue=sharded)
 
         except urllib2.HTTPError as e:
             logging.info('get_events: HTTPerror')
@@ -395,7 +436,7 @@ class Calendars(Controller):
 
                     params_body = {
                         'attendees': resource_list,
-                        'reminders': {'overrides': [{'minutes': 15, 'method': 'popup'}], 'useDefault': 'false' },
+                        'reminders': {'overrides': [{'minutes': 15, 'method': 'popup'}], 'useDefault': 'false'},
                         'start': event['start'],
                         'end': event['end'],
                         'summary': event['summary']
@@ -413,30 +454,34 @@ class Calendars(Controller):
 
                     for guest in attendees_list:
                         sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
-                        deferred.defer(self.attendees_2, event, user_email, selectedEmail, comment, current_user_email, guest, params_body, event_id_pool, _queue=sharded)
+                        deferred.defer(self.attendees_2, event, user_email, selectedEmail, comment, current_user_email,
+                                       guest, params_body, event_id_pool, _queue=sharded)
                 else:
                     pass
             else:
                 logging.info('event_name: %s' % event['summary'])
                 sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
-                deferred.defer(self.event_owner, event, user_email, selectedEmail, current_user_email, event_id_pool, _queue=sharded)
+                deferred.defer(self.event_owner, event, user_email, selectedEmail, current_user_email, event_id_pool,
+                               _queue=sharded)
         else:
             if event['organizer']['email'] == selectedEmail:
                 logging.info('event_name: %s' % event['summary'])
                 logging.info('EVENT ID OWNER_1: %s' % event['id'])
                 calendar_api.delete_event(event['id'], selectedEmail, True)
                 sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
-                deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email, _queue=sharded)
+                deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email,
+                               _queue=sharded)
 
     @classmethod
-    def attendees_2(self, event, user_email, selectedEmail, comment, current_user_email, guest, params_body, event_id_pool):
+    def attendees_2(self, event, user_email, selectedEmail, comment, current_user_email, guest, params_body,
+                    event_id_pool):
         if selectedEmail:
             logging.info('attendees_2: %s' % event['summary'])
             calendar_api.update_event(event['id'], guest['email'], params_body, False)
 
             logging.info('DATE: %s ' % str(datetime.date.today()))
             logging.info('attendees_2')
-            #logging.info('User to be notified: %s' % guest['email'])
+            # logging.info('User to be notified: %s' % guest['email'])
             logging.info('This is event is NOT emailing users any longer.')
             logging.info('User to be removed: %s' % (selectedEmail))
             # AuditLogModel.attendees_update_notification(guest['email'], selectedEmail, event['summary'])
@@ -449,7 +494,8 @@ class Calendars(Controller):
                 logging.info('EVENT ID: %s' % event['id'])
                 calendar_api.delete_event(event['id'], selectedEmail, True)
                 sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
-                deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email, _queue=sharded)
+                deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email,
+                               _queue=sharded)
             else:
                 remove_owner_failed(event, user_email, selectedEmail, current_user_email)
 
@@ -459,13 +505,15 @@ class Calendars(Controller):
                     logging.info('EVENT ID: %s' % event['id'])
                     calendar_api.delete_event(event['id'], selectedEmail, True)
                     sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
-                    deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email, _queue=sharded)
+                    deferred.defer(self.delete_owner_event, event, selectedEmail, user_email, current_user_email,
+                                   _queue=sharded)
 
         elif len(event['attendees']) > 1:
             remove_owner_failed(event, user_email, selectedEmail, current_user_email)
 
     @classmethod
-    def filter_location(self, event, user_email, selectedEmail, comment, current_user_email, resource_params, event_id_pool):
+    def filter_location(self, event, user_email, selectedEmail, comment, current_user_email, resource_params,
+                        event_id_pool):
         attendees_list = []
         attendees_list_display_names = []
         resource_list = []
@@ -508,7 +556,7 @@ class Calendars(Controller):
                 'location': new_location,
                 'old_resourceName': resource_params['old_resourceCommonName'],
                 'attendees': attendees_list,
-                'reminders': {'overrides': [{'minutes': 15, 'method': 'popup'}], 'useDefault': 'false' },
+                'reminders': {'overrides': [{'minutes': 15, 'method': 'popup'}], 'useDefault': 'false'},
                 'start': event['start'],
                 'end': event['end'],
                 'summary': event['summary']
@@ -526,7 +574,8 @@ class Calendars(Controller):
                 'resource': resource_params
             }
 
-            deferred.defer(self.send_event_notification, event, user_email, params_body, resource_list, update_event, current_user_email, attendees_list_display_names, _queue=sharded)
+            deferred.defer(self.send_event_notification, event, user_email, params_body, resource_list, update_event,
+                           current_user_email, attendees_list_display_names, _queue=sharded)
         else:
             update_event = {
                 'event_id': event['id'],
@@ -539,10 +588,12 @@ class Calendars(Controller):
                 'resource': resource_params
             }
 
-            deferred.defer(self.update_resource_events, update_event, event, current_user_email, attendees_list_display_names, _queue=sharded)
+            deferred.defer(self.update_resource_events, update_event, event, current_user_email,
+                           attendees_list_display_names, _queue=sharded)
 
     @classmethod
-    def send_event_notification(self, event, user_email, params_body, resource_list, update_event, current_user_email, attendees_list_display_names):
+    def send_event_notification(self, event, user_email, params_body, resource_list, update_event, current_user_email,
+                                attendees_list_display_names):
         logging.info('DATE: %s ' % str(datetime.date.today()))
         logging.info('SEND UPDATE_NOTIF: %s' % user_email)
         logging.info('SEND UPDATE_NOTIF_BODY: %s' % params_body)
@@ -554,7 +605,8 @@ class Calendars(Controller):
             logging.info('SEND_NOTIF_TO_OWNER %s' % user_email)
             logging.info('SEND_NOTIF_TO_OWNER_BODY %s' % params_body)
             sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
-            deferred.defer(self.update_resource_events, update_event, event, current_user_email, attendees_list_display_names, _queue=sharded)
+            deferred.defer(self.update_resource_events, update_event, event, current_user_email,
+                           attendees_list_display_names, _queue=sharded)
 
     @classmethod
     def update_resource_events(self, params, event, current_user_email='', attendees_list_display_names=''):
@@ -567,11 +619,11 @@ class Calendars(Controller):
                     Resource Type: %s
                     Resource Description: %s """
                 % (params['resource']['old_resourceCommonName'],
-                    params['summary'],
-                    params['resource']['resourceId'],
-                    params['resource']['resourceCommonName'],
-                    params['resource']['resourceType'],
-                    params['resource']['resourceDescription']),
+                   params['summary'],
+                   params['resource']['resourceId'],
+                   params['resource']['resourceCommonName'],
+                   params['resource']['resourceType'],
+                   params['resource']['resourceDescription']),
                 'resource manager',
                 current_user_email,
                 '%s resource name' % params['resource']['old_resourceCommonName'],
@@ -582,7 +634,9 @@ class Calendars(Controller):
             logging.info('User to be notified: %s' % params['user_email'])
             logging.info('Event Altered: %s' % params['summary'])
             logging.info('Resource: %s' % params['resource'])
-            AuditLogModel.update_resource_notification(params['user_email'], params['summary'], params['event_link'], params['resource'], event['start']['dateTime'], attendees_list_display_names)
+            AuditLogModel.update_resource_notification(params['user_email'], params['summary'], params['event_link'],
+                                                       params['resource'], event['start']['dateTime'],
+                                                       attendees_list_display_names)
 
         except Exception, e:
             logging.error('== API UPDATE RESOURCE ERROR ==')
@@ -606,7 +660,7 @@ class Calendars(Controller):
                 cal_params['target_event_altered'], cal_params['comment']
             )
 
-            logging.info('DATE: %s ' % str(datetime.date.today()) )
+            logging.info('DATE: %s ' % str(datetime.date.today()))
             logging.info('delete_owner_event | send mail to admins')
             logging.info('User to be removed: %s | APP_USER: %s ' % (selectedEmail, current_user_email))
 
@@ -660,7 +714,7 @@ class Calendars(Controller):
                         cal_params['target_resource'],
                         cal_params['target_event_altered'], cal_params['comment'])
 
-                    logging.info('DATE: %s ' % str(datetime.date.today()) )
+                    logging.info('DATE: %s ' % str(datetime.date.today()))
                     logging.info('api_deleting_users | Mail to admins')
                     logging.info('User to be removed: %s' % (d_user))
 
@@ -668,7 +722,8 @@ class Calendars(Controller):
 
                     sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
                     DeprovisionedAccount.create(params)
-                    deferred.defer(self.process_deleted_account, d_user, x_email, list_user_emails, str(modified_approver), _queue=sharded)
+                    deferred.defer(self.process_deleted_account, d_user, x_email, list_user_emails,
+                                   str(modified_approver), _queue=sharded)
 
             return 'started...'
         else:
@@ -690,7 +745,8 @@ class Calendars(Controller):
 
         for active_user in list_user_emails:
             sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
-            deferred.defer(self.get_all_events, active_user['primaryEmail'], d_user, '', '', False, current_user_email, _queue=sharded)
+            deferred.defer(self.get_all_events, active_user['primaryEmail'], d_user, '', '', False, current_user_email,
+                           _queue=sharded)
 
     @route_with(template='/api/clear/datastore/deprovisioned_account')
     def api_clear_ndb(self):
@@ -704,7 +760,6 @@ class Calendars(Controller):
 
 
 def insert_audit_log(action, invoked, app_user, target_resource, target_event_altered, comment=None):
-
     cal_params = {
         'action': action,
         'how_the_action_invoked': invoked,
@@ -718,10 +773,12 @@ def insert_audit_log(action, invoked, app_user, target_resource, target_event_al
 
 def remove_owner_failed(event, user_email, selectedEmail, current_user_email):
     logging.info('REMOVE_OWNER: %s' % event['summary'])
-    action = "Oops %s is the owner in %s event with %s attendees." % (selectedEmail, event['summary'], len(event['attendees']))
-    insert_audit_log(action, 'Remove user in calendar events', current_user_email, selectedEmail, '%s %s' % (user_email, event['summary']), '')
+    action = "Oops %s is the owner in %s event with %s attendees." % (
+        selectedEmail, event['summary'], len(event['attendees']))
+    insert_audit_log(action, 'Remove user in calendar events', current_user_email, selectedEmail,
+                     '%s %s' % (user_email, event['summary']), '')
 
-    logging.info('DATE: %s ' % str(datetime.date.today()) )
+    logging.info('DATE: %s ' % str(datetime.date.today()))
     logging.info('remove_owner_failed | Mail to admins')
     logging.info('User to be removed: %s' % (selectedEmail))
 
@@ -729,36 +786,37 @@ def remove_owner_failed(event, user_email, selectedEmail, current_user_email):
 
 
 def find_resource(resource):
-        res = []
-        nextpage = ''
-        root = ET.fromstring(resource)
-        if root.tag == '{http://www.w3.org/2005/Atom}feed':
-            for link in root.iterfind('{http://www.w3.org/2005/Atom}link'):
-                if link.get('rel') == 'next':
-                    nextpage = link.get('href')
+    res = []
+    nextpage = ''
+    root = ET.fromstring(resource)
+    if root.tag == '{http://www.w3.org/2005/Atom}feed':
+        for link in root.iterfind('{http://www.w3.org/2005/Atom}link'):
+            if link.get('rel') == 'next':
+                nextpage = link.get('href')
 
-            for entry in root.iterfind('{http://www.w3.org/2005/Atom}entry'):
-                param = {}
-                for child in entry.getchildren():
-                    label = ['resourceId', 'resourceCommonName', 'resourceDescription', 'resourceType', 'resourceEmail']
-                    if (child.get('name') in label):
-                        param[child.get('name')] = child.get('value')
-                res.append(param)
-            return nextpage, res
-        else:
+        for entry in root.iterfind('{http://www.w3.org/2005/Atom}entry'):
             param = {}
-            for child in root.getchildren():
+            for child in entry.getchildren():
                 label = ['resourceId', 'resourceCommonName', 'resourceDescription', 'resourceType', 'resourceEmail']
                 if (child.get('name') in label):
                     param[child.get('name')] = child.get('value')
             res.append(param)
-            return res
+        return nextpage, res
+    else:
+        param = {}
+        for child in root.getchildren():
+            label = ['resourceId', 'resourceCommonName', 'resourceDescription', 'resourceType', 'resourceEmail']
+            if (child.get('name') in label):
+                param[child.get('name')] = child.get('value')
+        res.append(param)
+        return res
 
 
 def generate_random_numbers(n):
     from random import randint
-    range_start = 10**(n-1)
-    range_end = (10**n)-1
+
+    range_start = 10 ** (n - 1)
+    range_end = (10 ** n) - 1
     gen_number = randint(range_start, range_end)
     return str("-%s" % gen_number)
 
