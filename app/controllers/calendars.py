@@ -381,9 +381,24 @@ class Calendars(Controller):
                             sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
 
                             if 'recurrence' in event:
-                                deferred.defer(self.get_events, event, user_email, selectedEmail, comment,
-                                               resource_params, resource, current_user_email, event_id_pool,
-                                               _queue=sharded)
+                                recur = event['recurrence'][0]
+                                logging.debug(recur)
+                                # check if event series has an end date. If so, test if its future or not.
+                                if 'UNTIL' in recur:
+                                    end_date = recur[recur.find('UNTIL') + 6:recur.find('UNTIL=') + 14]
+                                    now = str(datetime.date.today())
+                                    compare_curr_date = str(now)[:4] + str(now)[5:7] + str(now)[8:10]
+                                    logging.debug(compare_curr_date + " <= " + end_date)
+                                    if compare_curr_date <= end_date:
+                                        logging.debug("CHANGE_EVENT")
+                                        logging.debug(event['summary'])
+                                        deferred.defer(self.get_events, event, user_email, selectedEmail, comment,
+                                                       resource_params, resource, current_user_email, event_id_pool,
+                                                       _queue=sharded)
+                                else:
+                                    deferred.defer(self.get_events, event, user_email, selectedEmail, comment,
+                                                   resource_params, resource, current_user_email, event_id_pool,
+                                                   _queue=sharded)
                             else:
                                 if startDate >= current_date:
                                     deferred.defer(self.get_events, event, user_email, selectedEmail, comment,
@@ -391,7 +406,6 @@ class Calendars(Controller):
                                                    _queue=sharded)
                         else:
                             pass
-
                 if not pageToken:
                     break
             except urllib2.HTTPError as e:

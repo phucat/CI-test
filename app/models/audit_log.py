@@ -139,10 +139,10 @@ class AuditLog(BasicModel):
 
         hour = str(hour)
         if len(hour) < 2:
-            hour += '0'
+            hour = '0' + hour
 
         date = datetime[5:-13] + "-" + datetime[8:-10] + "-" + datetime[:-16]
-        time = hour + datetime[13:-1]
+        time = str(hour) + datetime[13:-1]
         datetime_f = date + " " + time + " PST"
         logging.debug(datetime_f)
 
