@@ -338,6 +338,7 @@ class Calendars(Controller):
                                                        _queue=sharded)
                                 elif 'COUNT' in recur:
                                     pageToken_2 = None
+                                    r_end_date = []
                                     while True:
                                         recurring_event, pageToken_2 = calendar_api.get_all_events(user_email, selectedEmail, True, pageToken_2)
 
@@ -347,19 +348,22 @@ class Calendars(Controller):
                                                 if r_event['status'] == 'cancelled':
                                                     continue
 
-                                                if 'end' in event:
-                                                    if 'dateTime' in event['start']:
+                                                if 'end' in r_event:
+                                                    if 'dateTime' in r_event['start']:
                                                         current_date = time.time()
-                                                        endDate = rfc3339.strtotimestamp(event['end']['dateTime'])
-                                                    elif 'date' in event['start']:
+                                                        endDate = rfc3339.strtotimestamp(r_event['end']['dateTime'])
+                                                    elif 'date' in r_event['start']:
                                                         current_date = str(datetime.date.today())
-                                                        endDate = event['end']['date']
+                                                        endDate = r_event['end']['date']
                                                 if endDate >= current_date:
-                                                    deferred.defer(self.get_events, r_event, user_email, selectedEmail, comment,
-                                                               resource_params, resource, current_user_email, event_id_pool,
-                                                               _queue=sharded)
+                                                    r_end_date.append(endDate)
                                         if not pageToken_2:
                                             break
+
+                                    if r_end_date:
+                                        deferred.defer(self.get_events, event, user_email, selectedEmail, comment,
+                                                                           resource_params, resource, current_user_email, event_id_pool,
+                                                                           _queue=sharded)
                                 else:
                                     deferred.defer(self.get_events, event, user_email, selectedEmail, comment,
                                                    resource_params, resource, current_user_email, event_id_pool,
@@ -421,6 +425,7 @@ class Calendars(Controller):
                                                        _queue=sharded)
                                 elif 'COUNT' in recur:
                                     pageToken_2 = None
+                                    r_end_date = []
                                     while True:
                                         recurring_event, pageToken_2 = calendar_api.get_all_events(user_email, selectedEmail, True, pageToken_2)
 
@@ -430,19 +435,22 @@ class Calendars(Controller):
                                                 if r_event['status'] == 'cancelled':
                                                     continue
 
-                                                if 'end' in event:
-                                                    if 'dateTime' in event['start']:
+                                                if 'end' in r_event:
+                                                    if 'dateTime' in r_event['start']:
                                                         current_date = time.time()
-                                                        endDate = rfc3339.strtotimestamp(event['end']['dateTime'])
-                                                    elif 'date' in event['start']:
+                                                        endDate = rfc3339.strtotimestamp(r_event['end']['dateTime'])
+                                                    elif 'date' in r_event['start']:
                                                         current_date = str(datetime.date.today())
-                                                        endDate = event['end']['date']
+                                                        endDate = r_event['end']['date']
                                                 if endDate >= current_date:
-                                                    deferred.defer(self.get_events, r_event, user_email, selectedEmail, comment,
-                                                               resource_params, resource, current_user_email, event_id_pool,
-                                                               _queue=sharded)
+                                                    r_end_date.append(endDate)
                                         if not pageToken_2:
                                             break
+
+                                    if r_end_date:
+                                        deferred.defer(self.get_events, event, user_email, selectedEmail, comment,
+                                                               resource_params, resource, current_user_email, event_id_pool,
+                                                               _queue=sharded)
                                 else:
                                     deferred.defer(self.get_events, event, user_email, selectedEmail, comment,
                                                    resource_params, resource, current_user_email, event_id_pool,
