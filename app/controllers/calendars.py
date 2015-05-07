@@ -32,7 +32,7 @@ class Calendars(Controller):
     def api_list_calendar_events(self, email):
         feed = []
 
-        feed = calendar_api.get_all_events(email, None, None)
+        feed = calendar_api.get_all_events(email, None, False, None)
 
         self.context['data'] = feed
 
@@ -40,7 +40,7 @@ class Calendars(Controller):
     def api_list_recurring_events(self, email, selectedemail):
         feed = []
 
-        feed = calendar_api.get_all_events(email, selectedemail, None)
+        feed = calendar_api.get_all_events(email, selectedemail, False, None)
 
         self.context['data'] = feed
 
@@ -303,7 +303,7 @@ class Calendars(Controller):
             while True:
                 logging.info('USER_RESOURCE_ROOM: %s' % selectedEmail)
                 logging.info('CALENDAR OWNER: %s' % user_email)
-                events, pageToken = calendar_api.get_all_events(user_email, selectedEmail, pageToken)
+                events, pageToken = calendar_api.get_all_events(user_email, selectedEmail, False, pageToken)
                 logging.info('LIST_RESOURCE_ROOM: %s' % events)
                 if events['items']:
                     logging.info('RESOURCE ROOM 2: %s' % events['items'])
@@ -336,6 +336,30 @@ class Calendars(Controller):
                                         deferred.defer(self.get_events, event, user_email, selectedEmail, comment,
                                                        resource_params, resource, current_user_email, event_id_pool,
                                                        _queue=sharded)
+                                elif 'COUNT' in recur:
+                                    pageToken_2 = None
+                                    while True:
+                                        recurring_event, pageToken_2 = calendar_api.get_all_events(user_email, selectedEmail, True, pageToken_2)
+
+                                        if recurring_event['items']:
+                                            logging.info('RECURRING_COUNT: %s' % recurring_event['items'])
+                                            for r_event in recurring_event['items']:
+                                                if r_event['status'] == 'cancelled':
+                                                    continue
+
+                                                if 'end' in event:
+                                                    if 'dateTime' in event['start']:
+                                                        current_date = time.time()
+                                                        endDate = rfc3339.strtotimestamp(event['end']['dateTime'])
+                                                    elif 'date' in event['start']:
+                                                        current_date = str(datetime.date.today())
+                                                        endDate = event['end']['date']
+                                                if endDate >= current_date:
+                                                    deferred.defer(self.get_events, r_event, user_email, selectedEmail, comment,
+                                                               resource_params, resource, current_user_email, event_id_pool,
+                                                               _queue=sharded)
+                                        if not pageToken_2:
+                                            break
                                 else:
                                     deferred.defer(self.get_events, event, user_email, selectedEmail, comment,
                                                    resource_params, resource, current_user_email, event_id_pool,
@@ -364,7 +388,7 @@ class Calendars(Controller):
             try:
                 logging.info('USER_TO_BE_REMOVED: %s' % selectedEmail)
                 logging.info('CALENDAR EVENT: %s' % user_email)
-                events, pageToken = calendar_api.get_all_events(user_email, selectedEmail, pageToken)
+                events, pageToken = calendar_api.get_all_events(user_email, selectedEmail, False, pageToken)
                 if events['items']:
                     for event in events['items']:
                         if event['status'] == 'cancelled':
@@ -395,6 +419,30 @@ class Calendars(Controller):
                                         deferred.defer(self.get_events, event, user_email, selectedEmail, comment,
                                                        resource_params, resource, current_user_email, event_id_pool,
                                                        _queue=sharded)
+                                elif 'COUNT' in recur:
+                                    pageToken_2 = None
+                                    while True:
+                                        recurring_event, pageToken_2 = calendar_api.get_all_events(user_email, selectedEmail, True, pageToken_2)
+
+                                        if recurring_event['items']:
+                                            logging.info('RECURRING_COUNT: %s' % recurring_event['items'])
+                                            for r_event in recurring_event['items']:
+                                                if r_event['status'] == 'cancelled':
+                                                    continue
+
+                                                if 'end' in event:
+                                                    if 'dateTime' in event['start']:
+                                                        current_date = time.time()
+                                                        endDate = rfc3339.strtotimestamp(event['end']['dateTime'])
+                                                    elif 'date' in event['start']:
+                                                        current_date = str(datetime.date.today())
+                                                        endDate = event['end']['date']
+                                                if endDate >= current_date:
+                                                    deferred.defer(self.get_events, r_event, user_email, selectedEmail, comment,
+                                                               resource_params, resource, current_user_email, event_id_pool,
+                                                               _queue=sharded)
+                                        if not pageToken_2:
+                                            break
                                 else:
                                     deferred.defer(self.get_events, event, user_email, selectedEmail, comment,
                                                    resource_params, resource, current_user_email, event_id_pool,

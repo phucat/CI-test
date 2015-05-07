@@ -25,27 +25,18 @@ def build_client(user):
         return build_client(user)
 
 
-def get_all_events(email, selectedEmail, page_token=None):
+def get_all_events(email, selectedEmail, singleEvents=False, page_token=None):
     logging.info('calendar: get_all_events')
     response = None
     try:
         calendar = build_client(email)
-        param = {'calendarId': email, 'timeZone': 'GMT', 'singleEvents': False, 'pageToken': page_token}
+        param = {'calendarId': email, 'timeZone': 'GMT', 'singleEvents': singleEvents, 'pageToken': page_token}
         if selectedEmail:
             param['q'] = '"%s"' % selectedEmail
 
         events = calendar.events().list(**param).execute()
-        # if not page_token:
-        #     response = events
-        # else:
-        #     response['items'].extend(events['items'])
-
         response = events
-        # logging.info("google event response ==> %s" % response)
-
         page_token = events.get('nextPageToken')
-        # if not page_token:
-        #     break
 
     except urllib2.HTTPError, err:
         logging.info('get_all_events: HTTPerror')
