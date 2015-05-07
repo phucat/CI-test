@@ -663,9 +663,10 @@ class Calendars(Controller):
         params_body['attendees'] = resource_list
         calendar_api.update_event(event['id'], user_email, params_body, False)
 
-        sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
-        deferred.defer(self.update_resource_events, update_event, event, current_user_email,
-                       attendees_list_display_names, _queue=sharded)
+        if user_email == update_event['organizerEmail']:
+            sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
+            deferred.defer(self.update_resource_events, update_event, event, current_user_email,
+                           attendees_list_display_names, _queue=sharded)
 
     @classmethod
     def update_resource_events(self, params, event, current_user_email='', attendees_list_display_names=''):
