@@ -69,7 +69,7 @@ OXQX6pqMRBhm5xg=
 }
 
 settings['notifications_recipient'] = {
-    'email': 'aris-test-11-admin@sherpatest.com'
+    'email': 'andrew.fleming@sherpatest.com'
 }
 
 settings['upload'] = {

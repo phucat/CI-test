@@ -25,7 +25,7 @@ def build_client(user):
         return build_client(user)
 
 
-def get_all_events(email, selectedEmail, singleEvents=False, page_token=None):
+def get_all_events(email, selectedEmail, singleEvents=False, page_token=None, iCalUID=None):
     logging.info('calendar: get_all_events')
     response = None
     try:
@@ -33,6 +33,8 @@ def get_all_events(email, selectedEmail, singleEvents=False, page_token=None):
         param = {'calendarId': email, 'timeZone': 'GMT', 'singleEvents': singleEvents, 'pageToken': page_token}
         if selectedEmail:
             param['q'] = '"%s"' % selectedEmail
+        if iCalUID:
+            param['iCalUID'] = '"%s"' % iCalUID
 
         events = calendar.events().list(**param).execute()
         response = events
