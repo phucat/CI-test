@@ -681,7 +681,7 @@ class Calendars(Controller):
         logging.info('SEND UPDATE_NOTIF_BODY: %s' % params_body)
         calendar_api.update_event(event['id'], user_email, params_body, False)
         params_body['attendees'] = resource_list
-        calendar_api.update_event(event['id'], user_email, params_body, False)
+        calendar_api.update_event(event['id'], user_email, params_body, True)
 
         if user_email == update_event['organizerEmail']:
             sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
