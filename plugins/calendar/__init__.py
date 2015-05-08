@@ -34,7 +34,7 @@ def get_all_events(email, selectedEmail, singleEvents=False, page_token=None, iC
         if selectedEmail:
             param['q'] = '"%s"' % selectedEmail
         if iCalUID:
-            param['iCalUID'] = '"%s"' % iCalUID
+            param['iCalUID'] = '%s' % iCalUID
 
         events = calendar.events().list(**param).execute()
         response = events

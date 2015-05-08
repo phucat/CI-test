@@ -33,8 +33,8 @@ class Calendars(Controller):
         feed = []
         pageToken = None
         while True:
-            feed, pageToken = calendar_api.get_all_events(email, None, False, pageToken)
-
+            response, pageToken = calendar_api.get_all_events(email, None, True, pageToken)
+            feed.append(response)
             if not pageToken:
                 break
 
@@ -45,7 +45,8 @@ class Calendars(Controller):
         feed = []
         pageToken = None
         while True:
-            feed, pageToken = calendar_api.get_all_events(email, selectedemail, True, pageToken)
+            response, pageToken = calendar_api.get_all_events(email, None, True, pageToken, selectedemail)
+            feed.append(response)
             if not pageToken:
                 break
         self.context['data'] = feed
@@ -345,7 +346,11 @@ class Calendars(Controller):
                                     while True:
                                         # we can search by iCalUID - apparently this is the same for all events in a series
                                         icalUID = event['iCalUID']
-                                        recurring_event, pageToken_2 = calendar_api.get_all_events(user_email, '', True, pageToken_2, icalUID)
+                                        logging.info('RECURRENCE_COUNT')
+                                        logging.info('iCalUid:  %s ' % icalUID)
+                                        logging.info('summary:  %s ' % event['summary'])
+                                        logging.info('USER_RESOURCE_ROOM: %s' % selectedEmail)
+                                        recurring_event, pageToken_2 = calendar_api.get_all_events(user_email, None, True, pageToken_2, icalUID)
                                         if recurring_event['items']:
                                             logging.info('RECURRING_COUNT: %s' % recurring_event['items'])
                                             for r_event in recurring_event['items']:
@@ -364,8 +369,8 @@ class Calendars(Controller):
                                         if not pageToken_2:
                                             break
 
+                                    logging.info('r_end_date: [%s] ' % r_end_date)
                                     if r_end_date:
-                                        logging.info('r_end_date: %s ' % r_end_date)
                                         deferred.defer(self.get_events, event, user_email, selectedEmail, comment,
                                                                            resource_params, resource, current_user_email, event_id_pool,
                                                                            _queue=sharded)
@@ -373,6 +378,8 @@ class Calendars(Controller):
                                     deferred.defer(self.get_events, event, user_email, selectedEmail, comment,
                                                    resource_params, resource, current_user_email, event_id_pool,
                                                    _queue=sharded)
+                            elif 'recurringEventId' in event:
+                                pass
                             else:
                                 if startDate >= current_date:
                                     deferred.defer(self.get_events, event, user_email, selectedEmail, comment,
@@ -431,7 +438,11 @@ class Calendars(Controller):
                                         # we can search by iCalUID - apparently this is the same for all events in a series
 
                                         icalUID = event['iCalUID']
-                                        recurring_event, pageToken_2 = calendar_api.get_all_events(user_email, '', True,
+                                        logging.info('RECURRENCE_COUNT')
+                                        logging.info('iCalUid:  %s ' % icalUID)
+                                        logging.info('summary:  %s ' % event['summary'])
+                                        logging.info('USER_TO_BE_REMOVED: %s' % selectedEmail)
+                                        recurring_event, pageToken_2 = calendar_api.get_all_events(user_email, None, True,
                                                                                                    pageToken_2, icalUID)
                                         if recurring_event['items']:
                                             logging.info('RECURRING_COUNT: %s' % recurring_event['items'])
@@ -463,6 +474,8 @@ class Calendars(Controller):
                                     deferred.defer(self.get_events, event, user_email, selectedEmail, comment,
                                                    resource_params, resource, current_user_email, event_id_pool,
                                                    _queue=sharded)
+                            elif 'recurringEventId' in event:
+                                pass
                             else:
                                 if startDate >= current_date:
                                     deferred.defer(self.get_events, event, user_email, selectedEmail, comment,
