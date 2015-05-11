@@ -317,7 +317,6 @@ class Calendars(Controller):
                     for event in events['items']:
                         if event['status'] == 'cancelled':
                             continue
-
                         if 'start' in event:
                             if 'dateTime' in event['start']:
                                 current_date = time.time()
@@ -335,7 +334,6 @@ class Calendars(Controller):
                                     end_date = recur[recur.find('UNTIL') + 6:recur.find('UNTIL=') + 14]
                                     now = str(datetime.date.today())
                                     compare_curr_date = str(now)[:4] + str(now)[5:7] + str(now)[8:10]
-
                                     if compare_curr_date <= end_date:
                                         deferred.defer(self.get_events, event, user_email, selectedEmail, comment,
                                                        resource_params, resource, current_user_email, event_id_pool,
@@ -347,10 +345,11 @@ class Calendars(Controller):
                                         # we can search by iCalUID - apparently this is the same for all events in a series
                                         icalUID = event['iCalUID']
                                         logging.info('RECURRENCE_COUNT')
-                                        logging.info('iCalUid:  %s ' % icalUID)
                                         logging.info('summary:  %s ' % event['summary'])
                                         logging.info('USER_RESOURCE_ROOM: %s' % selectedEmail)
-                                        recurring_event, pageToken_2 = calendar_api.get_all_events(user_email, None, True, pageToken_2, icalUID)
+                                        recurring_event, pageToken_2 = calendar_api.get_all_events(user_email, None,
+                                                                                                   True, pageToken_2,
+                                                                                                   icalUID)
                                         if recurring_event['items']:
                                             logging.info('RECURRING_COUNT: %s' % recurring_event['items'])
                                             for r_event in recurring_event['items']:
@@ -372,8 +371,8 @@ class Calendars(Controller):
                                     logging.info('r_end_date: [%s] ' % r_end_date)
                                     if r_end_date:
                                         deferred.defer(self.get_events, event, user_email, selectedEmail, comment,
-                                                                           resource_params, resource, current_user_email, event_id_pool,
-                                                                           _queue=sharded)
+                                                       resource_params, resource, current_user_email, event_id_pool,
+                                                       _queue=sharded)
                                 else:
                                     deferred.defer(self.get_events, event, user_email, selectedEmail, comment,
                                                    resource_params, resource, current_user_email, event_id_pool,
@@ -439,10 +438,10 @@ class Calendars(Controller):
 
                                         icalUID = event['iCalUID']
                                         logging.info('RECURRENCE_COUNT')
-                                        logging.info('iCalUid:  %s ' % icalUID)
                                         logging.info('summary:  %s ' % event['summary'])
                                         logging.info('USER_TO_BE_REMOVED: %s' % selectedEmail)
-                                        recurring_event, pageToken_2 = calendar_api.get_all_events(user_email, None, True,
+                                        recurring_event, pageToken_2 = calendar_api.get_all_events(user_email, None,
+                                                                                                   True,
                                                                                                    pageToken_2, icalUID)
                                         if recurring_event['items']:
                                             logging.info('RECURRING_COUNT: %s' % recurring_event['items'])
@@ -468,8 +467,8 @@ class Calendars(Controller):
                                         logging.info('user_email: %s ' % user_email)
                                         logging.info('event_summary: %s ' % event['summary'])
                                         deferred.defer(self.get_events, event, user_email, selectedEmail, comment,
-                                                               resource_params, resource, current_user_email, event_id_pool,
-                                                               _queue=sharded)
+                                                       resource_params, resource, current_user_email, event_id_pool,
+                                                       _queue=sharded)
                                 else:
                                     deferred.defer(self.get_events, event, user_email, selectedEmail, comment,
                                                    resource_params, resource, current_user_email, event_id_pool,
@@ -495,6 +494,7 @@ class Calendars(Controller):
                    current_user_email='', event_id_pool=[]):
         try:
             logging.info('RECURRING EVENT ID 1: %s' % event_id_pool)
+            logging.info(event['summary'])
             sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
             if resource == False:
                 deferred.defer(self.filter_attendees, event, user_email, selectedEmail, comment, current_user_email,
@@ -510,7 +510,6 @@ class Calendars(Controller):
 
     @classmethod
     def filter_attendees(self, event, user_email, selectedEmail, comment, current_user_email, event_id_pool):
-
         if 'attendees' in event:
             if event['organizer']['email'] != selectedEmail:
                 participants_email = [participant['email'] for participant in event['attendees']]
@@ -605,6 +604,7 @@ class Calendars(Controller):
     @classmethod
     def filter_location(self, event, user_email, selectedEmail, comment, current_user_email, resource_params,
                         event_id_pool):
+
         attendees_list = []
         attendees_list_display_names = []
         resource_list = []
@@ -623,7 +623,10 @@ class Calendars(Controller):
                         resource_list.append({'email': attendee['email']})
                 else:
                     attendees_list.append(attendee['email'])
-                    attendees_list_display_names.append(attendee['displayName'])
+                    if hasattr(attendee, 'displayName'):
+                        attendees_list_display_names.append(attendee['displayName'])
+                    else:
+                        attendees_list_display_names.append("no Display Name found")
                     resource_list.append({'email': attendee['email']})
 
             if len(resource_location_name) > 1:
