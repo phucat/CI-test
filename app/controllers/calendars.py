@@ -619,14 +619,24 @@ class Calendars(Controller):
                         logging.info('OLD_RESOURCE_LOCATION: %s' % resource_params['old_resourceCommonName'])
                         resource_list.append({'email': resource_params['new_email']})
                     else:
-                        resource_location_name.append(attendee['displayName'])
+                        if hasattr(attendee, 'displayName'):
+                            resource_location_name.append(attendee['displayName'])
+                        elif hasattr(attendee, 'email'):
+                            resource_location_name.append(attendee['email'])
+                        else:
+                            resource_location_name.append("no name found")
+
                         resource_list.append({'email': attendee['email']})
                 else:
                     attendees_list.append(attendee['email'])
+
                     if hasattr(attendee, 'displayName'):
                         attendees_list_display_names.append(attendee['displayName'])
+                    elif hasattr(attendee, 'email'):
+                        attendees_list_display_names.append(attendee['email'])
                     else:
-                        attendees_list_display_names.append("no Display Name found")
+                        attendees_list_display_names.append("no name found")
+
                     resource_list.append({'email': attendee['email']})
 
             if len(resource_location_name) > 1:
