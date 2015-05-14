@@ -4,6 +4,9 @@ queue:
   bucket_size: 10
   max_concurrent_requests:
   retry_parameters:
+    min_backoff_seconds: 10
+    max_backoff_seconds: 200
+    max_doublings: 3
     task_retry_limit: 10
 
 - name: uiUpdateResource
@@ -11,6 +14,9 @@ queue:
   bucket_size: 10
   max_concurrent_requests:
   retry_parameters:
+    min_backoff_seconds: 10
+    max_backoff_seconds: 200
+    max_doublings: 3
     task_retry_limit: 10
 
 - name: processUpdateResource
@@ -18,6 +24,9 @@ queue:
   bucket_size: 10
   max_concurrent_requests:
   retry_parameters:
+    min_backoff_seconds: 10
+    max_backoff_seconds: 200
+    max_doublings: 3
     task_retry_limit: 10
 
 - name: uiRemoveUsers
@@ -25,6 +34,9 @@ queue:
   bucket_size: 10
   max_concurrent_requests:
   retry_parameters:
+    min_backoff_seconds: 10
+    max_backoff_seconds: 200
+    max_doublings: 3
     task_retry_limit: 10
 
 - name: updateUserStatus
@@ -32,6 +44,9 @@ queue:
   bucket_size: 10
   max_concurrent_requests:
   retry_parameters:
+    min_backoff_seconds: 10
+    max_backoff_seconds: 200
+    max_doublings: 3
     task_retry_limit: 10
 
 - name: getResourceEvent
@@ -39,6 +54,9 @@ queue:
   bucket_size: 10
   max_concurrent_requests:
   retry_parameters:
+    min_backoff_seconds: 10
+    max_backoff_seconds: 200
+    max_doublings: 3
     task_retry_limit: 10
 
 - name: getAllEvents
@@ -46,6 +64,9 @@ queue:
   bucket_size: 10
   max_concurrent_requests:
   retry_parameters:
+    min_backoff_seconds: 10
+    max_backoff_seconds: 200
+    max_doublings: 3
     task_retry_limit: 10
 
 
@@ -54,6 +75,9 @@ queue:
   bucket_size: 10
   max_concurrent_requests:
   retry_parameters:
+    min_backoff_seconds: 10
+    max_backoff_seconds: 200
+    max_doublings: 3
     task_retry_limit: 10
 
 - name: filterAttendees
@@ -61,6 +85,9 @@ queue:
   bucket_size: 10
   max_concurrent_requests:
   retry_parameters:
+    min_backoff_seconds: 10
+    max_backoff_seconds: 200
+    max_doublings: 3
     task_retry_limit: 10
 
 - name: eventOwner
@@ -68,6 +95,9 @@ queue:
   bucket_size: 10
   max_concurrent_requests:
   retry_parameters:
+    min_backoff_seconds: 10
+    max_backoff_seconds: 200
+    max_doublings: 3
     task_retry_limit: 10
 
 - name: filterLocation
@@ -75,6 +105,9 @@ queue:
   bucket_size: 10
   max_concurrent_requests:
   retry_parameters:
+    min_backoff_seconds: 10
+    max_backoff_seconds: 200
+    max_doublings: 3
     task_retry_limit: 10
 
 - name: sendEventNotification
@@ -82,6 +115,9 @@ queue:
   bucket_size: 10
   max_concurrent_requests:
   retry_parameters:
+    min_backoff_seconds: 10
+    max_backoff_seconds: 200
+    max_doublings: 3
     task_retry_limit: 10
 
 - name: taskDeletingUsers
@@ -89,6 +125,9 @@ queue:
   bucket_size: 10
   max_concurrent_requests:
   retry_parameters:
+    min_backoff_seconds: 10
+    max_backoff_seconds: 200
+    max_doublings: 3
     task_retry_limit: 10
 
 - name: processDeletedAccount
@@ -96,18 +135,27 @@ queue:
   bucket_size: 10
   max_concurrent_requests: 5
   retry_parameters:
+    min_backoff_seconds: 10
+    max_backoff_seconds: 200
+    max_doublings: 3
     task_retry_limit: 10
 
 - name: sharded1
-  rate: 4/s
+  rate: 3/s
   bucket_size: 5
   max_concurrent_requests: 4
   retry_parameters:
+    min_backoff_seconds: 10
+    max_backoff_seconds: 200
+    max_doublings: 3
     task_retry_limit: 10
 
 - name: sharded2
-  rate: 4/s
+  rate: 3/s
   bucket_size: 5
   max_concurrent_requests: 4
   retry_parameters:
+    min_backoff_seconds: 10
+    max_backoff_seconds: 200
+    max_doublings: 3
     task_retry_limit: 10

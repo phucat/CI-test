@@ -1,6 +1,7 @@
 import httplib2, logging, urllib2
 from apiclient.discovery import build
 from apiclient import errors
+from ferris import retries
 from plugins import service_account
 from ferris.core import settings
 
@@ -125,6 +126,13 @@ def create_event(email, post):
     #     return create_event(email, post)
 
 
+# We want to try try try or die
+def test_retry(e):
+    return True
+
+
+# Get our host object so we can work with FTP
+@retries(3, test_retry, 4, 8)
 def update_event(event_id, email, post, sendNotifications):
     logging.info('calendar: update_event')
     logging.info('Updating Google event: [' + event_id + '].')
