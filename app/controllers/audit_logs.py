@@ -31,8 +31,10 @@ class AuditLogs(Controller):
         now = datetime.now()
         local_now = time_util.localize(now, tz=dateutil.tz.tzoffset(None, tz_offset*60*60))
         tomorrow = local_now + timedelta(days=1)
-        fromdate = time_util.localize(datetime(now.year, now.month, now.day, 0, 0, 0), tz=dateutil.tz.tzoffset(None, 0))
+        weeks = now - timedelta(weeks=2)
+        fromdate = time_util.localize(datetime(weeks.year, weeks.month, weeks.day, 0, 0, 0), tz=dateutil.tz.tzoffset(None, 0))
         todate = time_util.localize(datetime(tomorrow.year, tomorrow.month, tomorrow.day, 0, 0, 0), tz=dateutil.tz.tzoffset(None, 0))
+
         logging.info("RANGE: %s %s " % (fromdate, todate))
         out = StringIO.StringIO()
         logs = AuditLogModel.fetch_date_range(fromdate, todate)
@@ -82,8 +84,8 @@ class AuditLogs(Controller):
 
     @route_with(template='/api/auditlogs/generate/report/csv/<key>')
     def api_generate_report_csv(self, key):
-        fields = ['Timestamp','The action performed', 'How the action was invoked',
-        'What App User invoked the action', 'Targetted user or resource', 'Target event altered', 'Comment']
+        fields = ['Timestamp', 'The action performed', 'How the action was invoked',
+                  'What App User invoked the action', 'Targetted user or resource', 'Target event altered', 'Comment']
 
         now = datetime.now()
 

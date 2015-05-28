@@ -619,23 +619,23 @@ class Calendars(Controller):
                         logging.info('OLD_RESOURCE_LOCATION: %s' % resource_params['old_resourceCommonName'])
                         resource_list.append({'email': resource_params['new_email']})
                     else:
-                        if hasattr(attendee, 'displayName'):
+                        if 'displayName' in attendee:
                             resource_location_name.append(attendee['displayName'])
-                        elif hasattr(attendee, 'email'):
+                        elif 'email' in attendee:
                             resource_location_name.append(attendee['email'])
                         else:
-                            resource_location_name.append("no name found")
+                            resource_location_name.append('no name found')
 
                         resource_list.append({'email': attendee['email']})
                 else:
                     attendees_list.append(attendee['email'])
 
-                    if hasattr(attendee, 'displayName'):
+                    if 'displayName' in attendee:
                         attendees_list_display_names.append(attendee['displayName'])
-                    elif hasattr(attendee, 'email'):
+                    elif 'email' in attendee:
                         attendees_list_display_names.append(attendee['email'])
                     else:
-                        attendees_list_display_names.append("no name found")
+                        attendees_list_display_names.append('no name found')
 
                     resource_list.append({'email': attendee['email']})
 
@@ -701,7 +701,7 @@ class Calendars(Controller):
         logging.info('SEND UPDATE_NOTIF_BODY: %s' % params_body)
         calendar_api.update_event(event['id'], user_email, params_body, False)
         params_body['attendees'] = resource_list
-        calendar_api.update_event(event['id'], user_email, params_body, True)
+        calendar_api.update_event(event['id'], user_email, params_body, False)
 
         if user_email == update_event['organizerEmail']:
             sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
