@@ -5,11 +5,103 @@ from ferris import retries
 from plugins import service_account
 from ferris.core import settings
 
-scopes = (
-    'https://www.googleapis.com/auth/calendar'
-    )
+scopes = ('https://www.googleapis.com/auth/calendar')
+res_scopes = ('https://www.googleapis.com/auth/admin.directory.resource.calendar')
 
 DEVELOPER_KEY = settings.get('oauth2_service_account')['developer_key']
+ADMIN_EMAIL = settings.get('oauth2_service_account')['default_user']
+
+
+# Calendar Resource
+def resource_build_client(user):
+    logging.info('calendar: build_client')
+    try:
+        http = httplib2.Http()
+        credentials = service_account.build_credentials(res_scopes, user)
+        credentials.authorize(http)
+        service = build('admin', 'directory_v1', http=http)
+        return service
+    except urllib2.HTTPError, err:
+        logging.info('build_client HTTPError!')
+        logging.info(str(err))
+        return build_client(user)
+
+
+def get_resources(calendarResourceId=None):
+    logging.info('calendar: get_all_events')
+    response = None
+    try:
+
+        directory = resource_build_client(ADMIN_EMAIL)
+        param = {'customer': 'my_customer', 'calendarResourceId': calendarResourceId}
+
+        resources = directory.resources().calendars().update(**param).execute()
+        response = resources
+
+    except urllib2.HTTPError, err:
+        logging.info('update_resources: HTTPerror')
+        logging.info(err)
+        pass
+
+    return response
+
+
+def list_resources(page_token=None):
+    logging.info('calendar: get_all_events')
+    response = None
+    try:
+        directory = resource_build_client(ADMIN_EMAIL)
+
+        param = {'customer': 'my_customer', 'pageToken': page_token}
+
+        resources = directory.resources().calendars().list(**param).execute()
+        response = resources
+        page_token = resources.get('nextPageToken')
+
+    except urllib2.HTTPError, err:
+        logging.info('get_all_resources: HTTPerror')
+        logging.info(err)
+        pass
+
+    return response, page_token
+
+
+def create_resources(post=None):
+    logging.info('calendar: get_all_events')
+    response = None
+    try:
+        directory = resource_build_client(ADMIN_EMAIL)
+
+        param = {'customer': 'my_customer', 'body': post}
+
+        resources = directory.resources().calendars().insert(**param).execute()
+        response = resources
+
+    except urllib2.HTTPError, err:
+        logging.info('create_resources: HTTPerror')
+        logging.info(err)
+        pass
+
+    return response
+
+
+def update_resources(calendarResourceId=None, post=None):
+    logging.info('calendar: get_all_events')
+    response = None
+    try:
+        directory = resource_build_client(ADMIN_EMAIL)
+        param = {'customer': 'my_customer', 'calendarResourceId': calendarResourceId, 'body': post}
+
+        resources = directory.resources().calendars().update(**param).execute()
+        response = resources
+
+    except urllib2.HTTPError, err:
+        logging.info('update_resources: HTTPerror')
+        logging.info(err)
+        pass
+
+    return response
+# Calendar Resource
 
 
 def build_client(user):

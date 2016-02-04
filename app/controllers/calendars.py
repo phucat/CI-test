@@ -8,7 +8,6 @@ from google.appengine.api import users, app_identity, urlfetch, memcache
 from gdata.calendar_resource.client import CalendarResourceClient
 from gdata.gauth import OAuth2TokenFromCredentials as CreateToken
 from app.etc import build_creds
-import xml.etree.ElementTree as ET
 import json
 import time
 import datetime
@@ -69,30 +68,11 @@ class Calendars(Controller):
     def api_list_resource(self, feed):
         data = {}
 
-        creds = build_creds.build_credentials(
-            scope=[
-                "https://apps-apis.google.com/a/feeds/calendar/resource/"
-            ],
-            service_account_name=oauth_config['client_email'],
-            private_key=oauth_config['private_key'],
-            user=oauth_config['default_user']
-        )
-        auth2token = CreateToken(creds)
-        client = CalendarResourceClient(domain=oauth_config['domain'])
-        auth2token.authorize(client)
+        res, nextpage = calendar_api.list_resources(page_token=feed)
 
-        if feed == 'feed':
-            calendar_resources = str(client.GetResourceFeed())
-        else:
-            calendar_resources = str(client.GetResourceFeed(
-                uri="https://apps-apis.google.com/a/feeds/calendar/resource/2.0/%s/?%s" % (
-                    oauth_config['domain'], feed)))
-
-        nextpage, res = self.components.calendars.find_resource(calendar_resources)
         data['items'] = res
         data['next'] = nextpage
         data['previous'] = None
-        data['page'] = "start=%s" % res[0]['resourceId']
 
         self.context['data'] = data
 
@@ -105,17 +85,6 @@ class Calendars(Controller):
     def api_create_resource(self):
         resultMessage = {}
         current_user = users.get_current_user()
-        creds = build_creds.build_credentials(
-            scope=[
-                "https://apps-apis.google.com/a/feeds/calendar/resource/"
-            ],
-            service_account_name=oauth_config['client_email'],
-            private_key=oauth_config['private_key'],
-            user=oauth_config['default_user']
-        )
-        auth2token = CreateToken(creds)
-        client = CalendarResourceClient(domain=oauth_config['domain'])
-        auth2token.authorize(client)
 
         resource = json.loads(self.request.body)
         logging.info('create_resource: %s' % resource)
@@ -136,14 +105,14 @@ class Calendars(Controller):
             else:
                 resourceDescription = None
 
-            calendar_resource = client.CreateResource(
-                resource_id=resource['resourceId'],
-                resource_common_name=resource['resourceCommonName'],
-                resource_description=resourceDescription,
-                resource_type=resource['resourceType'])
-
-            res = self.components.calendars.find_resource(str(calendar_resource))
-            logging.info('create_resource_result: %s' % res)
+            params_body = {
+                'resourceId': resource['resourceId'],
+                'resourceName': resource['resourceCommonName'],
+                'resourceDescription': resourceDescription,
+                'resourceType': resource['resourceType']
+            }
+            res = calendar_api.create_resources(post=params_body)
+            logging.info("RESPONSE:: %s" % res)
 
             action = 'A new Calendar Resource has been created'
             insert_audit_log(
@@ -161,8 +130,6 @@ class Calendars(Controller):
                 current_user.email(),
                 resource['resourceCommonName'], None, '')
 
-            # AuditLogModel.new_resource_notification(config['email'], current_user.nickname(), resource)
-
             resultMessage['message'] = action
             resultMessage['items'] = res
             self.context['data'] = resultMessage
@@ -175,27 +142,13 @@ class Calendars(Controller):
     def api_update_resource(self):
         resultMessage = {}
         try:
-            current_user = users.get_current_user()
-            creds = build_creds.build_credentials(
-                scope=[
-                    "https://apps-apis.google.com/a/feeds/calendar/resource/"
-                ],
-                service_account_name=oauth_config['client_email'],
-                private_key=oauth_config['private_key'],
-                user=oauth_config['default_user']
-            )
-            auth2token = CreateToken(creds)
-            client = CalendarResourceClient(domain=oauth_config['domain'])
-            auth2token.authorize(client)
-
             resource = json.loads(self.request.body)
             logging.info('json_resource_update_result: %s' % resource)
 
-            check_resource = client.GetResource(resource_id=resource['resourceId'])
-            check_result = self.components.calendars.find_resource(str(check_resource))
+            check_result = calendar_api.get_resource(calendarResourceId=resource['resourceId'])
             logging.info(
-                'OLD: %s | CHECK: %s ' % (resource['old_resourceCommonName'], check_result[0]['resourceCommonName']))
-            if resource['old_resourceCommonName'] != check_result[0]['resourceCommonName']:
+                'OLD: %s | CHECK: %s ' % (resource['old_resourceCommonName'], check_result['resourceCommonName']))
+            if resource['old_resourceCommonName'] != check_result['resourceCommonName']:
                 return 402
 
             if 'resourceDescription' not in resource:
@@ -203,24 +156,23 @@ class Calendars(Controller):
             else:
                 resource['resourceDescription']
 
-            client.UpdateResource(
-                resource_id=resource['resourceId'],
-                resource_common_name=resource['resourceCommonName'],
-                resource_description=resource['resourceDescription'],
-                resource_type=resource['resourceType'])
+            params_body = {
+                'resourceName': resource['resourceCommonName'],
+                'resourceDescription': resource['resourceDescription'],
+                'resourceType': resource['resourceType']
+            }
+
+            calendar_api.update_resources(calendarResourceId=resource['resourceId'], post=params_body)
 
             logging.info('calendar_resource_name: %s' % resource['resourceCommonName'])
 
-            calendar_resource_email = client.GetResource(resource_id=resource['resourceId'])
-            logging.info('calendar_resource_email: %s' % calendar_resource_email)
-
-            res = self.components.calendars.find_resource(str(calendar_resource_email))
+            res = calendar_api.get_resource(calendarResourceId=resource['resourceId'])
             logging.info('resource_update_result: %s' % res)
 
             resultMessage['message'] = 'The app is in the process of updating the calendar.'
             resultMessage['items'] = res
             self.context['data'] = resultMessage
-            resource['new_email'] = res[0]['resourceEmail']
+            resource['new_email'] = res['resourceEmail']
             sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
             deferred.defer(self.process_update_resource, resource, current_user.email(), _queue=sharded)
         except urllib2.HTTPError as e:
@@ -883,33 +835,6 @@ def remove_owner_failed(event, user_email, selectedEmail, current_user_email):
     logging.info('User to be removed: %s' % (selectedEmail))
 
     DeprovisionedAccount.remove_owner_failed_notification(selectedEmail, event['summary'], event['htmlLink'])
-
-
-def find_resource(resource):
-    res = []
-    nextpage = ''
-    root = ET.fromstring(resource)
-    if root.tag == '{http://www.w3.org/2005/Atom}feed':
-        for link in root.iterfind('{http://www.w3.org/2005/Atom}link'):
-            if link.get('rel') == 'next':
-                nextpage = link.get('href')
-
-        for entry in root.iterfind('{http://www.w3.org/2005/Atom}entry'):
-            param = {}
-            for child in entry.getchildren():
-                label = ['resourceId', 'resourceCommonName', 'resourceDescription', 'resourceType', 'resourceEmail']
-                if (child.get('name') in label):
-                    param[child.get('name')] = child.get('value')
-            res.append(param)
-        return nextpage, res
-    else:
-        param = {}
-        for child in root.getchildren():
-            label = ['resourceId', 'resourceCommonName', 'resourceDescription', 'resourceType', 'resourceEmail']
-            if (child.get('name') in label):
-                param[child.get('name')] = child.get('value')
-        res.append(param)
-        return res
 
 
 def generate_random_numbers(n):
