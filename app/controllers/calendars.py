@@ -5,9 +5,6 @@ from app.models.user_removal import UserRemoval
 from app.components.calendars import Calendars
 from google.appengine.ext import deferred
 from google.appengine.api import users, app_identity, urlfetch, memcache
-from gdata.calendar_resource.client import CalendarResourceClient
-from gdata.gauth import OAuth2TokenFromCredentials as CreateToken
-from app.etc import build_creds
 import json
 import time
 import datetime
