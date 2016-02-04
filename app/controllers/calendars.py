@@ -94,7 +94,7 @@ class Calendars(Controller):
 
             logging.info('resource_list: %s' % resource_list)
             for apiResource in resource_list:
-                if apiResource['resourceCommonName'] == resource['resourceCommonName']:
+                if apiResource['resourceName'] == resource['resourceName']:
                     return 402
 
             if 'resourceDescription' in resource:
@@ -104,7 +104,7 @@ class Calendars(Controller):
 
             params_body = {
                 'resourceId': resource['resourceId'],
-                'resourceName': resource['resourceCommonName'],
+                'resourceName': resource['resourceName'],
                 'resourceDescription': resourceDescription,
                 'resourceType': resource['resourceType']
             }
@@ -120,12 +120,12 @@ class Calendars(Controller):
                     Resource Description: %s """
                 % (
                     resource['resourceId'],
-                    resource['resourceCommonName'],
+                    resource['resourceName'],
                     resource['resourceType'],
                     resourceDescription),
                 'add new resource',
                 current_user.email(),
-                resource['resourceCommonName'], None, '')
+                resource['resourceName'], None, '')
 
             resultMessage['message'] = action
             resultMessage['items'] = res
@@ -142,10 +142,10 @@ class Calendars(Controller):
             resource = json.loads(self.request.body)
             logging.info('json_resource_update_result: %s' % resource)
 
-            check_result = calendar_api.get_resource(calendarResourceId=resource['resourceId'])
+            check_result = calendar_api.get_resources(calendarResourceId=resource['resourceId'])
             logging.info(
-                'OLD: %s | CHECK: %s ' % (resource['old_resourceCommonName'], check_result['resourceCommonName']))
-            if resource['old_resourceCommonName'] != check_result['resourceCommonName']:
+                'OLD: %s | CHECK: %s ' % (resource['old_resourceName'], check_result['resourceName']))
+            if resource['old_resourceName'] != check_result['resourceName']:
                 return 402
 
             if 'resourceDescription' not in resource:
@@ -154,16 +154,16 @@ class Calendars(Controller):
                 resource['resourceDescription']
 
             params_body = {
-                'resourceName': resource['resourceCommonName'],
+                'resourceName': resource['resourceName'],
                 'resourceDescription': resource['resourceDescription'],
                 'resourceType': resource['resourceType']
             }
 
             calendar_api.update_resources(calendarResourceId=resource['resourceId'], post=params_body)
 
-            logging.info('calendar_resource_name: %s' % resource['resourceCommonName'])
+            logging.info('calendar_resource_name: %s' % resource['resourceName'])
 
-            res = calendar_api.get_resource(calendarResourceId=resource['resourceId'])
+            res = calendar_api.get_resources(calendarResourceId=resource['resourceId'])
             logging.info('resource_update_result: %s' % res)
 
             resultMessage['message'] = 'The app is in the process of updating the calendar.'
@@ -187,14 +187,14 @@ class Calendars(Controller):
                 Resource Type: %s
                 Resource Description: %s """
             % (
-                resource['old_resourceCommonName'],
+                resource['old_resourceName'],
                 resource['resourceId'],
-                resource['resourceCommonName'],
+                resource['resourceName'],
                 resource['resourceType'],
                 resource['resourceDescription']),
             'resource manager',
             current_user,
-            '%s resource name' % resource['old_resourceCommonName'],
+            '%s resource name' % resource['old_resourceName'],
             '-', '')
 
         users_email = google_directory.get_all_users_cached()
@@ -562,10 +562,10 @@ class Calendars(Controller):
             for attendee in event['attendees']:
                 if 'resource' in attendee:
                     if attendee['email'] == selectedEmail:
-                        resource_location_name.append(resource_params['resourceCommonName'])
+                        resource_location_name.append(resource_params['resourceName'])
                         logging.info('RESOURCE_DISPLAY_NAME: %s' % selectedEmail)
-                        logging.info('NEW_RESOURCE_LOCATION: %s' % resource_params['resourceCommonName'])
-                        logging.info('OLD_RESOURCE_LOCATION: %s' % resource_params['old_resourceCommonName'])
+                        logging.info('NEW_RESOURCE_LOCATION: %s' % resource_params['resourceName'])
+                        logging.info('OLD_RESOURCE_LOCATION: %s' % resource_params['old_resourceName'])
                         resource_list.append({'email': resource_params['new_email']})
                     else:
                         if 'displayName' in attendee:
@@ -601,11 +601,11 @@ class Calendars(Controller):
 
         sharded = "sharded" + ("1" if int(time.time()) % 2 == 0 else "2")
 
-        if resource_params['resourceCommonName'] != resource_params['old_resourceCommonName']:
+        if resource_params['resourceName'] != resource_params['old_resourceName']:
             logging.info('NEW_LOCATION: %s' % new_location)
             params_body = {
                 'location': new_location,
-                'old_resourceName': resource_params['old_resourceCommonName'],
+                'old_resourceName': resource_params['old_resourceName'],
                 'attendees': attendees_list,
                 'reminders': {'overrides': [{'minutes': 15, 'method': 'popup'}], 'useDefault': 'false'},
                 'start': event['start'],
@@ -667,15 +667,15 @@ class Calendars(Controller):
                     Resource Name: %s
                     Resource Type: %s
                     Resource Description: %s """
-                % (params['resource']['old_resourceCommonName'],
+                % (params['resource']['old_resourceName'],
                    params['summary'],
                    params['resource']['resourceId'],
-                   params['resource']['resourceCommonName'],
+                   params['resource']['resourceName'],
                    params['resource']['resourceType'],
                    params['resource']['resourceDescription']),
                 'resource manager',
                 current_user_email,
-                '%s resource name' % params['resource']['old_resourceCommonName'],
+                '%s resource name' % params['resource']['old_resourceName'],
                 'Calendar of %s on event %s.' % (params['user_email'], params['summary']), '')
 
             logging.info('DATE: %s ' % str(datetime.date.today()))

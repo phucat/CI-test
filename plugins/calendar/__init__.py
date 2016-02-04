@@ -35,7 +35,7 @@ def get_resources(calendarResourceId=None):
         directory = resource_build_client(ADMIN_EMAIL)
         param = {'customer': 'my_customer', 'calendarResourceId': calendarResourceId}
 
-        resources = directory.resources().calendars().update(**param).execute()
+        resources = directory.resources().calendars().get(**param).execute()
         response = resources
 
     except urllib2.HTTPError, err:

@@ -1,8 +1,9 @@
 from ferris import settings
 from google.appengine.api import memcache, app_identity
-from gdata.calendar_resource.client import CalendarResourceClient
-from gdata.gauth import OAuth2TokenFromCredentials as CreateToken
-from app.etc import build_creds
+from plugins import calendar as calendar_api
+# from gdata.calendar_resource.client import CalendarResourceClient
+# from gdata.gauth import OAuth2TokenFromCredentials as CreateToken
+# from app.etc import build_creds
 import xml.etree.ElementTree as ET
 oauth_config = settings.get('oauth2_service_account')
 APP_ID = app_identity.get_application_id()
@@ -14,30 +15,26 @@ class Calendars(object):
         self.controller = controller
 
     def list_resource_memcache(self):
-        params = {}
         result = []
         nextpage = None
         # client = CalendarResourceClient(domain=oauth_config['domain'])
         # client.ClientLogin(email=oauth_config['default_user'], password=oauth_config['password'], source=APP_ID)
 
-        creds = build_creds.build_credentials(
-            scope=[
-                "https://apps-apis.google.com/a/feeds/calendar/resource/"
-            ],
-            service_account_name=oauth_config['client_email'],
-            private_key=oauth_config['private_key'],
-            user=oauth_config['default_user']
-        )
-        auth2token = CreateToken(creds)
-        client = CalendarResourceClient(domain=oauth_config['domain'])
-        auth2token.authorize(client)
+        # creds = build_creds.build_credentials(
+        #     scope=[
+        #         "https://apps-apis.google.com/a/feeds/calendar/resource/"
+        #     ],
+        #     service_account_name=oauth_config['client_email'],
+        #     private_key=oauth_config['private_key'],
+        #     user=oauth_config['default_user']
+        # )
+        # auth2token = CreateToken(creds)
+        # client = CalendarResourceClient(domain=oauth_config['domain'])
+        # auth2token.authorize(client)
 
         while True:
-            if nextpage:
-                params['uri'] = nextpage
 
-            calendar_resources = str(client.GetResourceFeed(**params))
-            nextpage, res = self.find_resource(calendar_resources)
+            res, nextpage = calendar_api.list_resources(page_token=nextpage)
 
             for resource in res:
                 result.append(dict(
@@ -47,7 +44,7 @@ class Calendars(object):
             if not nextpage:
                 break
 
-        sortedResource = sorted(result, key=lambda resource: resource['resourceCommonName'])
+        sortedResource = sorted(result, key=lambda resource: resource['resourceName'])
 
         memcache.add('resource_list', sortedResource, 600)
         return sortedResource
