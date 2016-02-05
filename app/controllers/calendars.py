@@ -67,7 +67,7 @@ class Calendars(Controller):
 
         res, nextpage = calendar_api.list_resources(page_token=feed)
 
-        data['items'] = res
+        data['items'] = res['items']
         data['next'] = nextpage
         data['previous'] = None
 
