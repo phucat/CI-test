@@ -17,7 +17,7 @@ def resource_build_client(user):
     logging.info('calendar: build_client')
     try:
         http = httplib2.Http()
-        credentials = service_account.build_credentials(res_scopes, user)
+        credentials = service_account.build_credentials(res_scopes)
         credentials.authorize(http)
         service = build('admin', 'directory_v1', http=http)
         return service
@@ -52,11 +52,17 @@ def list_resources(page_token=None):
     try:
         directory = resource_build_client(ADMIN_EMAIL)
 
-        param = {'customer': 'my_customer', 'pageToken': page_token}
+        param = {'customer': 'my_customer'}
+
+        if page_token:
+            param['pageToken'] = page_token
 
         resources = directory.resources().calendars().list(**param).execute()
         response = resources
         page_token = resources.get('nextPageToken')
+
+        if not page_token:
+            page_token = None
 
     except urllib2.HTTPError, err:
         logging.info('get_all_resources: HTTPerror')
