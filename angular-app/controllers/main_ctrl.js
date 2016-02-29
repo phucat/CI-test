@@ -52,7 +52,6 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
 
             if (data.items) $scope.calendar_resources = data.items;
             else $scope.calendar_resources = [];
-            console.log(feed);
             if(previous_list.indexOf(data.page)==-1) previous_list.push(data.page);
 
 
@@ -60,27 +59,23 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
 
                 current_page = previous_list.indexOf(data.page)-1;
                 console.log('current_page:',current_page);
-                console.log(typeof previous_list[current_page]);
                 if(previous_list.indexOf(data.page)==-1) previous_list.push(data.page);
                 else previous_start = previous_list[current_page];
 
-                console.log('previous_list:',previous_list);
-                console.log('previous_start:',previous_start);
+                /*console.log('previous_list:',previous_list);
+                console.log('previous_start:',previous_start);*/
                 if (previous_start)
                 {
                     $scope.previous_page = previous_start;
                 }
             }
             else{
-                // if (data.previous) $scope.previous_page = data.previous;
                 $scope.previous_page = '';
             }
 
             if (data.next) $scope.next_page = data.next;
             else $scope.next_page = '';
 
-            console.log('previous',data.previous);
-            console.log('Next',data.next);
         }).error(function(data, status, headers, config){
             $scope.calendar_resources = [];
         });
@@ -130,10 +125,10 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
                 promise.then(
                 function(d){
                     for (var i = old_resource.length - 1; i >= 0; i--) {
-                        if (old_resource[i].resourceId == d.data.items[0].resourceId){
-                            old_resource[i].resourceCommonName = d.data.items[0].resourceCommonName;
-                            old_resource[i].resourceDescription = d.data.items[0].resourceDescription;
-                            old_resource[i].resourceType = d.data.items[0].resourceType;
+                        if (old_resource[i].resourceId == d.data.items.resourceId){
+                            old_resource[i].resourceName = d.data.items.resourceName;
+                            old_resource[i].resourceDescription = d.data.items.resourceDescription;
+                            old_resource[i].resourceType = d.data.items.resourceType;
                         }
                     }
                     $scope.calendar_resources = old_resource;
@@ -190,8 +185,8 @@ angular.module('app.controllers').controller('MainCtrl', function($log, $window,
     $scope.on_show = function(){
         $scope.model.title = $rootScope.model.action || '';
         $scope.model.resourceId = $rootScope.model.resourceId || '';
-        $scope.model.resourceCommonName = $scope.model.resourceCommonName || $rootScope.model.resourceCommonName;
-        $scope.model.old_resourceCommonName = $rootScope.model.resourceCommonName || '';
+        $scope.model.resourceName = $scope.model.resourceName || $rootScope.model.resourceName;
+        $scope.model.old_resourceName = $rootScope.model.resourceName || '';
         $scope.model.old_resourceType = $rootScope.model.resourceType || '';
         $scope.model.old_resourceDescription = $rootScope.model.resourceDescription || '';
         $scope.model.resourceType = $scope.model.resourceType || $rootScope.model.resourceType;
