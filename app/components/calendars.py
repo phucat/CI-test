@@ -50,7 +50,7 @@ class Calendars(object):
     #         for entry in root.iterfind('{http://www.w3.org/2005/Atom}entry'):
     #             param = {}
     #             for child in entry.getchildren():
-    #                 label = ['resourceId', 'resourceCommonName', 'resourceDescription', 'resourceType', 'resourceEmail']
+    #                 label = ['resourceId', 'resourceName', 'resourceDescription', 'resourceType', 'resourceEmail']
     #                 if (child.get('name') in label):
     #                     param[child.get('name')] = child.get('value')
     #             res.append(param)
@@ -58,7 +58,7 @@ class Calendars(object):
     #     else:
     #         param = {}
     #         for child in root.getchildren():
-    #             label = ['resourceId', 'resourceCommonName', 'resourceDescription', 'resourceType', 'resourceEmail']
+    #             label = ['resourceId', 'resourceName', 'resourceDescription', 'resourceType', 'resourceEmail']
     #             if (child.get('name') in label):
     #                 param[child.get('name')] = child.get('value')
     #         res.append(param)
