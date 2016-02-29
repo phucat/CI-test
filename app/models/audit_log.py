@@ -123,7 +123,7 @@ class AuditLog(BasicModel):
     #         Resource Description: %s
     #
     #         Thank You.
-    #     """ % (name, resource['resourceId'], resource['resourceCommonName'], resource['resourceType'], resource['resourceDescription'])
+    #     """ % (name, resource['resourceId'], resource['resourceName'], resource['resourceType'], resource['resourceDescription'])
     #
     #     mail.send_mail(oauth_config['default_user'], email, subject, body)
 
@@ -164,7 +164,7 @@ class AuditLog(BasicModel):
             Link: %s
 
          - Arista IT
-        """ % (resource['resourceCommonName'], datetime_f, event_name, attendee_list, event_link)
+        """ % (resource['resourceName'], datetime_f, event_name, attendee_list, event_link)
 
         logging.debug('test01')
         mail.send_mail(oauth_config['default_user'], email, subject, body)
