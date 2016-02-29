@@ -65,11 +65,14 @@ class Calendars(Controller):
     def api_list_resource(self, feed):
         data = {}
 
+        if feed == 'feed':
+            feed = None
         res, nextpage = calendar_api.list_resources(page_token=feed)
 
         data['items'] = res['items']
         data['next'] = nextpage
         data['previous'] = None
+        data['page'] = "feed" if feed == None else feed
 
         self.context['data'] = data
 
@@ -142,11 +145,12 @@ class Calendars(Controller):
             resource = json.loads(self.request.body)
             logging.info('json_resource_update_result: %s' % resource)
 
-            check_result = calendar_api.get_resources(calendarResourceId=resource['resourceId'])
+            # check_result = calendar_api.get_resources(calendarResourceId=resource['resourceId'])
+            # logging.info('get_resources: %s' % check_result)
             logging.info(
-                'OLD: %s | CHECK: %s ' % (resource['old_resourceName'], check_result['resourceName']))
-            if resource['old_resourceName'] != check_result['resourceName']:
-                return 402
+                'OLD: %s | CHECK: %s ' % (resource['old_resourceName'], resource['resourceName']))
+            # if resource['old_resourceName'] != resource['resourceName']:
+            #     return 402
 
             if 'resourceDescription' not in resource:
                 resource['resourceDescription'] = ''
@@ -154,6 +158,7 @@ class Calendars(Controller):
                 resource['resourceDescription']
 
             params_body = {
+                'resourceId': resource['resourceId'],
                 'resourceName': resource['resourceName'],
                 'resourceDescription': resource['resourceDescription'],
                 'resourceType': resource['resourceType']
