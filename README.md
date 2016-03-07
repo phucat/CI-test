@@ -1,4 +1,4 @@
-Google Calendar Development Arista Networks
+Google Calendar Development Networks
 ===========================================
 
 The purpose of this engagement is to deliver an application for the IT staff to push updates to Customer’s Google Calendar environment. The following Google Calendar elements will be updated within this application:
@@ -6,7 +6,7 @@ The purpose of this engagement is to deliver an application for the IT staff to 
 Resource Information
 Event Participants
 
-The application will be made available as a web application to specific users within the Arista domain. Authentication and access will be controlled by a Google Group. The primary objectives of this application are to ensure Calendar Resource information updates are pushed to existing Calendar entries and to remove event participants from a Calendar entry once the corresponding user is removed from the Google Environment.
+The application will be made available as a web application to specific users within the domain. Authentication and access will be controlled by a Google Group. The primary objectives of this application are to ensure Calendar Resource information updates are pushed to existing Calendar entries and to remove event participants from a Calendar entry once the corresponding user is removed from the Google Environment.
 
 Quick Start Guide
 =================
